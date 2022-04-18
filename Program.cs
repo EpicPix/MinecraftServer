@@ -31,9 +31,8 @@ while (true)
         if (packetId == 0)
         {
             var info = JsonSerializer.Serialize(serverInfo);
-            await connection.WriteVarInt(info.Length + 1);
+            await connection.WriteVarInt(info.Length + connection.GetVarIntLength(info.Length) + 1);
             await connection.WriteVarInt(0);
-            Console.WriteLine(info);
             await connection.WriteString(info, 32767);
             await connection.Flush();
         }

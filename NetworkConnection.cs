@@ -120,4 +120,19 @@ public class NetworkConnection
         await _writer.FlushAsync();
     }
 
+    public int GetVarIntLength(int value)
+    {
+        int len = 0;
+        while (true)
+        {
+            len++;
+            if ((value & ~0x7F) == 0)
+            {
+                return len;
+            }
+            
+            value >>= 7;
+        }
+    }
+
 }
