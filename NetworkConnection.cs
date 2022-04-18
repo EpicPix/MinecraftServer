@@ -24,7 +24,7 @@ public class NetworkConnection
         _writer = new AsyncBinaryWriter(stream);
     }
 
-    public async Task writeUByte(byte value)
+    public async Task WriteUByte(byte value)
     {
         await _writer.WriteAsync(value);
     }
@@ -43,8 +43,8 @@ public class NetworkConnection
 
     public async Task WriteUShort(ushort value)
     {
-        await writeUByte((byte) (value >> 8));
-        await writeUByte((byte) value);
+        await WriteUByte((byte) (value >> 8));
+        await WriteUByte((byte) value);
     }
 
     public async Task<ulong> ReadULong()
@@ -61,14 +61,14 @@ public class NetworkConnection
 
     public async Task WriteULong(ulong value)
     {
-        await writeUByte((byte) (value >> 56));
-        await writeUByte((byte) (value >> 48));
-        await writeUByte((byte) (value >> 40));
-        await writeUByte((byte) (value >> 32));
-        await writeUByte((byte) (value >> 24));
-        await writeUByte((byte) (value >> 16));
-        await writeUByte((byte) (value >> 8));
-        await writeUByte((byte) value);
+        await WriteUByte((byte) (value >> 56));
+        await WriteUByte((byte) (value >> 48));
+        await WriteUByte((byte) (value >> 40));
+        await WriteUByte((byte) (value >> 32));
+        await WriteUByte((byte) (value >> 24));
+        await WriteUByte((byte) (value >> 16));
+        await WriteUByte((byte) (value >> 8));
+        await WriteUByte((byte) value);
     }
 
     public async Task<string> ReadString(ushort max)
@@ -118,11 +118,11 @@ public class NetworkConnection
         {
             if ((value & ~0x7F) == 0)
             {
-                await writeUByte((byte) value);
+                await WriteUByte((byte) value);
                 return;
             }
             
-            await writeUByte((byte) ((value & 0x7F) | 0x80));
+            await WriteUByte((byte) ((value & 0x7F) | 0x80));
             value >>= 7;
         }
     }

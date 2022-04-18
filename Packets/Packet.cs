@@ -1,44 +1,32 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace MinecraftServer.Packets;
 
-public interface Packet
+public abstract class Packet
 {
-    public PacketType Type { get; }
-    public PacketSide Side { get; }
-    public uint Id { get; }
+    public abstract PacketType Type { get; }
+    public abstract PacketSide Side { get; }
+    public abstract uint Id { get; }
 
-    private static List<Packet>? _packets;
-    
-    internal static IEnumerable<Type> GetAvailablePackets(Assembly assembly)
-    {
-        foreach (var type in assembly.GetTypes())
+    private static List<Packet> _packets = new ();
+
+    static Packet() {
+        foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
         {
-            if (type != typeof(Packet) && type != typeof(Packet<>) && typeof(Packet).IsAssignableFrom(type))
+            if (type != typeof(Packet) && type != typeof(Packet<,>) && typeof(Packet).IsAssignableFrom(type))
             {
-                yield return type;
+                var inst = Activator.CreateInstance(type);
+                if (inst != null)
+                {
+                    _packets.Add((Packet) inst);
+                }
             }
         }
     }
-    
-    internal static void LoadPackets()
-    {
-        _packets = new List<Packet>();
 
-        foreach (var type in GetAvailablePackets(Assembly.GetExecutingAssembly()))
-        {
-            var inst = Activator.CreateInstance(type);
-            if (inst != null)
-            {
-                _packets.Add((Packet) inst);
-            }
-        }
-    }
-    
-    static Packet GetPacket(PacketType type, PacketSide side, uint id)
+    public static Packet GetPacket(PacketType type, PacketSide side, uint id)
     {
-        if(_packets == null) LoadPackets();
-        if (_packets == null) throw new NullReferenceException("Packets are null");
         foreach (var packet in _packets)
         {
             if (packet.Type == type && packet.Side == side && packet.Id == id)
@@ -50,10 +38,8 @@ public interface Packet
         throw new ArgumentException($"Unknown packet {type} at {side} with id {id}");
     }
 
-    static T GetPacket<T>() where T : Packet
+    public static T GetPacket<T>() where T : Packet
     {
-        if(_packets == null) LoadPackets();
-        if (_packets == null) throw new NullReferenceException("Packets are null");
         foreach (var packet in _packets)
         {
             if (packet.GetType() == typeof(T))
@@ -67,11 +53,21 @@ public interface Packet
     
 }
 
-public interface Packet<T> : Packet where T : PacketData
+public abstract class Packet<T, R> : Packet, ISendable<T> where R : Packet<T, R> where T : PacketData
 {
-    public Task<T> ReadPacket(NetworkConnection stream);
-    public Task WritePacket(NetworkConnection stream, T data);
+    public abstract Task<T> ReadPacket(NetworkConnection stream);
+    public abstract Task WritePacket(NetworkConnection stream, T data);
 
+    public static async ValueTask SendPacket(T data, NetworkConnection connection)
+    {
+        using var stream = new MemoryStream();
+        var packet = GetPacket<R>();
+        await packet.WritePacket(new NetworkConnection(stream), data);
+        await connection.WriteVarInt((int)stream.Length + 1);
+        await connection.WriteVarInt((int)packet.Id);
+        await connection.WriteBytes(stream.GetBuffer());
+        await connection.Flush();
+    }
 }
 
 public enum PacketSide
@@ -86,5 +82,3 @@ public enum PacketType
     Login = 2,
     Play = 3
 }
-
-public class PacketData {}

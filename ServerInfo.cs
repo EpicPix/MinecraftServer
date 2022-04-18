@@ -1,11 +1,10 @@
 namespace MinecraftServer;
 
-public struct ServerInfo
+public record struct ServerInfo
 {
-
-    public VersionInfo version { get; }
-    public PlayerInfo players { get; }
-    public DescriptionInfo description { get; }
+    public VersionInfo version { get; init; }
+    public PlayerInfo players { get; init; }
+    public DescriptionInfo description { get; init; }
     public string favicon { get; }
 
     public ServerInfo()
@@ -16,7 +15,7 @@ public struct ServerInfo
         favicon = "";
     }
     
-    public struct VersionInfo
+    public record struct VersionInfo
     {
         public string name { get; set; } = "1.18.2";
         public int protocol { get; set; } = 758;
@@ -24,7 +23,7 @@ public struct ServerInfo
         public VersionInfo() { }
     };
 
-    public struct PlayerInfo
+    public record struct PlayerInfo
     {
         public int max { get; set; } = 10;
         public int online { get; set; } = 0;
@@ -36,13 +35,13 @@ public struct ServerInfo
         }
     }
 
-    public struct PlayerSampleInfo
+    public record struct PlayerSampleInfo
     {
         public string name { get; }
         public Guid id { get; }
     }
 
-    public struct DescriptionInfo
+    public record struct DescriptionInfo
     {
         public string text { get; set; } = "idk";
         
