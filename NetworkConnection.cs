@@ -11,6 +11,12 @@ public class NetworkConnection
     private readonly AsyncBinaryReader _reader;
     private readonly AsyncBinaryWriter _writer;
     
+    public NetworkConnection(MemoryStream stream)
+    {
+        _reader = new AsyncBinaryReader(stream);
+        _writer = new AsyncBinaryWriter(stream);
+    }
+    
     public NetworkConnection(Socket socket)
     {
         var stream = new NetworkStream(socket);
@@ -33,6 +39,12 @@ public class NetworkConnection
         var high = (ushort) await ReadUByte();
         var low = (ushort) await ReadUByte();
         return (ushort) (high << 8 | low);
+    }
+
+    public async Task WriteUShort(ushort value)
+    {
+        await writeUByte((byte) (value >> 8));
+        await writeUByte((byte) value);
     }
 
     public async Task<ulong> ReadULong()
@@ -113,6 +125,11 @@ public class NetworkConnection
             await writeUByte((byte) ((value & 0x7F) | 0x80));
             value >>= 7;
         }
+    }
+
+    public async Task WriteBytes(byte[] bytes)
+    {
+        await _writer.WriteAsync(bytes);
     }
 
     public async Task Flush()

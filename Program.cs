@@ -1,50 +1,60 @@
 ﻿using System.Net;
 using System.Net.Sockets;
-using System.Text.Json;
 using MinecraftServer;
+using MinecraftServer.Packets;
+
+
 
 var serverInfo = new ServerInfo();
-
 
 var server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 server.Bind(new IPEndPoint(IPAddress.Any, 25565));
 server.Listen();
+
+static async Task SendPacket<T,R>(NetworkConnection connection, R data) where T : Packet<R> where R : PacketData
+{
+    var stream = new MemoryStream();
+    var packet = Packet.GetPacket<T>();
+    await packet.WritePacket(new NetworkConnection(stream), data);
+    await connection.WriteVarInt((int) stream.Length + 1);
+    await connection.WriteVarInt((int) packet.Id);
+    await connection.WriteBytes(stream.GetBuffer());
+    await connection.Flush();
+}
 
 while (true)
 {
     var client = await server.AcceptAsync();
     NetworkConnection connection = new NetworkConnection(client);
     await connection.ReadVarInt(); // packet length
-    await connection.ReadVarInt(); // packet id
-    
-    var protocolVersion = await connection.ReadVarInt();
-    var serverIp = await connection.ReadString(255);
-    var serverPort = await connection.ReadUShort();
-    var nextState = await connection.ReadVarInt();
-    
-    Console.WriteLine($"Protocol version: {protocolVersion} / Server IP: {serverIp} / Server Port: {serverPort} / Next State: {nextState}");
 
-    if (nextState == 1)
+    var packet = (HandshakeClient) Packet.GetPacket(PacketType.Handshake, PacketSide.Client, (uint) await connection.ReadVarInt());
+    var handshake = await packet.ReadPacket(connection);
+
+    Console.WriteLine($"Protocol version: {handshake.ProtocolVersion} / Server IP: {handshake.ServerIp} / Server Port: {handshake.ServerPort} / Next State: {handshake.NextState}");
+
+    if (handshake.NextState == 1)
     {
         await connection.ReadVarInt(); // packet length
-        var packetId = await connection.ReadVarInt();
-        if (packetId == 0)
+        
+        var handshakePackets = Packet.GetPacket(PacketType.Status, PacketSide.Client, (uint) await connection.ReadVarInt());
+        
+        if (handshakePackets is Packet<PacketData> req) 
+            await req.ReadPacket(connection);
+
+        if (handshakePackets is StatusRequestClient)
         {
-            var info = JsonSerializer.Serialize(serverInfo);
-            await connection.WriteVarInt(info.Length + connection.GetVarIntLength(info.Length) + 1);
-            await connection.WriteVarInt(0);
-            await connection.WriteString(info, 32767);
-            await connection.Flush();
+            await SendPacket<StatusResponseServer, StatusResponsePacketData>(connection, new(serverInfo));
         }
+        
         await connection.ReadVarInt();
-        packetId = await connection.ReadVarInt();
-        if (packetId == 1)
+        
+        handshakePackets = Packet.GetPacket(PacketType.Status, PacketSide.Client, (uint) await connection.ReadVarInt());
+
+        if (handshakePackets is StatusPingClient ping)
         {
-            await connection.WriteVarInt(8 + 1); // length
-            await connection.WriteVarInt(1);
-            var v = await connection.ReadULong();
-            await connection.WriteULong(v);
-            await connection.Flush();
+            var pingData = await ping.ReadPacket(connection);
+            await SendPacket<StatusPongClient, StatusPingPacketData>(connection, pingData);
         }
     }
     
