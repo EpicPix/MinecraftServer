@@ -25,8 +25,8 @@ public class Microbenchmarks
     }
     
     [Benchmark]
-    public async ValueTask SerializePacketPerformance()
+    public void SerializePacketPerformance()
     {
-        await TestPacket.SendPacket(TestPacketData, NullOutput);
+        TestPacket.SendPacket(TestPacketData, NullOutput);
     }
 }

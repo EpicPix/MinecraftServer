@@ -9,7 +9,6 @@
 
     <ItemGroup>
       <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
-      <PackageReference Include="Overby.Extensions.AsyncBinaryReaderWriter" Version="1.0.39" />
     </ItemGroup>
 
 </Project>

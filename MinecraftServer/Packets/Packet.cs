@@ -69,7 +69,7 @@ public abstract class Packet
     public abstract PacketData ReadPacket(NetworkConnection stream);
     
     public abstract void WritePacket(NetworkConnection stream, PacketData data);
-    public async ValueTask SendPacket(PacketData data, NetworkConnection connection)
+    public void SendPacket(PacketData data, NetworkConnection connection)
     {
         using var stream = new MemoryStream();
         WritePacket(new NetworkConnection(stream), data);
@@ -80,17 +80,17 @@ public abstract class Packet
     }
 }
 
-public abstract class Packet<R, T> : Packet where T : Packet<R, T> where R : PacketData
+public abstract class Packet<TPacket, TPacketData> : Packet where TPacket : Packet<TPacket, TPacketData> where TPacketData : PacketData
 {
-    public static ValueTask Send(R data, NetworkConnection connection)
+    public static void Send(TPacketData data, NetworkConnection connection)
     {
-        var packet = GetPacket<T>();
-        return packet.SendPacket(data, connection);
+        var packet = GetPacket<TPacket>();
+        packet.SendPacket(data, connection);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static R Of(PacketData data){
-        return (R)data;
+    public static TPacketData Of(PacketData data){
+        return (TPacketData) data;
     }
 }
 

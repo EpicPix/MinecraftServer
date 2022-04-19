@@ -2,7 +2,7 @@ using MinecraftServer.Packets.Serverbound.Data;
 
 namespace MinecraftServer.Packets.Clientbound;
 
-public class ScStatusPong : Packet<CsStatusPingPacketData, ScStatusPong>
+public class ScStatusPong : Packet<ScStatusPong, CsStatusPingPacketData>
 {
     public override PacketType Type => PacketType.Status;
     public override PacketSide Side => PacketSide.Server;

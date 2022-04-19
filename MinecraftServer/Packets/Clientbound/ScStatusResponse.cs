@@ -3,7 +3,7 @@ using MinecraftServer.Packets.Clientbound.Data;
 
 namespace MinecraftServer.Packets.Clientbound;
 
-public class ScStatusResponse : Packet<ScStatusResponsePacketData, ScStatusResponse>
+public class ScStatusResponse : Packet<ScStatusResponse, ScStatusResponsePacketData>
 {
     public override PacketType Type => PacketType.Status;
     public override PacketSide Side => PacketSide.Server;

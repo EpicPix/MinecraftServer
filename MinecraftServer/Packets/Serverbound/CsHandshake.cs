@@ -2,7 +2,7 @@ using MinecraftServer.Packets.Serverbound.Data;
 
 namespace MinecraftServer.Packets.Serverbound;
 
-public class CsHandshake : Packet<CsHandshakePacketData, CsHandshake>
+public class CsHandshake : Packet<CsHandshake, CsHandshakePacketData>
 {
     public override PacketType Type => PacketType.Handshake;
     public override PacketSide Side => PacketSide.Client;

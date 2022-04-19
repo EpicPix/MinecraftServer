@@ -7,7 +7,7 @@ namespace MinecraftServer.Packets;
 
 public static class PacketHandler
 {
-    public static async Task HandlePacket(Server server, NetworkConnection connection, Packet packet)
+    public static void HandlePacket(Server server, NetworkConnection connection, Packet packet)
     {
         var data = packet.ReadPacket(connection);
 
@@ -25,9 +25,9 @@ public static class PacketHandler
                 throw new NotSupportedException($"Unsupported packet type {handshake.NextState}");
             }
         }else if (packet is CsStatusRequest) {
-            await ScStatusResponse.Send(new (server.ServerInfo), connection);
+            ScStatusResponse.Send(new (server.ServerInfo), connection);
         }else if (packet is CsStatusPing && data is CsStatusPingPacketData pingData) {
-            await ScStatusPong.Send(pingData, connection);
+            ScStatusPong.Send(pingData, connection);
             connection.Connected = false;
         } else
         {

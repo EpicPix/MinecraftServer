@@ -1,6 +1,6 @@
 namespace MinecraftServer.Packets.Serverbound;
 
-public class CsStatusRequest : Packet<PacketData, CsStatusRequest>
+public class CsStatusRequest : Packet<CsStatusRequest, PacketData>
 {
     public override PacketType Type => PacketType.Status;
     public override PacketSide Side => PacketSide.Client;
