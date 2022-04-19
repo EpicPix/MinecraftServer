@@ -38,4 +38,16 @@ public class Utils
             return b.ToString("x").TrimStart('0');
         }
     }
+    
+    public static async ValueTask FillBytes(ArraySegment<byte> toRead, Stream stream)
+    {
+        int remLen = toRead.Count;
+        int pos = 0;
+        while (remLen > 0)
+        {
+            int read = await stream.ReadAsync(toRead.Slice(pos, remLen));
+            pos += read;
+            remLen -= read;
+        }
+    }
 }

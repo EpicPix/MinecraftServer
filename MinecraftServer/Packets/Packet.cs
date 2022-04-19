@@ -11,7 +11,6 @@ public abstract class Packet
     public abstract uint Id { get; }
 
     private static List<Packet> _packets = new ();
-    private static readonly RecyclableMemoryStreamManager manager = new RecyclableMemoryStreamManager();
 
     static Packet() {
         foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
@@ -58,7 +57,7 @@ public abstract class Packet
     public abstract ValueTask WritePacket(NetworkConnection stream, PacketData data);
     public async ValueTask SendPacket(PacketData data, NetworkConnection connection)
     {
-        using var stream = manager.GetStream();
+        using var stream = Server.MS_MANAGER.GetStream();
         await WritePacket(new NetworkConnection(stream), data);
         await connection.WriteVarInt((int)stream.Length + 1);
         await connection.WriteVarInt((int)Id);

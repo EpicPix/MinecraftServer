@@ -1,7 +1,9 @@
 using System.Buffers;
 using System.Formats.Asn1;
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using Microsoft.IO;
 using MinecraftServer.Packets;
 using MinecraftServer.Packets.Handlers;
 
@@ -9,11 +11,13 @@ namespace MinecraftServer;
 
 public class Server
 {
+    public static readonly RecyclableMemoryStreamManager MS_MANAGER = new RecyclableMemoryStreamManager();
     public ServerInfo ServerInfo { get; }
     public volatile List<NetworkConnection> ActiveConnections;
     public bool OnlineMode { get; } = false;
     internal RSA? RsaServer { get; }
     internal byte[]? ServerPublicKey { get; }
+    public const int MaxPacketSize = 2097151;
 
     public Server(bool isOnline = true)
     {
@@ -43,7 +47,14 @@ public class Server
         {
             if (conn.IsCompressed)
             {
-                // ignored for now
+                // var fullLength = await conn.ReadVarInt();
+                // var dataLength = await conn.ReadVarInt();
+                // var packet = PooledArray.Allocate(fullLength);
+                // await conn.ReadBytes(packet);
+                // using var ms = new MemoryStream(packet.Data.Array);
+                // using var deflate = new DeflateStream(ms, CompressionMode.Decompress);
+                // var decompPacket = PooledArray.Allocate(dataLength);
+                // await Utils.FillBytes(decompPacket.Data, deflate);
             }
             else
             {

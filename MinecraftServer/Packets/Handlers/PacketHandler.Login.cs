@@ -45,8 +45,13 @@ public static partial class PacketHandler
         connection.Encrypt();
         Console.WriteLine(@"Stream is now encrypted");
 
+        // await ScLoginSetCompression.Send(new ScLoginSetCompressionPacketData(Server.MaxPacketSize), connection);
+        // connection.IsCompressed = true;
+        
         await ScLoginLoginSuccess.Send(
             new ScLoginLoginSuccessPacketData(connection.PlayerProfile.Uuid, connection.PlayerProfile.name), connection);
+
+        connection.CurrentState = PacketType.Play;
     }
 
     public static async ValueTask HandleLoginStart(Server server, NetworkConnection connection, CsLoginLoginStartPacketData data)
@@ -57,6 +62,9 @@ public static partial class PacketHandler
             await ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(Utils.GuidFromString($"OfflinePlayer:{connection.Username}"), connection.Username), connection);
             connection.CurrentState = PacketType.Play;
 
+            // await ScLoginSetCompression.Send(new ScLoginSetCompressionPacketData(Server.MaxPacketSize), connection);
+            // connection.IsCompressed = true;
+            
             await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
             // ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);
             // ScLoginDisconnect.Send(new ScLoginDisconnectPacketData(new ChatComponent($"{loginData.Name}")), connection);

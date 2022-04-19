@@ -154,16 +154,9 @@ public class NetworkConnection : IDisposable
         await _writeStream.WriteAsync(bytes);
     }
 
-    public async ValueTask ReadBytes(ArraySegment<byte> toRead)
+    public ValueTask ReadBytes(ArraySegment<byte> toRead)
     {
-        int remLen = toRead.Count;
-        int pos = 0;
-        while (remLen > 0)
-        {
-            int read = await _readStream.ReadAsync(toRead.Slice(pos, remLen));
-            pos += read;
-            remLen -= read;
-        }
+        return Utils.FillBytes(toRead, _readStream);
     }
     
     public ValueTask ReadBytes(PooledArray toRead)
