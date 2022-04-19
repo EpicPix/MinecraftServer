@@ -39,7 +39,14 @@ public static partial class PacketHandler
         {
             throw new Exception("Not authenticated with Mojang");
         }
-        Console.WriteLine(@"Player has connected with info: " + await result.Content.ReadAsStringAsync());
+
+        connection.PlayerProfile = JsonSerializer.Deserialize<GameProfile>(await result.Content.ReadAsStringAsync());
+        Console.WriteLine(@"Player has connected with info: " + JsonSerializer.Serialize(connection.PlayerProfile));
+        connection.Encrypt();
+        Console.WriteLine(@"Stream is now encrypted");
+
+        await ScLoginLoginSuccess.Send(
+            new ScLoginLoginSuccessPacketData(connection.PlayerProfile.Uuid, connection.PlayerProfile.name), connection);
     }
 
     public static async ValueTask HandleLoginStart(Server server, NetworkConnection connection, CsLoginLoginStartPacketData data)
