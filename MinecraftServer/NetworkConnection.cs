@@ -9,12 +9,15 @@ namespace MinecraftServer;
 public class NetworkConnection : IDisposable
 {
 
+    private readonly Socket? _socket;
     private readonly BinaryReader _reader;
     private readonly BinaryWriter _writer;
 
     public PacketType CurrentState = PacketType.Handshake;
     public bool Connected = true;
-    public string Username;
+    public string? Username = null;
+    
+    public bool CanRead => _reader.BaseStream.CanRead;
 
     public NetworkConnection(Stream stream)
     {
@@ -24,6 +27,7 @@ public class NetworkConnection : IDisposable
     
     public NetworkConnection(Socket socket)
     {
+        _socket = socket;
         var stream = new NetworkStream(socket);
         _reader = new BinaryReader(stream);
         _writer = new BinaryWriter(stream);
@@ -181,19 +185,15 @@ public class NetworkConnection : IDisposable
         _writer.Flush();
     }
 
-    public int GetVarIntLength(int value)
+    public void Close()
     {
-        int len = 0;
-        while (true)
+        if (_socket != null)
         {
-            len++;
-            if ((value & ~0x7F) == 0)
-            {
-                return len;
-            }
-            
-            value >>= 7;
+            _socket.Close();
+            return;
         }
+        
+        throw new NullReferenceException("Tried to close a null socket");
     }
 
     public void Dispose()
