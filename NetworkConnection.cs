@@ -1,6 +1,7 @@
 using System.Data;
 using System.Net.Sockets;
 using System.Text;
+using MinecraftServer.Packets;
 using Overby.Extensions.AsyncBinaryReaderWriter;
 
 namespace MinecraftServer;
@@ -10,6 +11,9 @@ public class NetworkConnection
 
     private readonly AsyncBinaryReader _reader;
     private readonly AsyncBinaryWriter _writer;
+
+    public PacketType CurrentState = PacketType.Handshake;
+    public bool Connected = true;
     
     public NetworkConnection(MemoryStream stream)
     {

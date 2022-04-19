@@ -38,6 +38,19 @@ public abstract class Packet
         throw new ArgumentException($"Unknown packet {type} at {side} with id {id}");
     }
 
+    // public static Packet GetPacket(Type t)
+    // {
+    //     foreach (var packet in _packets)
+    //     {
+    //         if (packet.GetType() == t)
+    //         {
+    //             return packet;
+    //         }
+    //     }
+
+    //     throw new ArgumentException($"Unknown packet of type {t}");
+    // }
+
     public static T GetPacket<T>() where T : Packet
     {
         foreach (var packet in _packets)
@@ -51,22 +64,26 @@ public abstract class Packet
         throw new ArgumentException($"Unknown packet of type {typeof(T)}");
     }
     
+    public abstract Task<PacketData> ReadPacket(NetworkConnection stream);
+    public abstract Task WritePacket(NetworkConnection stream, PacketData data);
 }
 
-public abstract class Packet<T, R> : Packet where R : Packet<T, R> where T : PacketData
+public abstract class Packet<R, T> : Packet where T : Packet<R, T> where R : PacketData
 {
-    public abstract Task<T> ReadPacket(NetworkConnection stream);
-    public abstract Task WritePacket(NetworkConnection stream, T data);
-
-    public static async ValueTask SendPacket(T data, NetworkConnection connection)
+    public static async ValueTask SendPacket(R data, NetworkConnection connection)
     {
         using var stream = new MemoryStream();
-        var packet = GetPacket<R>();
+        var packet = GetPacket<T>();
         await packet.WritePacket(new NetworkConnection(stream), data);
         await connection.WriteVarInt((int)stream.Length + 1);
         await connection.WriteVarInt((int)packet.Id);
         await connection.WriteBytes(stream.GetBuffer());
         await connection.Flush();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static R Of(PacketData data){
+        return (R)data;
     }
 }
 
