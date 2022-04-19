@@ -16,6 +16,7 @@ public static partial class PacketHandler
             connection.CurrentState = PacketType.Play;
 
             ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
+            // ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);
             // ScLoginDisconnect.Send(new ScLoginDisconnectPacketData(new ChatComponent($"{loginData.Name}")), connection);
             // connection.Connected = false;
             return;
