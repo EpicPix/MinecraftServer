@@ -60,7 +60,7 @@ public abstract class Packet
     public abstract void WritePacket(NetworkConnection stream, PacketData data);
     public void SendPacket(PacketData data, NetworkConnection connection)
     {
-        using var stream = new MemoryStream();
+        using var stream = manager.GetStream();
         using var binaryWriter = new BinaryWriter(stream);
         WritePacket(new NetworkConnection(null, NullReader, binaryWriter), data);
         connection.WriteVarInt((int)stream.Length + 1);
