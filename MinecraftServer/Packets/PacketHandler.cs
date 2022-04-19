@@ -1,8 +1,7 @@
-using MinecraftServer.Packets.Clientbound;
+using MinecraftServer.Packets.Clientbound.Play;
 using MinecraftServer.Packets.Clientbound.Data;
 using MinecraftServer.Packets.Clientbound.Login;
 using MinecraftServer.Packets.Clientbound.Status;
-using MinecraftServer.Packets.Serverbound;
 using MinecraftServer.Packets.Serverbound.Data;
 using MinecraftServer.Packets.Serverbound.Handshake;
 using MinecraftServer.Packets.Serverbound.Login;
@@ -40,6 +39,9 @@ public static class PacketHandler
         {
             connection.Username = loginData.Name;
             ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(Utils.GuidFromString($"OfflinePlayer:{connection.Username}"), connection.Username), connection);
+            connection.CurrentState = PacketType.Play;
+
+            ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
             
             // ScLoginDisconnect.Send(new ScLoginDisconnectPacketData(new ChatComponent($"{loginData.Name}")), connection);
             // connection.Connected = false;

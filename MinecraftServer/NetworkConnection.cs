@@ -49,6 +49,27 @@ public class NetworkConnection : IDisposable
         throw new NullReferenceException("Tried to read packet while there is no packet in progress");
     }
 
+    public void WriteBool(bool value)
+    {
+        Span<byte> r = stackalloc byte[1];
+        r[0] = (byte) (value ? 1 : 0);
+        if (Writer != null) 
+            Writer.Write(r);
+        else 
+            Socket?.Send(r);
+    }
+
+    public bool ReadBool()
+    {
+        Span<byte> r = stackalloc byte[1];
+        if (Reader != null)
+            Reader.Read(r);
+        else
+            Socket?.Receive(r);
+
+        return r[0] != 0;
+    }
+
     public void WriteUByte(byte value)
     {
         Span<byte> r = stackalloc byte[1];
@@ -90,6 +111,40 @@ public class NetworkConnection : IDisposable
             Writer.Write(r);
         else 
             Socket?.Send(r);
+    }
+
+    public int ReadInt()
+    {
+        Span<byte> r = stackalloc byte[4];
+        if (Reader != null)
+            Reader.Read(r);
+        else
+            Socket?.Receive(r);
+        
+        return r[0] << 24 | r[1] << 16 | r[2] << 8 | r[3];
+    }
+
+    public void WriteInt(int value)
+    {
+        Span<byte> r = stackalloc byte[4];
+        r[0] = (byte) (value >> 24);
+        r[1] = (byte) (value >> 16);
+        r[2] = (byte) (value >> 8);
+        r[3] = (byte) value;
+        if (Writer != null) 
+            Writer.Write(r);
+        else 
+            Socket?.Send(r);
+    }
+
+    public void WriteFloat(float value)
+    {
+        WriteInt(BitConverter.SingleToInt32Bits(value));
+    }
+
+    public void WriteDouble(double value)
+    {
+        WriteULong(BitConverter.DoubleToUInt64Bits(value));
     }
 
     public Guid ReadUUID()
@@ -202,6 +257,12 @@ public class NetworkConnection : IDisposable
         }
 
         WriteVarInt(str.Length);
+        Writer?.Write(Encoding.UTF8.GetBytes(str));
+    }
+
+    public void WriteStringShort(string str)
+    {
+        WriteUShort((ushort) str.Length);
         Writer?.Write(Encoding.UTF8.GetBytes(str));
     }
     
