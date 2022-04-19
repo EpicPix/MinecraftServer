@@ -1,4 +1,5 @@
 using MinecraftServer.Packets;
+using MinecraftServer.Packets.Handlers;
 
 namespace MinecraftServer;
 
@@ -8,6 +9,7 @@ public class Server
     public Thread ServerThread { get; }
     public volatile List<NetworkConnection> Connections;
     public List<NetworkConnection> DeadConnections;
+    public bool OnlineMode { get; } = false;
 
     public Server()
     {

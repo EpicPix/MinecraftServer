@@ -7,9 +7,9 @@ using MinecraftServer.Packets.Serverbound.Handshake;
 using MinecraftServer.Packets.Serverbound.Login;
 using MinecraftServer.Packets.Serverbound.Status;
 
-namespace MinecraftServer.Packets;
+namespace MinecraftServer.Packets.Handlers;
 
-public static class PacketHandler
+public static partial class PacketHandler
 {
     public static void HandlePacket(Server server, NetworkConnection connection, Packet packet)
     {
@@ -28,24 +28,21 @@ public static class PacketHandler
             {
                 throw new NotSupportedException($"Unsupported packet type {handshake.NextState}");
             }
-        }else if (packet is CsStatusRequest)
+        }
+        else if (packet is CsStatusRequest)
         {
             ScStatusResponse.Send(new (server.ServerInfo), connection);
-        }else if (packet is CsStatusPing && data is CsStatusPingPacketData pingData)
+        }
+        else if (packet is CsStatusPing && data is CsStatusPingPacketData pingData)
         {
             ScStatusPong.Send(pingData, connection);
             connection.Connected = false;
-        }else if (packet is CsLoginLoginStart && data is CsLoginLoginStartPacketData loginData)
+        }
+        else if (packet is CsLoginLoginStart && data is CsLoginLoginStartPacketData loginData)
         {
-            connection.Username = loginData.Name;
-            ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(Utils.GuidFromString($"OfflinePlayer:{connection.Username}"), connection.Username), connection);
-            connection.CurrentState = PacketType.Play;
-
-            ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
-            
-            // ScLoginDisconnect.Send(new ScLoginDisconnectPacketData(new ChatComponent($"{loginData.Name}")), connection);
-            // connection.Connected = false;
-        }else
+            HandleLoginStart(server, connection, loginData);
+        }
+        else
         {
             throw new NotImplementedException($"Unsupported packet handler for packet {packet}");
         }
