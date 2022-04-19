@@ -11,4 +11,8 @@
       <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="test.nbt" />
+    </ItemGroup>
+
 </Project>
