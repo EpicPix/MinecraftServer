@@ -2,7 +2,7 @@ namespace MinecraftServer.Nbt;
 
 public class NbtTagByte : NbtTag
 {
-    public byte Id => 3;
+    public byte Id => 1;
 
     public sbyte Byte { get; }
 

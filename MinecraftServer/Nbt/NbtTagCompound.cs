@@ -12,7 +12,7 @@ public class NbtTagCompound : NbtTag
         throw new NotImplementedException();
     }
 
-    public void Write(NetworkConnection writer)
+    public virtual void Write(NetworkConnection writer)
     {
         foreach (var (key, value) in tags)
         {
@@ -24,7 +24,7 @@ public class NbtTagCompound : NbtTag
         writer.WriteUByte(0);
     }
 
-    public NbtTagCompound Set(string key, NbtTag? value)
+    public virtual NbtTagCompound Set(string key, NbtTag? value)
     {
         if (value != null)
         {
@@ -36,32 +36,32 @@ public class NbtTagCompound : NbtTag
         return this;
     }
 
-    public NbtTagCompound SetString(string key, string value)
+    public virtual NbtTagCompound SetString(string key, string value)
     {
         return Set(key, new NbtTagString(value));
     }
 
-    public NbtTagCompound SetByte(string key, sbyte value)
+    public virtual NbtTagCompound SetByte(string key, sbyte value)
     {
         return Set(key, new NbtTagByte(value));
     }
 
-    public NbtTagCompound SetInteger(string key, int value)
+    public virtual NbtTagCompound SetInteger(string key, int value)
     {
         return Set(key, new NbtTagInteger(value));
     }
 
-    public NbtTagCompound SetFloat(string key, float value)
+    public virtual NbtTagCompound SetFloat(string key, float value)
     {
         return Set(key, new NbtTagFloat(value));
     }
 
-    public NbtTagCompound SetDouble(string key, double value)
+    public virtual NbtTagCompound SetDouble(string key, double value)
     {
         return Set(key, new NbtTagDouble(value));
     }
 
-    public NbtTagCompound Remove(string key)
+    public virtual NbtTagCompound Remove(string key)
     {
         tags.Remove(key);
         return this;
