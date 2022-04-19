@@ -36,9 +36,14 @@ public class NetworkConnection : IDisposable
             {
                 throw new InvalidOperationException("Tried to read packet that is already completed");
             }
-            var readAmount = Socket.Receive(packet.Data, (int) packet.Offset, (int) (packet.Data.Length - packet.Offset), 0);
-            packet.Offset += (uint) readAmount;
-            CurrentPacket = packet;
+            var required = (int) (packet.Data.Length - packet.Offset);
+            var read = Math.Min(Socket.Available, required);
+            if (read != 0)
+            {
+                var readAmount = Socket.Receive(packet.Data, (int) packet.Offset, read, 0);
+                packet.Offset += (uint) readAmount;
+                CurrentPacket = packet;
+            }
             return;
         }
         throw new NullReferenceException("Tried to read packet while there is no packet in progress");
