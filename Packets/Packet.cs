@@ -53,7 +53,7 @@ public abstract class Packet
     
 }
 
-public abstract class Packet<T, R> : Packet, ISendable<T> where R : Packet<T, R> where T : PacketData
+public abstract class Packet<T, R> : Packet where R : Packet<T, R> where T : PacketData
 {
     public abstract Task<T> ReadPacket(NetworkConnection stream);
     public abstract Task WritePacket(NetworkConnection stream, T data);
