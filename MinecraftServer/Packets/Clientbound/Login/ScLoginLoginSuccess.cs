@@ -6,7 +6,7 @@ public class ScLoginLoginSuccess : Packet<ScLoginLoginSuccess, ScLoginLoginSucce
 {
 
     public override PacketType Type => PacketType.Login;
-    public override PacketSide Side => PacketSide.Server;
+    public override PacketBound Bound => PacketBound.Client;
     public override uint Id => 2;
 
     public override PacketData ReadPacket(NetworkConnection stream)

@@ -22,7 +22,7 @@ public class Microbenchmarks
     [Benchmark]
     public Packet DynamicGetPacketPerformance()
     {
-        return Packet.GetPacket(TestPacket.Type, TestPacket.Side, TestPacket.Id);
+        return Packet.GetPacket(TestPacket.Type, TestPacket.Bound, TestPacket.Id);
     }
     
     [Benchmark]

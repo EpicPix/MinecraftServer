@@ -6,7 +6,7 @@ public class CsLoginLoginStart : Packet<CsLoginLoginStart, CsLoginLoginStartPack
 {
 
     public override PacketType Type => PacketType.Login;
-    public override PacketSide Side => PacketSide.Client;
+    public override PacketBound Bound => PacketBound.Server;
     public override uint Id => 0;
 
     public override PacketData ReadPacket(NetworkConnection stream)

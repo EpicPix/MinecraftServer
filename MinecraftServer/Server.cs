@@ -77,7 +77,7 @@ public class Server
                 using var binaryReader = new BinaryReader(memory);
                 connection.Reader = binaryReader;
                 
-                var packet = Packet.GetPacket(connection.CurrentState, PacketSide.Client, (uint) connection.ReadVarInt());
+                var packet = Packet.GetPacket(connection.CurrentState, PacketBound.Server, (uint) connection.ReadVarInt());
                 PacketHandler.HandlePacket(this, connection, packet);
 
                 

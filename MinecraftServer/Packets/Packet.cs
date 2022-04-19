@@ -7,7 +7,7 @@ namespace MinecraftServer.Packets;
 public abstract class Packet
 {
     public abstract PacketType Type { get; }
-    public abstract PacketSide Side { get; }
+    public abstract PacketBound Bound { get; }
     public abstract uint Id { get; }
 
     private static List<Packet> _packets = new ();
@@ -27,17 +27,17 @@ public abstract class Packet
         }
     }
 
-    public static Packet GetPacket(PacketType type, PacketSide side, uint id)
+    public static Packet GetPacket(PacketType type, PacketBound Bound, uint id)
     {
         foreach (var packet in _packets)
         {
-            if (packet.Type == type && packet.Side == side && packet.Id == id)
+            if (packet.Type == type && packet.Bound == Bound && packet.Id == id)
             {
                 return packet;
             }
         }
 
-        throw new ArgumentException($"Unknown packet {type} at {side} with id {id}");
+        throw new ArgumentException($"Unknown packet {type} at {Bound} with id {id}");
     }
 
     public static T GetPacket<T>() where T : Packet
@@ -83,9 +83,9 @@ public abstract class Packet<TPacket, TPacketData> : Packet where TPacket : Pack
     }
 }
 
-public enum PacketSide
+public enum PacketBound
 {
-    Client, Server
+    Server, Client
 }
 
 public enum PacketType

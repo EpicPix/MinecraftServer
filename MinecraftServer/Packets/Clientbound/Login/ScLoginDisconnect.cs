@@ -7,7 +7,7 @@ public class ScLoginDisconnect : Packet<ScLoginDisconnect, ScLoginDisconnectPack
 {
 
     public override PacketType Type => PacketType.Login;
-    public override PacketSide Side => PacketSide.Server;
+    public override PacketBound Bound => PacketBound.Client;
     public override uint Id => 0;
 
     public override PacketData ReadPacket(NetworkConnection stream)

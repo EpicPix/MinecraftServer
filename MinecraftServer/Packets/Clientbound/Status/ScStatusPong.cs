@@ -5,7 +5,7 @@ namespace MinecraftServer.Packets.Clientbound.Status;
 public class ScStatusPong : Packet<ScStatusPong, CsStatusPingPacketData>
 {
     public override PacketType Type => PacketType.Status;
-    public override PacketSide Side => PacketSide.Server;
+    public override PacketBound Bound => PacketBound.Client;
     public override uint Id => 1;
 
     public override PacketData ReadPacket(NetworkConnection stream)
