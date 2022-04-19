@@ -1,6 +1,6 @@
 using MinecraftServer.Packets.Serverbound.Data;
 
-namespace MinecraftServer.Packets.Serverbound;
+namespace MinecraftServer.Packets.Serverbound.Login;
 
 public class CsLoginLoginStart : Packet<CsLoginLoginStart, CsLoginLoginStartPacketData>
 {

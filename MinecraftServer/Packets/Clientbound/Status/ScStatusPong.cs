@@ -1,11 +1,11 @@
 using MinecraftServer.Packets.Serverbound.Data;
 
-namespace MinecraftServer.Packets.Serverbound;
+namespace MinecraftServer.Packets.Clientbound.Status;
 
-public class CsStatusPing : Packet<CsStatusPing, CsStatusPingPacketData>
+public class ScStatusPong : Packet<ScStatusPong, CsStatusPingPacketData>
 {
     public override PacketType Type => PacketType.Status;
-    public override PacketSide Side => PacketSide.Client;
+    public override PacketSide Side => PacketSide.Server;
     public override uint Id => 1;
 
     public override PacketData ReadPacket(NetworkConnection stream)

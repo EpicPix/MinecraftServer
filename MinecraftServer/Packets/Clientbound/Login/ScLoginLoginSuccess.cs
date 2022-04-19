@@ -1,6 +1,6 @@
 using MinecraftServer.Packets.Clientbound.Data;
 
-namespace MinecraftServer.Packets.Clientbound;
+namespace MinecraftServer.Packets.Clientbound.Login;
 
 public class ScLoginLoginSuccess : Packet<ScLoginLoginSuccess, ScLoginLoginSuccessPacketData>
 {

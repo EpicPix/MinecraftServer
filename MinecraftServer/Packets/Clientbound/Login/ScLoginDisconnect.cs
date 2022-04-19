@@ -1,7 +1,7 @@
 using System.Text.Json;
 using MinecraftServer.Packets.Clientbound.Data;
 
-namespace MinecraftServer.Packets.Clientbound;
+namespace MinecraftServer.Packets.Clientbound.Login;
 
 public class ScLoginDisconnect : Packet<ScLoginDisconnect, ScLoginDisconnectPacketData>
 {

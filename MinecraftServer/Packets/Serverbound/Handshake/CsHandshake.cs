@@ -1,6 +1,6 @@
 using MinecraftServer.Packets.Serverbound.Data;
 
-namespace MinecraftServer.Packets.Serverbound;
+namespace MinecraftServer.Packets.Serverbound.Handshake;
 
 public class CsHandshake : Packet<CsHandshake, CsHandshakePacketData>
 {

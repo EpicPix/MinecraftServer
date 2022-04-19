@@ -2,6 +2,7 @@
 using MinecraftServer.Packets;
 using MinecraftServer.Packets.Serverbound;
 using MinecraftServer.Packets.Serverbound.Data;
+using MinecraftServer.Packets.Serverbound.Handshake;
 
 namespace MinecraftServer.Benchmarks;
 

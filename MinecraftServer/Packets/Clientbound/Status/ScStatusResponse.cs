@@ -1,7 +1,7 @@
 using System.Text.Json;
 using MinecraftServer.Packets.Clientbound.Data;
 
-namespace MinecraftServer.Packets.Clientbound;
+namespace MinecraftServer.Packets.Clientbound.Status;
 
 public class ScStatusResponse : Packet<ScStatusResponse, ScStatusResponsePacketData>
 {

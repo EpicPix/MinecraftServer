@@ -1,7 +1,12 @@
 using MinecraftServer.Packets.Clientbound;
 using MinecraftServer.Packets.Clientbound.Data;
+using MinecraftServer.Packets.Clientbound.Login;
+using MinecraftServer.Packets.Clientbound.Status;
 using MinecraftServer.Packets.Serverbound;
 using MinecraftServer.Packets.Serverbound.Data;
+using MinecraftServer.Packets.Serverbound.Handshake;
+using MinecraftServer.Packets.Serverbound.Login;
+using MinecraftServer.Packets.Serverbound.Status;
 
 namespace MinecraftServer.Packets;
 

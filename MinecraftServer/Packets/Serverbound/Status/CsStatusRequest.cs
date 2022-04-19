@@ -1,4 +1,4 @@
-namespace MinecraftServer.Packets.Serverbound;
+namespace MinecraftServer.Packets.Serverbound.Status;
 
 public class CsStatusRequest : Packet<CsStatusRequest, PacketData>
 {
