@@ -11,13 +11,13 @@ public class NbtTagByte : NbtTag
         Byte = b;
     }
 
-    public void Read(NetworkConnection reader)
+    public ValueTask Read(NetworkConnection reader)
     {
         throw new NotImplementedException();
     }
 
-    public void Write(NetworkConnection writer)
+    public ValueTask Write(NetworkConnection writer)
     {
-        writer.WriteUByte((byte) Byte);
+        return writer.WriteUByte((byte) Byte);
     }
 }

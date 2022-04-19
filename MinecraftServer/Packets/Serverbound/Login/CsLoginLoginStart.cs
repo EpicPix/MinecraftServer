@@ -9,13 +9,13 @@ public class CsLoginLoginStart : Packet<CsLoginLoginStart, CsLoginLoginStartPack
     public override PacketBound Bound => PacketBound.Server;
     public override uint Id => 0;
 
-    public override PacketData ReadPacket(NetworkConnection stream)
+    public override async ValueTask<PacketData> ReadPacket(NetworkConnection stream)
     {
-        return new CsLoginLoginStartPacketData(stream.ReadString(16));
+        return new CsLoginLoginStartPacketData(await stream.ReadString(16));
     }
 
-    public override void WritePacket(NetworkConnection stream, PacketData data)
+    public override async ValueTask WritePacket(NetworkConnection stream, PacketData data)
     {
-        stream.WriteString(Of(data).Name, 16);
+        await stream.WriteString(Of(data).Name, 16);
     }
 }

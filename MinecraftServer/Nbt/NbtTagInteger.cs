@@ -11,13 +11,13 @@ public class NbtTagInteger : NbtTag
         Integer = i;
     }
 
-    public void Read(NetworkConnection reader)
+    public ValueTask Read(NetworkConnection reader)
     {
         throw new NotImplementedException();
     }
 
-    public void Write(NetworkConnection writer)
+    public ValueTask Write(NetworkConnection writer)
     {
-        writer.WriteInt(Integer);
+        return writer.WriteInt(Integer);
     }
 }

@@ -10,21 +10,21 @@ public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
     public override PacketBound Bound => PacketBound.Server;
     public override uint Id => 0x26;
 
-    public override PacketData ReadPacket(NetworkConnection stream)
+    public override ValueTask<PacketData> ReadPacket(NetworkConnection stream)
     {
         throw new NotImplementedException();
     }
 
-    public override void WritePacket(NetworkConnection stream, PacketData data)
+    public override async ValueTask WritePacket(NetworkConnection stream, PacketData data)
     {
-        stream.WriteInt(0);
-        stream.WriteBool(false);
-        stream.WriteUByte(1);
-        stream.WriteUByte(1);
-        stream.WriteVarInt(1);
-        stream.WriteString("minecraft:overworld", ushort.MaxValue); // identifier
+        await stream.WriteInt(0);
+        await stream.WriteBool(false);
+        await stream.WriteUByte(1);
+        await stream.WriteUByte(1);
+        await stream.WriteVarInt(1);
+        await stream.WriteString("minecraft:overworld", ushort.MaxValue); // identifier
 
-        new NbtTagRoot()
+        await new NbtTagRoot()
             .Set("minecraft:dimension_type", 
                 new NbtTagCompound()
                     .SetString("type", "minecraft:dimension_type")
@@ -52,9 +52,9 @@ public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
                                             .SetByte("ultrawarm", 0)
                                             .SetByte("has_ceiling", 0)
                                     )
-                                )
-                        )
-                )
+                            )
+                    )
+            )
             .Set("minecraft:worldgen/biome", 
                 new NbtTagCompound()
                     .SetString("type", "minecraft:worldgen/biome")
@@ -100,7 +100,7 @@ public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
             )
             .Write(stream);
         
-        new NbtTagRoot()
+        await new NbtTagRoot()
             .SetByte("piglin_safe", 0)
             .SetByte("natural", 1)
             .SetFloat("ambient_light", 1)
@@ -118,14 +118,14 @@ public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
             .SetByte("has_ceiling", 0)
             .Write(stream);
         
-        stream.WriteString("minecraft:overworld", ushort.MaxValue); // identifier
-        stream.WriteULong(0);
-        stream.WriteVarInt(80);
-        stream.WriteVarInt(16);
-        stream.WriteVarInt(16);
-        stream.WriteBool(false);
-        stream.WriteBool(true);
-        stream.WriteBool(false);
-        stream.WriteBool(false);
+        await stream.WriteString("minecraft:overworld", ushort.MaxValue); // identifier
+        await stream.WriteULong(0);
+        await stream.WriteVarInt(80);
+        await stream.WriteVarInt(16);
+        await stream.WriteVarInt(16);
+        await stream.WriteBool(false);
+        await stream.WriteBool(true);
+        await stream.WriteBool(false);
+        await stream.WriteBool(false);
     }
 }

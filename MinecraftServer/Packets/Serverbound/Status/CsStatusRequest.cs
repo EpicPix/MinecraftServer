@@ -6,13 +6,13 @@ public class CsStatusRequest : Packet<CsStatusRequest, PacketData>
     public override PacketBound Bound => PacketBound.Server;
     public override uint Id => 0;
 
-    public override PacketData ReadPacket(NetworkConnection stream)
+    public override ValueTask<PacketData> ReadPacket(NetworkConnection stream)
     {
-        return new PacketData();
+        return new ValueTask<PacketData>(new PacketData());
     }
 
-    public override void WritePacket(NetworkConnection stream, PacketData data)
+    public override ValueTask WritePacket(NetworkConnection stream, PacketData data)
     {
-        
+        return ValueTask.CompletedTask;
     }
 }

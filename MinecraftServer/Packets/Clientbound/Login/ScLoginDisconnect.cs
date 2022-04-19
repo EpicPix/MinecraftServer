@@ -10,9 +10,9 @@ public class ScLoginDisconnect : Packet<ScLoginDisconnect, ScLoginDisconnectPack
     public override PacketBound Bound => PacketBound.Client;
     public override uint Id => 0;
 
-    public override PacketData ReadPacket(NetworkConnection stream)
+    public override async ValueTask<PacketData> ReadPacket(NetworkConnection stream)
     {
-        var chatComponent = JsonSerializer.Deserialize<ChatComponent>(stream.ReadString(ushort.MaxValue));
+        var chatComponent = JsonSerializer.Deserialize<ChatComponent>(await stream.ReadString(ushort.MaxValue));
         if (chatComponent == null)
         {
             throw new NullReferenceException("Deserializing returned null");
@@ -20,10 +20,10 @@ public class ScLoginDisconnect : Packet<ScLoginDisconnect, ScLoginDisconnectPack
         return new ScLoginDisconnectPacketData(chatComponent);
     }
 
-    public override void WritePacket(NetworkConnection stream, PacketData data)
+    public override async ValueTask WritePacket(NetworkConnection stream, PacketData data)
     {
         using var mem = new MemoryStream();
         JsonSerializer.Serialize(mem, Of(data).Reason);
-        stream.WriteBytesLen(mem.GetBuffer(), ushort.MaxValue);
+        await stream.WriteBytesLen(mem.GetBuffer(), ushort.MaxValue);
     }
 }

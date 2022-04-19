@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Formats.Asn1;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -9,9 +10,7 @@ namespace MinecraftServer;
 public class Server
 {
     public ServerInfo ServerInfo { get; }
-    public Thread ServerThread { get; }
-    public volatile List<NetworkConnection> Connections;
-    public List<NetworkConnection> DeadConnections;
+    public volatile List<NetworkConnection> ActiveConnections;
     public bool OnlineMode { get; } = false;
     internal RSA? RsaServer { get; }
     internal byte[]? ServerPublicKey { get; }
@@ -24,11 +23,7 @@ public class Server
             }
         };
 
-        Connections = new();
-        DeadConnections = new();
-        ServerThread = new Thread(run);
-        ServerThread.Name = "Server Thread";
-        ServerThread.Start();
+        ActiveConnections = new();
         OnlineMode = isOnline;
         if (OnlineMode)
         {
@@ -36,67 +31,29 @@ public class Server
             ServerPublicKey = RsaServer.ExportSubjectPublicKeyInfo();
         }
     }
-
-    public void run()
+    public void AddConnection(NetworkConnection connection)
     {
-        while (true)
-        {
-            Thread.Sleep(1);
-            for (int i = 0; i < Connections.Count; i++) // more thread safe
-            {
-                if(Connections[i] != null) UpdateConnection(Connections[i]);
-            }
-
-            foreach (var connection in DeadConnections)
-            {
-                Connections.Remove(connection);
-            }
-            DeadConnections.Clear();
-        }
+        Task.Run(() => HandleConnection(connection));
     }
 
-    private void UpdateConnection(NetworkConnection connection)
+    private async Task HandleConnection(NetworkConnection conn)
     {
-        if (!connection.Connected)
+        ActiveConnections.Add(conn);
+        while (conn.Connected)
         {
-            DeadConnections.Add(connection);
-            return;
-        }
-
-        if (connection.CurrentPacket == null)
-        {
-            var read = (uint) connection.ReadVarIntBytes(out var length);
-            if (read != 0)
+            if (conn.IsCompressed)
             {
-                connection.CurrentPacket = new UncompletedPacket {
-                    Offset = 0,
-                    Data = new byte[length]
-                };
+                // ignored for now
+            }
+            else
+            {
+                var length = await conn.ReadVarInt();
+                var id = await conn.ReadVarInt();
+                var packet = Packet.GetPacket(conn.CurrentState, PacketBound.Server, (uint) id);
+                await PacketHandler.HandlePacket(this, conn, packet);
             }
         }
 
-        if (connection.CurrentPacket != null)
-        {
-            if (connection.CurrentPacket.Value.Offset != connection.CurrentPacket.Value.Data.Length)
-            {
-                connection.ReadPacket();
-            }
-
-            if (connection.CurrentPacket.Value.Offset == connection.CurrentPacket.Value.Data.Length)
-            {
-                var currentReader = connection.Reader;
-
-                using var memory = new MemoryStream(connection.CurrentPacket.Value.Data.ToArray());
-                using var binaryReader = new BinaryReader(memory);
-                connection.Reader = binaryReader;
-                
-                var packet = Packet.GetPacket(connection.CurrentState, PacketBound.Server, (uint) connection.ReadVarInt());
-                PacketHandler.HandlePacket(this, connection, packet);
-
-                
-                connection.Reader = currentReader;
-                connection.CurrentPacket = null;
-            }
-        }
+        ActiveConnections.Remove(conn);
     }
 }

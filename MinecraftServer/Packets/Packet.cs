@@ -52,29 +52,26 @@ public abstract class Packet
 
         throw new ArgumentException($"Unknown packet of type {typeof(T)}");
     }
-
-    private static readonly BinaryReader NullReader = new(Stream.Null);
     
-    public abstract PacketData ReadPacket(NetworkConnection stream);
+    public abstract ValueTask<PacketData> ReadPacket(NetworkConnection stream);
     
-    public abstract void WritePacket(NetworkConnection stream, PacketData data);
-    public void SendPacket(PacketData data, NetworkConnection connection)
+    public abstract ValueTask WritePacket(NetworkConnection stream, PacketData data);
+    public async ValueTask SendPacket(PacketData data, NetworkConnection connection)
     {
         using var stream = manager.GetStream();
-        using var binaryWriter = new BinaryWriter(stream);
-        WritePacket(new NetworkConnection(null, NullReader, binaryWriter), data);
-        connection.WriteVarInt((int)stream.Length + 1);
-        connection.WriteVarInt((int)Id);
-        connection.WriteBytes(stream.GetBuffer());
+        await WritePacket(new NetworkConnection(stream), data);
+        await connection.WriteVarInt((int)stream.Length + 1);
+        await connection.WriteVarInt((int)Id);
+        await connection.WriteBytes(stream.GetBuffer());
     }
 }
 
 public abstract class Packet<TPacket, TPacketData> : Packet where TPacket : Packet<TPacket, TPacketData> where TPacketData : PacketData
 {
-    public static void Send(TPacketData data, NetworkConnection connection)
+    public static async ValueTask Send(TPacketData data, NetworkConnection connection)
     {
         var packet = GetPacket<TPacket>();
-        packet.SendPacket(data, connection);
+        await packet.SendPacket(data, connection);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

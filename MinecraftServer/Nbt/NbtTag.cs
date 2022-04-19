@@ -38,13 +38,13 @@ public interface NbtTag
         throw new NotSupportedException($"Nbt Type {typeof(T)} is not supported");
     }
 
-    public static NbtTag ReadTag(NetworkConnection reader)
+    public static async ValueTask<NbtTag> ReadTag(NetworkConnection reader)
     {
-        byte tag = reader.ReadUByte();
+        byte tag = await reader.ReadUByte();
 
         throw new NotSupportedException($"Nbt Tag {tag} is not supported");
     }
     
-    public void Read(NetworkConnection reader);
-    public void Write(NetworkConnection writer);
+    public ValueTask Read(NetworkConnection reader);
+    public ValueTask Write(NetworkConnection writer);
 }

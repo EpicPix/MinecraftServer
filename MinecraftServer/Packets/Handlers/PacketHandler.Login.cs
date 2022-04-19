@@ -14,7 +14,7 @@ namespace MinecraftServer.Packets.Handlers;
 
 public static partial class PacketHandler
 {
-    public static void HandleEncryptionResponse(Server server, NetworkConnection connection, CsLoginEncryptionResponsePacketData data)
+    public static async ValueTask HandleEncryptionResponse(Server server, NetworkConnection connection, CsLoginEncryptionResponsePacketData data)
     {
         Debug.Assert(server.OnlineMode);
         var decryptedToken = server.RsaServer.Decrypt(data.VerifyToken, RSAEncryptionPadding.Pkcs1);
@@ -22,9 +22,9 @@ public static partial class PacketHandler
         
         connection.EncryptionKey = server.RsaServer.Decrypt(data.SharedSecret, RSAEncryptionPadding.Pkcs1);
         using var ms = new MemoryStream();
-        ms.Write(Encoding.ASCII.GetBytes(""));
-        ms.Write(connection.EncryptionKey);
-        ms.Write(server.ServerPublicKey);
+        await ms.WriteAsync(Encoding.ASCII.GetBytes(""));
+        await ms.WriteAsync(connection.EncryptionKey);
+        await ms.WriteAsync(server.ServerPublicKey);
         var hash = Utils.MinecraftShaDigest(ms.ToArray());
 
         var client = new HttpClient();
@@ -33,26 +33,24 @@ public static partial class PacketHandler
         query["username"] = connection.Username;
         query["serverId"] = hash;
         uriBuilder.Query = query.ToString();
-        var result = client.GetAsync(uriBuilder.ToString()).Result;
+        var result = await client.GetAsync(uriBuilder.ToString());
 
         if ((int)result.StatusCode != 200)
         {
             throw new Exception("Not authenticated with Mojang");
         }
-        Console.WriteLine(@"Player has connected with info: " + result.Content.ReadAsStringAsync().Result);
-        
-        
+        Console.WriteLine(@"Player has connected with info: " + await result.Content.ReadAsStringAsync());
     }
 
-    public static void HandleLoginStart(Server server, NetworkConnection connection, CsLoginLoginStartPacketData data)
+    public static async ValueTask HandleLoginStart(Server server, NetworkConnection connection, CsLoginLoginStartPacketData data)
     {
         connection.Username = data.Name;
         if (!server.OnlineMode)
         {
-            ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(Utils.GuidFromString($"OfflinePlayer:{connection.Username}"), connection.Username), connection);
+            await ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(Utils.GuidFromString($"OfflinePlayer:{connection.Username}"), connection.Username), connection);
             connection.CurrentState = PacketType.Play;
 
-            ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
+            await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
             // ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);
             // ScLoginDisconnect.Send(new ScLoginDisconnectPacketData(new ChatComponent($"{loginData.Name}")), connection);
             // connection.Connected = false;
@@ -61,6 +59,6 @@ public static partial class PacketHandler
 
         connection.VerifyToken = RandomNumberGenerator.GetBytes(4);
         var encryptionReq = new ScLoginEncryptionRequestPacketData("", server.ServerPublicKey, connection.VerifyToken);
-        ScLoginEncryptionRequest.Send(encryptionReq, connection);
+        await ScLoginEncryptionRequest.Send(encryptionReq, connection);
     }
 }

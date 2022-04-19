@@ -11,13 +11,13 @@ public class NbtTagDouble : NbtTag
         Double = d;
     }
 
-    public void Read(NetworkConnection reader)
+    public ValueTask Read(NetworkConnection reader)
     {
         throw new NotImplementedException();
     }
 
-    public void Write(NetworkConnection writer)
+    public ValueTask Write(NetworkConnection writer)
     {
-        writer.WriteDouble(Double);
+        return writer.WriteDouble(Double);
     }
 }

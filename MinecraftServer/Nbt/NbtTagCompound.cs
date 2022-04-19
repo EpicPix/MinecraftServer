@@ -7,21 +7,21 @@ public class NbtTagCompound : NbtTag
     public byte Id => 10;
     private Dictionary<string, NbtTag?> tags = new();
 
-    public void Read(NetworkConnection reader)
+    public ValueTask Read(NetworkConnection reader)
     {
         throw new NotImplementedException();
     }
 
-    public virtual void Write(NetworkConnection writer)
+    public virtual async ValueTask Write(NetworkConnection writer)
     {
         foreach (var (key, value) in tags)
         {
             if (value == null) throw new NullReferenceException("Unexpected null");
-            writer.WriteUByte(value.Id);
-            writer.WriteStringShort(key);
-            value.Write(writer);
+            await writer.WriteUByte(value.Id);
+            await writer.WriteStringShort(key);
+            await value.Write(writer);
         }
-        writer.WriteUByte(0);
+        await writer.WriteUByte(0);
     }
 
     public virtual NbtTagCompound Set(string key, NbtTag? value)

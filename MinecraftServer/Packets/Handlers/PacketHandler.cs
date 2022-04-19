@@ -11,9 +11,9 @@ namespace MinecraftServer.Packets.Handlers;
 
 public static partial class PacketHandler
 {
-    public static void HandlePacket(Server server, NetworkConnection connection, Packet packet)
+    public static async Task HandlePacket(Server server, NetworkConnection connection, Packet packet)
     {
-        var data = packet.ReadPacket(connection);
+        var data = await packet.ReadPacket(connection);
 
         if (packet is CsHandshake && data is CsHandshakePacketData handshake)
         {
@@ -31,20 +31,20 @@ public static partial class PacketHandler
         }
         else if (packet is CsStatusRequest)
         {
-            ScStatusResponse.Send(new (server.ServerInfo), connection);
+            await ScStatusResponse.Send(new (server.ServerInfo), connection);
         }
         else if (packet is CsStatusPing && data is CsStatusPingPacketData pingData)
         {
-            ScStatusPong.Send(pingData, connection);
+            await ScStatusPong.Send(pingData, connection);
             connection.Connected = false;
         }
         else if (packet is CsLoginLoginStart && data is CsLoginLoginStartPacketData loginData)
         {
-            HandleLoginStart(server, connection, loginData);
+            await HandleLoginStart(server, connection, loginData);
         }
         else if (packet is CsLoginEncryptionResponse && data is CsLoginEncryptionResponsePacketData loginEncryptionResponse)
         {
-            HandleEncryptionResponse(server, connection, loginEncryptionResponse);
+            await HandleEncryptionResponse(server, connection, loginEncryptionResponse);
         }
         else
         {

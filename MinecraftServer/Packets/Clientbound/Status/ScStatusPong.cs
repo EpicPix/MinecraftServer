@@ -8,13 +8,13 @@ public class ScStatusPong : Packet<ScStatusPong, CsStatusPingPacketData>
     public override PacketBound Bound => PacketBound.Client;
     public override uint Id => 1;
 
-    public override PacketData ReadPacket(NetworkConnection stream)
+    public override async ValueTask<PacketData> ReadPacket(NetworkConnection stream)
     {
-        return new CsStatusPingPacketData(stream.ReadULong());
+        return new CsStatusPingPacketData(await stream.ReadULong());
     }
 
-    public override void WritePacket(NetworkConnection stream, PacketData data)
+    public override async ValueTask WritePacket(NetworkConnection stream, PacketData data)
     {
-        stream.WriteULong(Of(data).Payload);
+        await stream.WriteULong(Of(data).Payload);
     }
 }

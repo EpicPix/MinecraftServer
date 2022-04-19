@@ -7,18 +7,18 @@ public class NbtTagList<T> : NbtTag where T : NbtTag
     public byte Id => 9;
     private List<T> tags = new();
 
-    public void Read(NetworkConnection reader)
+    public ValueTask Read(NetworkConnection reader)
     {
         throw new NotImplementedException();
     }
 
-    public void Write(NetworkConnection writer)
+    public async ValueTask Write(NetworkConnection writer)
     {
-        writer.WriteUByte(NbtTag.GetTag<T>());
-        writer.WriteInt(tags.Count);
+        await writer.WriteUByte(NbtTag.GetTag<T>());
+        await writer.WriteInt(tags.Count);
         foreach (var value in tags)
         {
-            value.Write(writer);
+            await value.Write(writer);
         }
     }
 

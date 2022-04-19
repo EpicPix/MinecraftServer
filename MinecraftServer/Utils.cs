@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -19,7 +20,7 @@ public class Utils
     }
     public static string MinecraftShaDigest(byte[] input) 
     {
-        var hash = new SHA1Managed().ComputeHash(input);
+        var hash = SHA1.HashData(input);
         // Reverse the bytes since BigInteger uses little endian
         Array.Reverse(hash);
         

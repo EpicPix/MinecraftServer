@@ -4,17 +4,11 @@ namespace MinecraftServer.Nbt;
 
 public class NbtTagRoot : NbtTagCompound
 {
-
-    public void Read(NetworkConnection reader)
+    public override async ValueTask Write(NetworkConnection writer)
     {
-        throw new NotImplementedException();
-    }
-
-    public override void Write(NetworkConnection writer)
-    {
-        writer.WriteUByte(Id);
-        writer.WriteStringShort("");
-        base.Write(writer);
+        await writer.WriteUByte(Id);
+        await writer.WriteStringShort("");
+        await base.Write(writer);
     }
 
     public override NbtTagRoot Set(string key, NbtTag? value)

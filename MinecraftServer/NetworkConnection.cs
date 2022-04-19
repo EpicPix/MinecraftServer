@@ -8,298 +8,196 @@ namespace MinecraftServer;
 
 public class NetworkConnection : IDisposable
 {
-
-    public Socket? Socket { get; }
-    public BinaryReader? Reader { get; set; }
-    public BinaryWriter? Writer { get; }
+    private Stream _stream;
 
     public PacketType CurrentState = PacketType.Handshake;
     public bool Connected = true;
     public string? Username = null;
-    public UncompletedPacket? CurrentPacket { get; set; }
     public byte[] VerifyToken;
     public byte[] EncryptionKey;
+    public bool IsCompressed = false;
+    private byte[] _singleByteRead = new byte[1];
+    private byte[] _singleByteWrite = new byte[1];
 
-    public NetworkConnection(Socket? socket, BinaryReader? reader, BinaryWriter? writer)
+    public NetworkConnection(Stream client)
     {
-        Socket = socket;
-        Reader = reader;
-        Writer = writer;
-    }
-
-    public void ReadPacket()
-    {
-        if (Socket == null) throw new NullReferenceException("Socket is null");
-        
-        if (CurrentPacket != null) {
-            var packet = (UncompletedPacket) CurrentPacket;
-            if (packet.Offset == packet.Data.Length)
-            {
-                throw new InvalidOperationException("Tried to read packet that is already completed");
-            }
-            var required = (int) (packet.Data.Length - packet.Offset);
-            var read = Math.Min(Socket.Available, required);
-            if (read != 0)
-            {
-                var readAmount = Socket.Receive(packet.Data, (int) packet.Offset, read, 0);
-                packet.Offset += (uint) readAmount;
-                CurrentPacket = packet;
-            }
-            return;
-        }
-        throw new NullReferenceException("Tried to read packet while there is no packet in progress");
-    }
-
-    public void WriteBool(bool value)
-    {
-        Span<byte> r = stackalloc byte[1];
-        r[0] = (byte) (value ? 1 : 0);
-        if (Writer != null) 
-            Writer.Write(r);
-        else 
-            Socket?.Send(r);
-    }
-
-    public bool ReadBool()
-    {
-        Span<byte> r = stackalloc byte[1];
-        if (Reader != null)
-            Reader.Read(r);
-        else
-            Socket?.Receive(r);
-
-        return r[0] != 0;
-    }
-
-    public void WriteUByte(byte value)
-    {
-        Span<byte> r = stackalloc byte[1];
-        r[0] = value;
-        if (Writer != null) 
-            Writer.Write(r);
-        else 
-            Socket?.Send(r);
-    }
-
-    public byte ReadUByte()
-    {
-        Span<byte> r = stackalloc byte[1];
-        if (Reader != null)
-            Reader.Read(r);
-        else
-            Socket?.Receive(r);
-
-        return r[0];
-    }
-
-    public ushort ReadUShort()
-    {
-        Span<byte> r = stackalloc byte[2];
-        if (Reader != null)
-            Reader.Read(r);
-        else
-            Socket?.Receive(r);
-        
-        return (ushort) (r[0] << 8 | r[1]);
-    }
-
-    public void WriteUShort(ushort value)
-    {
-        Span<byte> r = stackalloc byte[2];
-        r[0] = (byte) (value >> 8);
-        r[1] = (byte) value;
-        if (Writer != null) 
-            Writer.Write(r);
-        else 
-            Socket?.Send(r);
-    }
-
-    public int ReadInt()
-    {
-        Span<byte> r = stackalloc byte[4];
-        if (Reader != null)
-            Reader.Read(r);
-        else
-            Socket?.Receive(r);
-        
-        return r[0] << 24 | r[1] << 16 | r[2] << 8 | r[3];
-    }
-
-    public void WriteInt(int value)
-    {
-        Span<byte> r = stackalloc byte[4];
-        r[0] = (byte) (value >> 24);
-        r[1] = (byte) (value >> 16);
-        r[2] = (byte) (value >> 8);
-        r[3] = (byte) value;
-        if (Writer != null) 
-            Writer.Write(r);
-        else 
-            Socket?.Send(r);
-    }
-
-    public void WriteFloat(float value)
-    {
-        WriteInt(BitConverter.SingleToInt32Bits(value));
-    }
-
-    public void WriteDouble(double value)
-    {
-        WriteULong(BitConverter.DoubleToUInt64Bits(value));
-    }
-
-    public Guid ReadUUID()
-    {
-        Span<byte> r = stackalloc byte[16];
-        if (Reader != null)
-            Reader.Read(r);
-        else
-            Socket?.Receive(r);
-        
-        return new Guid(r);
-    }
-
-    public void WriteUUID(Guid uuid)
-    {
-        Span<byte> r = stackalloc byte[16];
-        uuid.TryWriteBytes(r);
-        
-        if (Writer != null) 
-            Writer.Write(r);
-        else 
-            Socket?.Send(r);
-    }
-
-    public ulong ReadULong()
-    {
-        Span<byte> r = stackalloc byte[8];
-        if (Reader != null)
-            Reader.Read(r);
-        else
-            Socket?.Receive(r);
-        
-        return (ulong) r[0] << 56 |
-               (ulong) r[1] << 48 |
-               (ulong) r[2] << 40 |
-               (ulong) r[3] << 32 |
-               (ulong) r[4] << 24 |
-               (ulong) r[5] << 16 |
-               (ulong) r[6] << 8 |
-               r[7];
-    }
-
-    public void WriteULong(ulong value)
-    {
-        Span<byte> r = stackalloc byte[8];
-        r[0] = (byte) (value >> 56);
-        r[1] = (byte) (value >> 48);
-        r[2] = (byte) (value >> 40);
-        r[3] = (byte) (value >> 32);
-        r[4] = (byte) (value >> 24);
-        r[5] = (byte) (value >> 16);
-        r[6] = (byte) (value >> 8);
-        r[7] = (byte) value;
-        if (Writer != null) 
-            Writer.Write(r);
-        else 
-            Socket?.Send(r);
-    }
-
-    public string ReadString(uint max)
-    {
-        var length = ReadVarInt();
-        if (length > max)
-        {
-            throw new ConstraintException($"string length {length} > {max}");
-        }
-
-        Span<byte> byteBuf = stackalloc byte[length];
-        ReadBytes(byteBuf);
-        return Encoding.UTF8.GetString(byteBuf);
+        _stream = client;
     }
     
-    public void ReadBytes(Span<byte> bytes)
+    public ValueTask WriteBool(bool value)
     {
-        if (bytes.Length == 0)
-        {
-            return;
-        }
+        using var tbuf = PooledArray.Allocate(1);
+        tbuf[0] = (byte)(value ? 1 : 0);
+        return WriteBytes(tbuf);
+    }
 
-        int numRead = -1;
-        if (Reader != null)
-        {
-            numRead = Reader.Read(bytes);
-        }else if (Socket != null)
-        {
-            numRead = Socket.Receive(bytes, 0);
-        }
-        
-        if (numRead != bytes.Length)
-        {
-            throw new CheckoutException($"The stream reached EOF before reading all of the expected bytes");
-        }
+    public async ValueTask<bool> ReadBool()
+    {
+        using var tbuf = await ReadBytes(1);
+        return tbuf[0] != 0;
+    }
+
+
+    public async ValueTask WriteUByte(byte value)
+    {
+        _singleByteWrite[0] = value;
+        await _stream.WriteAsync(_singleByteWrite);
+    }
+
+    public async ValueTask<byte> ReadUByte()
+    {
+        await _stream.ReadAsync(_singleByteRead);
+        return _singleByteRead[0];
+    }
+
+    public async ValueTask<ushort> ReadUShort()
+    {
+        using var tbuf = await ReadBytes(2);
+        return (ushort) (tbuf[0] << 8 | tbuf[1]);
+    }
+
+    public async ValueTask WriteUShort(ushort value)
+    {
+        using var tbuf = PooledArray.Allocate(2);
+        tbuf[0] = (byte)(value >> 8);
+        tbuf[1] = (byte)value;
+        await WriteBytes(tbuf);
     }
     
-    public void WriteBytesLen(byte[] bytes, uint max)
+    public async ValueTask<int> ReadInt()
+    {
+        using var tbuf = await ReadBytes(4);
+        return tbuf[0] << 24 | tbuf[1] << 16 | tbuf[2] << 8 | tbuf[3];
+    }
+
+    public ValueTask WriteInt(int value)
+    {
+        using var tbuf = PooledArray.Allocate(4);
+        tbuf[0] = (byte) (value >> 24);
+        tbuf[1] = (byte) (value >> 16);
+        tbuf[2] = (byte) (value >> 8);
+        tbuf[3] = (byte) value;
+        return WriteBytes(tbuf);
+    }
+
+    public ValueTask WriteFloat(float value)
+    {
+        return WriteInt(BitConverter.SingleToInt32Bits(value));
+    }
+
+    public ValueTask WriteDouble(double value)
+    {
+        return WriteULong(BitConverter.DoubleToUInt64Bits(value));
+    }
+
+    public async ValueTask<Guid> ReadUUID()
+    {
+        using var tbuf = await ReadBytes(16);
+        return new Guid(tbuf.Data);
+    }
+
+    public ValueTask WriteUUID(Guid uuid)
+    {
+        using var tbuf = PooledArray.Allocate(16);
+        uuid.TryWriteBytes(tbuf.Data);
+        return WriteBytes(tbuf);
+    }
+
+    public async ValueTask<ulong> ReadULong()
+    {
+        using var tbuf = await ReadBytes(8);
+        return (ulong) tbuf[0] << 56 | 
+               (ulong) tbuf[1] << 48 | 
+               (ulong) tbuf[2] << 40 | 
+               (ulong) tbuf[3] << 32 | 
+               (ulong) tbuf[4] << 24 | 
+               (ulong) tbuf[5] << 16 | 
+               (ulong) tbuf[6] << 8 | 
+               tbuf[7];
+    }
+
+    public ValueTask WriteULong(ulong value)
+    {
+        using var tbuf = PooledArray.Allocate(8);
+        tbuf[0] = (byte) (value >> 56);
+        tbuf[1] = (byte) (value >> 48);
+        tbuf[2] = (byte) (value >> 40);
+        tbuf[3] = (byte) (value >> 32);
+        tbuf[4] = (byte) (value >> 24);
+        tbuf[5] = (byte) (value >> 16);
+        tbuf[6] = (byte) (value >> 8);
+        tbuf[7] = (byte) value;
+        return WriteBytes(tbuf);
+    }
+    
+    public async ValueTask WriteBytesLen(Memory<byte> bytes, uint max)
     {
         if (bytes.Length > max)
         {
             throw new ConstraintException($"bytes length {bytes.Length} > {max}");
         }
-        WriteVarInt(bytes.Length);
-        Writer?.Write(bytes);
+        await WriteVarInt(bytes.Length);
+        await _stream.WriteAsync(bytes);
     }
 
-    public void WriteString(string str, uint max)
+    public async ValueTask ReadBytes(ArraySegment<byte> toRead)
+    {
+        int remLen = toRead.Count;
+        int pos = 0;
+        while (remLen > 0)
+        {
+            int read = await _stream.ReadAsync(toRead.Slice(pos, remLen));
+            pos += read;
+            remLen -= read;
+        }
+    }
+    
+    public ValueTask ReadBytes(PooledArray toRead)
+    {
+        return ReadBytes(toRead.Data);
+    }
+
+    public async ValueTask<PooledArray> ReadBytes(int toRead)
+    {
+        var buf = PooledArray.Allocate(toRead);
+        await ReadBytes(buf.Data);
+        return buf;
+    }
+
+    public async ValueTask<string> ReadString(ushort max)
+    {
+        var length = await ReadVarInt();
+        if (length > max)
+        {
+            throw new ConstraintException($"string length {length} > {max}");
+        }
+
+        using var bytes = await ReadBytes(length);
+        return Encoding.UTF8.GetString(bytes.Data);
+    }
+
+    public async ValueTask WriteString(string str, ushort max)
     {
         if (str.Length > max)
         {
             throw new ConstraintException($"string length {str.Length} > {max}");
         }
 
-        WriteVarInt(str.Length);
-        Writer?.Write(Encoding.UTF8.GetBytes(str));
-    }
-
-    public void WriteStringShort(string str)
-    {
-        WriteUShort((ushort) str.Length);
-        Writer?.Write(Encoding.UTF8.GetBytes(str));
+        await WriteVarInt(str.Length);
+        using var buf = PooledArray.Allocate(Encoding.UTF8.GetByteCount(str));
+        Encoding.UTF8.GetBytes(str, buf.Data);
+        await _stream.WriteAsync(buf.Data);
     }
     
-    public int ReadVarIntBytes(out int val)
-    {
-        if (Socket == null) throw new NotSupportedException("Socket must be set");
-        
-        int read = 0;
-        int position = 0;
-        val = 0;
-
-        Span<byte> r = stackalloc byte[1];
-        
-        while (true)
-        {
-            if (Socket.Available <= 0)
-            {
-                break;
-            }
-            int readAmount = Socket.Receive(r);
-            if (readAmount == 0)
-            {
-                break;
-            }
-            read++;
-            val |= (r[0] & 0x7F) << position;
-
-            if ((r[0] & 0x80) == 0) break;
-            
-            position += 7;
-            if (position >= 32) throw new ArgumentException("VarInt is too big");
-        }
-        return read;
+    public async ValueTask WriteStringShort(string str)
+    { 
+        await WriteUShort((ushort)str.Length);
+        using var buf = PooledArray.Allocate(Encoding.UTF8.GetByteCount(str));
+        Encoding.UTF8.GetBytes(str, buf.Data);
+        await _stream.WriteAsync(buf.Data);
     }
     
-    public int ReadVarInt()
+    public async ValueTask<int> ReadVarInt()
     {
         int value = 0;
         int position = 0;
@@ -307,7 +205,7 @@ public class NetworkConnection : IDisposable
 
         while (true)
         {
-            currentByte = ReadUByte();
+            currentByte = await ReadUByte();
             value |= (currentByte & 0x7F) << position;
 
             if ((currentByte & 0x80) == 0) break;
@@ -318,46 +216,33 @@ public class NetworkConnection : IDisposable
         return value;
     }
 
-    public void WriteVarInt(int value)
+    public async ValueTask WriteVarInt(int value)
     {
         while (true)
         {
             if ((value & ~0x7F) == 0)
             {
-                WriteUByte((byte) value);
+                await WriteUByte((byte) value);
                 return;
             }
             
-            WriteUByte((byte) ((value & 0x7F) | 0x80));
+            await WriteUByte((byte) ((value & 0x7F) | 0x80));
             value >>= 7;
         }
     }
 
-    public void WriteBytes(ReadOnlySpan<byte> bytes)
+    public async ValueTask WriteBytes(Memory<byte> bytes)
     {
-        if (Writer != null)
-        {
-            Writer.Write(bytes);
-        } else if(Socket != null)
-        {
-            Socket.Send(bytes);
-        }
+        await _stream.WriteAsync(bytes);
     }
-
-    public void Close()
+    
+    public async ValueTask WriteBytes(PooledArray bytes)
     {
-        if (Socket != null)
-        {
-            Socket.Close();
-            return;
-        }
-        
-        throw new NullReferenceException("Tried to close a null socket");
+        await _stream.WriteAsync(bytes.Data);
     }
-
+    
     public void Dispose()
     {
-        Reader?.Dispose();
-        Writer?.Dispose();
+        _stream.Dispose();
     }
 }

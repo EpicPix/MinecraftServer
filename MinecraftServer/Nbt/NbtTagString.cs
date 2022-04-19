@@ -16,13 +16,13 @@ public class NbtTagString : NbtTag
         _string = str;
     }
 
-    public void Read(NetworkConnection reader)
+    public ValueTask Read(NetworkConnection reader)
     {
         throw new NotImplementedException();
     }
 
-    public void Write(NetworkConnection writer)
+    public ValueTask Write(NetworkConnection writer)
     {
-        writer.WriteStringShort(_string);
+        return writer.WriteStringShort(_string);
     }
 }
