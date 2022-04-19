@@ -42,6 +42,10 @@ public static partial class PacketHandler
         {
             HandleLoginStart(server, connection, loginData);
         }
+        else if (packet is CsLoginEncryptionResponse && data is CsLoginEncryptionResponsePacketData loginEncryptionResponse)
+        {
+            HandleEncryptionResponse(server, connection, loginEncryptionResponse);
+        }
         else
         {
             throw new NotImplementedException($"Unsupported packet handler for packet {packet}");

@@ -16,8 +16,9 @@ public class NetworkConnection : IDisposable
     public PacketType CurrentState = PacketType.Handshake;
     public bool Connected = true;
     public string? Username = null;
-
     public UncompletedPacket? CurrentPacket { get; set; }
+    public byte[] VerifyToken;
+    public byte[] EncryptionKey;
 
     public NetworkConnection(Socket? socket, BinaryReader? reader, BinaryWriter? writer)
     {

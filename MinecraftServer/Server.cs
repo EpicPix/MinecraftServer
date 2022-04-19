@@ -1,3 +1,6 @@
+using System.Formats.Asn1;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using MinecraftServer.Packets;
 using MinecraftServer.Packets.Handlers;
 
@@ -10,8 +13,10 @@ public class Server
     public volatile List<NetworkConnection> Connections;
     public List<NetworkConnection> DeadConnections;
     public bool OnlineMode { get; } = false;
+    internal RSA? RsaServer { get; }
+    internal byte[]? ServerPublicKey { get; }
 
-    public Server()
+    public Server(bool isOnline = true)
     {
         ServerInfo = new ServerInfo {
             description = new ServerInfo.DescriptionInfo {
@@ -24,6 +29,12 @@ public class Server
         ServerThread = new Thread(run);
         ServerThread.Name = "Server Thread";
         ServerThread.Start();
+        OnlineMode = isOnline;
+        if (OnlineMode)
+        {
+            RsaServer = RSA.Create(1024);
+            ServerPublicKey = RsaServer.ExportSubjectPublicKeyInfo();
+        }
     }
 
     public void run()
