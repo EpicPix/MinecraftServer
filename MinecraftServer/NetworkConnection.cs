@@ -92,6 +92,28 @@ public class NetworkConnection : IDisposable
             Socket?.Send(r);
     }
 
+    public Guid ReadUUID()
+    {
+        Span<byte> r = stackalloc byte[16];
+        if (Reader != null)
+            Reader.Read(r);
+        else
+            Socket?.Receive(r);
+        
+        return new Guid(r);
+    }
+
+    public void WriteUUID(Guid uuid)
+    {
+        Span<byte> r = stackalloc byte[16];
+        uuid.TryWriteBytes(r);
+        
+        if (Writer != null) 
+            Writer.Write(r);
+        else 
+            Socket?.Send(r);
+    }
+
     public ulong ReadULong()
     {
         Span<byte> r = stackalloc byte[8];

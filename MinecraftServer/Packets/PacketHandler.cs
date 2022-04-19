@@ -13,7 +13,7 @@ public static class PacketHandler
 
         if (packet is CsHandshake && data is CsHandshakePacketData handshake)
         {
-            Console.WriteLine($"Protocol version: {handshake.ProtocolVersion} / Server IP: {handshake.ServerIp} / Server Port: {handshake.ServerPort} / Next State: {handshake.NextState}");
+            Console.WriteLine($"Protocol version: {handshake.ProtocolVersion} / Server IP: {handshake.ServerIp} / Server Port: {handshake.ServerPort} / Next State: {(PacketType) handshake.NextState}");
             if (handshake.NextState == (int) PacketType.Status)
             {
                 connection.CurrentState = PacketType.Status;
@@ -33,8 +33,11 @@ public static class PacketHandler
             connection.Connected = false;
         }else if (packet is CsLoginLoginStart && data is CsLoginLoginStartPacketData loginData)
         {
-            ScLoginDisconnect.Send(new ScLoginDisconnectPacketData(new ChatComponent($"the rest not implemented lol, and you're {loginData.Name}")), connection);
-            connection.Connected = false;
+            connection.Username = loginData.Name;
+            ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(Utils.GuidFromString($"OfflinePlayer:{connection.Username}"), connection.Username), connection);
+            
+            // ScLoginDisconnect.Send(new ScLoginDisconnectPacketData(new ChatComponent($"{loginData.Name}")), connection);
+            // connection.Connected = false;
         }else
         {
             throw new NotImplementedException($"Unsupported packet handler for packet {packet}");
