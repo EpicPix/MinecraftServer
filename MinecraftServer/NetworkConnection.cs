@@ -9,75 +9,117 @@ namespace MinecraftServer;
 public class NetworkConnection : IDisposable
 {
 
-    private readonly Socket? _socket;
-    private readonly BinaryReader _reader;
-    private readonly BinaryWriter _writer;
+    public Socket? Socket { get; }
+    public BinaryReader? Reader { get; set; }
+    public BinaryWriter? Writer { get; }
 
     public PacketType CurrentState = PacketType.Handshake;
     public bool Connected = true;
     public string? Username = null;
-    
-    public bool CanRead => _reader.BaseStream.CanRead;
 
-    public NetworkConnection(Stream stream)
+    public UncompletedPacket? CurrentPacket { get; set; }
+
+    public NetworkConnection(Socket? socket, BinaryReader? reader, BinaryWriter? writer)
     {
-        _reader = new BinaryReader(stream);
-        _writer = new BinaryWriter(stream);
+        Socket = socket;
+        Reader = reader;
+        Writer = writer;
     }
-    
-    public NetworkConnection(Socket socket)
+
+    public void ReadPacket()
     {
-        _socket = socket;
-        var stream = new NetworkStream(socket);
-        _reader = new BinaryReader(stream);
-        _writer = new BinaryWriter(stream);
+        if (Socket == null) throw new NullReferenceException("Socket is null");
+        
+        if (CurrentPacket != null) {
+            var packet = (UncompletedPacket) CurrentPacket;
+            if (packet.Offset == packet.Data.Length)
+            {
+                throw new InvalidOperationException("Tried to read packet that is already completed");
+            }
+            var readAmount = Socket.Receive(packet.Data, (int) packet.Offset, (int) (packet.Data.Length - packet.Offset), 0);
+            packet.Offset += (uint) readAmount;
+            CurrentPacket = packet;
+            return;
+        }
+        throw new NullReferenceException("Tried to read packet while there is no packet in progress");
     }
 
     public void WriteUByte(byte value)
     {
-        _writer.Write(value);
+        Span<byte> r = stackalloc byte[1];
+        r[0] = value;
+        if (Writer != null) 
+            Writer.Write(r);
+        else 
+            Socket?.Send(r);
     }
 
     public byte ReadUByte()
     {
-        return _reader.ReadByte();
+        Span<byte> r = stackalloc byte[1];
+        if (Reader != null)
+            Reader.Read(r);
+        else
+            Socket?.Receive(r);
+
+        return r[0];
     }
 
     public ushort ReadUShort()
     {
-        var high = (ushort) ReadUByte();
-        var low = (ushort) ReadUByte();
-        return (ushort) (high << 8 | low);
+        Span<byte> r = stackalloc byte[2];
+        if (Reader != null)
+            Reader.Read(r);
+        else
+            Socket?.Receive(r);
+        
+        return (ushort) (r[0] << 8 | r[1]);
     }
 
     public void WriteUShort(ushort value)
     {
-        WriteUByte((byte) (value >> 8));
-        WriteUByte((byte) value);
+        Span<byte> r = stackalloc byte[2];
+        r[0] = (byte) (value >> 8);
+        r[1] = (byte) value;
+        if (Writer != null) 
+            Writer.Write(r);
+        else 
+            Socket?.Send(r);
     }
 
     public ulong ReadULong()
     {
-        return (ulong) ReadUByte() << 56 | 
-               (ulong) ReadUByte() << 48 | 
-               (ulong) ReadUByte() << 40 | 
-               (ulong) ReadUByte() << 32 | 
-               (ulong) ReadUByte() << 24 | 
-               (ulong) ReadUByte() << 16 | 
-               (ulong) ReadUByte() << 8 | 
-               ReadUByte();
+        Span<byte> r = stackalloc byte[8];
+        if (Reader != null)
+            Reader.Read(r);
+        else
+            Socket?.Receive(r);
+        
+        return (ulong) r[0] << 56 |
+               (ulong) r[1] << 48 |
+               (ulong) r[2] << 40 |
+               (ulong) r[3] << 32 |
+               (ulong) r[4] << 24 |
+               (ulong) r[5] << 16 |
+               (ulong) r[6] << 8 |
+               r[7];
     }
 
     public void WriteULong(ulong value)
     {
-        WriteUByte((byte) (value >> 56));
-        WriteUByte((byte) (value >> 48));
-        WriteUByte((byte) (value >> 40));
-        WriteUByte((byte) (value >> 32));
-        WriteUByte((byte) (value >> 24));
-        WriteUByte((byte) (value >> 16));
-        WriteUByte((byte) (value >> 8));
-        WriteUByte((byte) value);
+        Span<byte> r = stackalloc byte[8];
+        r[0] = (byte) (value >> 56);
+        r[1] = (byte) (value >> 48);
+        r[2] = (byte) (value >> 40);
+        r[3] = (byte) (value >> 32);
+        r[4] = (byte) (value >> 24);
+        r[5] = (byte) (value >> 16);
+        r[6] = (byte) (value >> 8);
+        r[7] = (byte) value;
+        if (Writer != null) 
+            Writer.Write(r);
+        else 
+            Socket?.Send(r);
     }
 
     public string ReadString(uint max)
@@ -100,20 +142,15 @@ public class NetworkConnection : IDisposable
             return;
         }
 
-        int count = bytes.Length;
-        int numRead = 0;
-        do
+        int numRead = -1;
+        if (Reader != null)
         {
-            int n = _reader.Read(bytes.Slice(numRead, count));
-            if (n == 0)
-            {
-                break;
-            }
-
-            numRead += n;
-            count -= n;
-        } while (count > 0);
-
+            numRead = Reader.Read(bytes);
+        }else if (Socket != null)
+        {
+            numRead = Socket.Receive(bytes, 0);
+        }
+        
         if (numRead != bytes.Length)
         {
             throw new CheckoutException($"The stream reached EOF before reading all of the expected bytes");
@@ -127,7 +164,7 @@ public class NetworkConnection : IDisposable
             throw new ConstraintException($"bytes length {bytes.Length} > {max}");
         }
         WriteVarInt(bytes.Length);
-        _writer.Write(bytes);
+        Writer?.Write(bytes);
     }
 
     public void WriteString(string str, uint max)
@@ -138,7 +175,39 @@ public class NetworkConnection : IDisposable
         }
 
         WriteVarInt(str.Length);
-        _writer.Write(Encoding.UTF8.GetBytes(str));
+        Writer?.Write(Encoding.UTF8.GetBytes(str));
+    }
+    
+    public int ReadVarIntBytes(out int val)
+    {
+        if (Socket == null) throw new NotSupportedException("Socket must be set");
+        
+        int read = 0;
+        int position = 0;
+        val = 0;
+
+        Span<byte> r = stackalloc byte[1];
+        
+        while (true)
+        {
+            if (Socket.Available <= 0)
+            {
+                break;
+            }
+            int readAmount = Socket.Receive(r);
+            if (readAmount == 0)
+            {
+                break;
+            }
+            read++;
+            val |= (r[0] & 0x7F) << position;
+
+            if ((r[0] & 0x80) == 0) break;
+            
+            position += 7;
+            if (position >= 32) throw new ArgumentException("VarInt is too big");
+        }
+        return read;
     }
     
     public int ReadVarInt()
@@ -177,19 +246,20 @@ public class NetworkConnection : IDisposable
 
     public void WriteBytes(ReadOnlySpan<byte> bytes)
     {
-        _writer.Write(bytes);
-    }
-
-    public void Flush()
-    {
-        _writer.Flush();
+        if (Writer != null)
+        {
+            Writer.Write(bytes);
+        } else if(Socket != null)
+        {
+            Socket.Send(bytes);
+        }
     }
 
     public void Close()
     {
-        if (_socket != null)
+        if (Socket != null)
         {
-            _socket.Close();
+            Socket.Close();
             return;
         }
         
@@ -198,7 +268,7 @@ public class NetworkConnection : IDisposable
 
     public void Dispose()
     {
-        _reader.Dispose();
-        _writer.Dispose();
+        Reader?.Dispose();
+        Writer?.Dispose();
     }
 }

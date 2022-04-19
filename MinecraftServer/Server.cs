@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using MinecraftServer.Packets;
 
 namespace MinecraftServer;
@@ -7,8 +6,8 @@ public class Server
 {
     public ServerInfo ServerInfo { get; }
     public Thread ServerThread { get; }
-    public List<NetworkConnection> Connections { get; }
-    public List<NetworkConnection> DeadConnections { get; }
+    public volatile List<NetworkConnection> Connections;
+    public List<NetworkConnection> DeadConnections;
 
     public Server()
     {
@@ -29,12 +28,16 @@ public class Server
     {
         while (true)
         {
+            Thread.Sleep(1);
             for (int i = 0; i < Connections.Count; i++) // more thread safe
             {
-                UpdateConnection(Connections[i]);
+                if(Connections[i] != null) UpdateConnection(Connections[i]);
             }
 
-            DeadConnections.ForEach(connection => Connections.Remove(connection));
+            foreach (var connection in DeadConnections)
+            {
+                Connections.Remove(connection);
+            }
             DeadConnections.Clear();
         }
     }
@@ -44,18 +47,43 @@ public class Server
         if (!connection.Connected)
         {
             DeadConnections.Add(connection);
-            Task.Delay(100).ContinueWith(_ => connection.Close());
             return;
         }
 
-        if (!connection.CanRead)
+        if (connection.CurrentPacket == null)
         {
-            return;
+            var read = (uint) connection.ReadVarIntBytes(out var length);
+            if (read != 0)
+            {
+                connection.CurrentPacket = new UncompletedPacket {
+                    Offset = 0,
+                    Data = new byte[length]
+                };
+            }
         }
 
-        connection.ReadVarInt(); // packet length
-        var packet = Packet.GetPacket(connection.CurrentState, PacketSide.Client, (uint) connection.ReadVarInt());
-        PacketHandler.HandlePacket(this, connection, packet);
+        if (connection.CurrentPacket != null)
+        {
+            if (connection.CurrentPacket.Value.Offset != connection.CurrentPacket.Value.Data.Length)
+            {
+                connection.ReadPacket();
+            }
 
+            if (connection.CurrentPacket.Value.Offset == connection.CurrentPacket.Value.Data.Length)
+            {
+                var currentReader = connection.Reader;
+
+                using var memory = new MemoryStream(connection.CurrentPacket.Value.Data.ToArray());
+                using var binaryReader = new BinaryReader(memory);
+                connection.Reader = binaryReader;
+                
+                var packet = Packet.GetPacket(connection.CurrentState, PacketSide.Client, (uint) connection.ReadVarInt());
+                PacketHandler.HandlePacket(this, connection, packet);
+
+                
+                connection.Reader = currentReader;
+                connection.CurrentPacket = null;
+            }
+        }
     }
 }

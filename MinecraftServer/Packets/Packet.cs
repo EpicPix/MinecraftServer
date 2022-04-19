@@ -40,19 +40,6 @@ public abstract class Packet
         throw new ArgumentException($"Unknown packet {type} at {side} with id {id}");
     }
 
-    // public static Packet GetPacket(Type t)
-    // {
-    //     foreach (var packet in _packets)
-    //     {
-    //         if (packet.GetType() == t)
-    //         {
-    //             return packet;
-    //         }
-    //     }
-
-    //     throw new ArgumentException($"Unknown packet of type {t}");
-    // }
-
     public static T GetPacket<T>() where T : Packet
     {
         foreach (var packet in _packets)
@@ -65,6 +52,8 @@ public abstract class Packet
 
         throw new ArgumentException($"Unknown packet of type {typeof(T)}");
     }
+
+    private static readonly BinaryReader NullReader = new(Stream.Null);
     
     public abstract PacketData ReadPacket(NetworkConnection stream);
     
@@ -72,11 +61,11 @@ public abstract class Packet
     public void SendPacket(PacketData data, NetworkConnection connection)
     {
         using var stream = new MemoryStream();
-        WritePacket(new NetworkConnection(stream), data);
+        using var binaryWriter = new BinaryWriter(stream);
+        WritePacket(new NetworkConnection(null, NullReader, binaryWriter), data);
         connection.WriteVarInt((int)stream.Length + 1);
         connection.WriteVarInt((int)Id);
         connection.WriteBytes(stream.GetBuffer());
-        connection.Flush();
     }
 }
 
