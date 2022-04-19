@@ -24,8 +24,7 @@ public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
         stream.WriteVarInt(1);
         stream.WriteString("minecraft:overworld", ushort.MaxValue); // identifier
 
-        stream.WriteUByte(NbtTag.GetTag<NbtTagCompound>());
-        new NbtTagCompound()
+        new NbtTagRoot()
             .Set("minecraft:dimension_type", 
                 new NbtTagCompound()
                     .SetString("type", "minecraft:dimension_type")
@@ -40,7 +39,7 @@ public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
                                             .SetByte("piglin_safe", 0)
                                             .SetByte("natural", 1)
                                             .SetFloat("ambient_light", 1)
-                                            .SetString("infiniburn", "")
+                                            .SetString("infiniburn", "#minecraft:infiniburn_overworld")
                                             .SetByte("respawn_anchor_works", 0)
                                             .SetByte("has_skylight", 1)
                                             .SetByte("bed_works", 1)
@@ -56,32 +55,49 @@ public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
                                 )
                         )
                 )
-            .Write(stream);
-        
-        stream.WriteUByte(NbtTag.GetTag<NbtTagCompound>());
-        new NbtTagCompound()
-            .SetString("type", "minecraft:worldgen/biome")
-            .Set("value", 
-                new NbtTagList<NbtTagCompound>()
-                    .Add(new NbtTagCompound()
-                        .SetString("name", "minecraft:the_void")
-                        .SetInteger("id", 0)
-                        .Set("element", 
-                            new NbtTagCompound()
-                                .SetString("precipitation", "none")
-                                .SetFloat("temperature", 0)
-                                .SetFloat("downfall", 0.5f)
-                                .SetString("category", "none")
-                                .Set("effects",
+            .Set("minecraft:worldgen/biome", 
+                new NbtTagCompound()
+                    .SetString("type", "minecraft:worldgen/biome")
+                    .Set("value", 
+                        new NbtTagList<NbtTagCompound>()
+                            .Add(new NbtTagCompound()
+                                .SetString("name", "minecraft:the_void")
+                                .SetInteger("id", 0)
+                                .Set("element", 
                                     new NbtTagCompound()
-                                        .SetInteger("sky_color", 0)
-                                        .SetInteger("water_fog_color", 0)
-                                        .SetInteger("fog_color", 0)
-                                        .SetInteger("water_color", 0)
+                                        .SetString("precipitation", "none")
+                                        .SetFloat("temperature", 0)
+                                        .SetFloat("downfall", 0.5f)
+                                        .SetString("category", "none")
+                                        .Set("effects",
+                                            new NbtTagCompound()
+                                                .SetInteger("sky_color", 0)
+                                                .SetInteger("water_fog_color", 0)
+                                                .SetInteger("fog_color", 0)
+                                                .SetInteger("water_color", 0)
+                                        )
                                 )
                             )
                     )
-                )
+            )
+            .Write(stream);
+        
+        new NbtTagRoot()
+            .SetByte("piglin_safe", 0)
+            .SetByte("natural", 1)
+            .SetFloat("ambient_light", 1)
+            .SetString("infiniburn", "#minecraft:infiniburn_overworld")
+            .SetByte("respawn_anchor_works", 0)
+            .SetByte("has_skylight", 1)
+            .SetByte("bed_works", 1)
+            .SetString("effects", "minecraft:overworld")
+            .SetByte("has_raids", 0)
+            .SetInteger("min_y", 0)
+            .SetInteger("height", 256)
+            .SetInteger("logical_height", 256)
+            .SetDouble("coordinate_scale", 1)
+            .SetByte("ultrawarm", 0)
+            .SetByte("has_ceiling", 0)
             .Write(stream);
         
         stream.WriteString("minecraft:overworld", ushort.MaxValue); // identifier

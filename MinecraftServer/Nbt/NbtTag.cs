@@ -30,6 +30,10 @@ public interface NbtTag
         {
             return 3;
         }
+        if (typeof(T).IsAssignableTo(typeof(NbtTagByte)))
+        {
+            return 1;
+        }
         
         throw new NotSupportedException($"Nbt Type {typeof(T)} is not supported");
     }
