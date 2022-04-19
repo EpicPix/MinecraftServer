@@ -6,13 +6,13 @@ public class CsStatusRequest : Packet<PacketData, CsStatusRequest>
     public override PacketSide Side => PacketSide.Client;
     public override uint Id => 0;
 
-    public override Task<PacketData> ReadPacket(NetworkConnection stream)
+    public override PacketData ReadPacket(NetworkConnection stream)
     {
-        return Task.FromResult(new PacketData());
+        return new PacketData();
     }
 
-    public override Task WritePacket(NetworkConnection stream, PacketData data)
+    public override void WritePacket(NetworkConnection stream, PacketData data)
     {
-        return Task.CompletedTask;
+        
     }
 }

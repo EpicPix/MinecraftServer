@@ -9,7 +9,7 @@ public static class PacketHandler
 {
     public static async Task HandlePacket(Server server, NetworkConnection connection, Packet packet)
     {
-        var data = await packet.ReadPacket(connection);
+        var data = packet.ReadPacket(connection);
 
         if (packet is CsHandshake && data is CsHandshakePacketData handshake)
         {

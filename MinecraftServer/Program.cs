@@ -16,8 +16,8 @@ while (true)
 
     while (connection.Connected)
     {
-        await connection.ReadVarInt(); // packet length
-        var packet = Packet.GetPacket(connection.CurrentState, PacketSide.Client, (uint) await connection.ReadVarInt());
+        connection.ReadVarInt(); // packet length
+        var packet = Packet.GetPacket(connection.CurrentState, PacketSide.Client, (uint) connection.ReadVarInt());
         await PacketHandler.HandlePacket(mcServer, connection, packet);
     }
     

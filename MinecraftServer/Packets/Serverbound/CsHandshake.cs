@@ -8,22 +8,22 @@ public class CsHandshake : Packet<CsHandshakePacketData, CsHandshake>
     public override PacketSide Side => PacketSide.Client;
     public override uint Id => 0;
 
-    public override async Task<PacketData> ReadPacket(NetworkConnection connection)
+    public override PacketData ReadPacket(NetworkConnection connection)
     {
-        var protocolVersion = await connection.ReadVarInt();
-        var serverIp = await connection.ReadString(255);
-        var serverPort = await connection.ReadUShort();
-        var nextState = await connection.ReadVarInt();
+        var protocolVersion = connection.ReadVarInt();
+        var serverIp = connection.ReadString(255);
+        var serverPort = connection.ReadUShort();
+        var nextState = connection.ReadVarInt();
         return new CsHandshakePacketData(protocolVersion, serverIp, serverPort, nextState);
     }
 
-    public override async Task WritePacket(NetworkConnection connection, PacketData input)
+    public override void WritePacket(NetworkConnection connection, PacketData input)
     {
         var data = Of(input);
-        await connection.WriteVarInt(data.ProtocolVersion);
-        await connection.WriteString(data.ServerIp, 255);
-        await connection.WriteUShort(data.ServerPort);
-        await connection.WriteVarInt(data.NextState);
+        connection.WriteVarInt(data.ProtocolVersion);
+        connection.WriteString(data.ServerIp, 255);
+        connection.WriteUShort(data.ServerPort);
+        connection.WriteVarInt(data.NextState);
     }
     
 }

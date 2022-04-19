@@ -8,13 +8,13 @@ public class CsStatusPing : Packet<CsStatusPingPacketData, CsStatusPing>
     public override PacketSide Side => PacketSide.Client;
     public override uint Id => 1;
 
-    public override async Task<PacketData> ReadPacket(NetworkConnection stream)
+    public override PacketData ReadPacket(NetworkConnection stream)
     {
-        return new CsStatusPingPacketData(await stream.ReadULong());
+        return new CsStatusPingPacketData(stream.ReadULong());
     }
 
-    public override async Task WritePacket(NetworkConnection stream, PacketData data)
+    public override void WritePacket(NetworkConnection stream, PacketData data)
     {
-        await stream.WriteULong(Of(data).Payload);
+        stream.WriteULong(Of(data).Payload);
     }
 }

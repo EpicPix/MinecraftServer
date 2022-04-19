@@ -1,3 +1,4 @@
+using System.ComponentModel.Design;
 using System.Data;
 using System.Net.Sockets;
 using System.Text;
@@ -6,98 +7,127 @@ using Overby.Extensions.AsyncBinaryReaderWriter;
 
 namespace MinecraftServer;
 
-public class NetworkConnection
+public class NetworkConnection : IDisposable
 {
 
-    private readonly AsyncBinaryReader _reader;
-    private readonly AsyncBinaryWriter _writer;
+    private readonly BinaryReader _reader;
+    private readonly BinaryWriter _writer;
 
     public PacketType CurrentState = PacketType.Handshake;
     public bool Connected = true;
     
-    public NetworkConnection(MemoryStream stream)
+    public NetworkConnection(Stream stream)
     {
-        _reader = new AsyncBinaryReader(stream);
-        _writer = new AsyncBinaryWriter(stream);
+        _reader = new BinaryReader(stream);
+        _writer = new BinaryWriter(stream);
     }
     
     public NetworkConnection(Socket socket)
     {
         var stream = new NetworkStream(socket);
-        _reader = new AsyncBinaryReader(stream);
-        _writer = new AsyncBinaryWriter(stream);
+        _reader = new BinaryReader(stream);
+        _writer = new BinaryWriter(stream);
     }
 
-    public async Task WriteUByte(byte value)
+    public void WriteUByte(byte value)
     {
-        await _writer.WriteAsync(value);
+        _writer.Write(value);
     }
 
-    public async Task<byte> ReadUByte()
+    public byte ReadUByte()
     {
-        return await _reader.ReadByteAsync();
+        return _reader.ReadByte();
     }
 
-    public async Task<ushort> ReadUShort()
+    public ushort ReadUShort()
     {
-        var high = (ushort) await ReadUByte();
-        var low = (ushort) await ReadUByte();
+        var high = (ushort) ReadUByte();
+        var low = (ushort) ReadUByte();
         return (ushort) (high << 8 | low);
     }
 
-    public async Task WriteUShort(ushort value)
+    public void WriteUShort(ushort value)
     {
-        await WriteUByte((byte) (value >> 8));
-        await WriteUByte((byte) value);
+        WriteUByte((byte) (value >> 8));
+        WriteUByte((byte) value);
     }
 
-    public async Task<ulong> ReadULong()
+    public ulong ReadULong()
     {
-        return (ulong) await ReadUByte() << 56 | 
-               (ulong) await ReadUByte() << 48 | 
-               (ulong) await ReadUByte() << 40 | 
-               (ulong) await ReadUByte() << 32 | 
-               (ulong) await ReadUByte() << 24 | 
-               (ulong) await ReadUByte() << 16 | 
-               (ulong) await ReadUByte() << 8 | 
-               await ReadUByte();
+        return (ulong) ReadUByte() << 56 | 
+               (ulong) ReadUByte() << 48 | 
+               (ulong) ReadUByte() << 40 | 
+               (ulong) ReadUByte() << 32 | 
+               (ulong) ReadUByte() << 24 | 
+               (ulong) ReadUByte() << 16 | 
+               (ulong) ReadUByte() << 8 | 
+               ReadUByte();
     }
 
-    public async Task WriteULong(ulong value)
+    public void WriteULong(ulong value)
     {
-        await WriteUByte((byte) (value >> 56));
-        await WriteUByte((byte) (value >> 48));
-        await WriteUByte((byte) (value >> 40));
-        await WriteUByte((byte) (value >> 32));
-        await WriteUByte((byte) (value >> 24));
-        await WriteUByte((byte) (value >> 16));
-        await WriteUByte((byte) (value >> 8));
-        await WriteUByte((byte) value);
+        WriteUByte((byte) (value >> 56));
+        WriteUByte((byte) (value >> 48));
+        WriteUByte((byte) (value >> 40));
+        WriteUByte((byte) (value >> 32));
+        WriteUByte((byte) (value >> 24));
+        WriteUByte((byte) (value >> 16));
+        WriteUByte((byte) (value >> 8));
+        WriteUByte((byte) value);
     }
 
-    public async Task<string> ReadString(ushort max)
+    public string ReadString(ushort max)
     {
-        var length = await ReadVarInt();
+        var length = ReadVarInt();
         if (length > max)
         {
             throw new ConstraintException($"string length {length} > {max}");
         }
 
-        return Encoding.UTF8.GetString(await _reader.ReadBytesAsync(length));
+        Span<byte> byteBuf = stackalloc byte[length];
+        ReadBytes(byteBuf);
+        return Encoding.UTF8.GetString(byteBuf);
+    }
+    
+    public void ReadBytes(Span<byte> bytes)
+    {
+        if (bytes.Length == 0)
+        {
+            return;
+        }
+
+        int count = bytes.Length;
+        int numRead = 0;
+        do
+        {
+            int n = _reader.Read(bytes.Slice(numRead, count));
+            if (n == 0)
+            {
+                break;
+            }
+
+            numRead += n;
+            count -= n;
+        } while (count > 0);
+
+        if (numRead != bytes.Length)
+        {
+            throw new CheckoutException($"The stream reached EOF before reading all of the expected bytes");
+        }
     }
 
-    public async Task WriteString(string str, ushort max)
+    public void WriteString(string str, ushort max)
     {
         if (str.Length > max)
         {
             throw new ConstraintException($"string length {str.Length} > {max}");
         }
 
-        await WriteVarInt(str.Length);
-        await _writer.WriteAsync(Encoding.UTF8.GetBytes(str));
+        WriteVarInt(str.Length);
+        _writer.Write(Encoding.UTF8.GetBytes(str));
     }
     
-    public async Task<int> ReadVarInt()
+    public int ReadVarInt()
     {
         int value = 0;
         int position = 0;
@@ -105,7 +135,7 @@ public class NetworkConnection
 
         while (true)
         {
-            currentByte = await ReadUByte();
+            currentByte = ReadUByte();
             value |= (currentByte & 0x7F) << position;
 
             if ((currentByte & 0x80) == 0) break;
@@ -116,29 +146,29 @@ public class NetworkConnection
         return value;
     }
 
-    public async Task WriteVarInt(int value)
+    public void WriteVarInt(int value)
     {
         while (true)
         {
             if ((value & ~0x7F) == 0)
             {
-                await WriteUByte((byte) value);
+                WriteUByte((byte) value);
                 return;
             }
             
-            await WriteUByte((byte) ((value & 0x7F) | 0x80));
+            WriteUByte((byte) ((value & 0x7F) | 0x80));
             value >>= 7;
         }
     }
 
-    public async Task WriteBytes(byte[] bytes)
+    public void WriteBytes(ReadOnlySpan<byte> bytes)
     {
-        await _writer.WriteAsync(bytes);
+        _writer.Write(bytes);
     }
 
-    public async Task Flush()
+    public void Flush()
     {
-        await _writer.FlushAsync();
+        _writer.Flush();
     }
 
     public int GetVarIntLength(int value)
@@ -156,4 +186,9 @@ public class NetworkConnection
         }
     }
 
+    public void Dispose()
+    {
+        _reader.Dispose();
+        _writer.Dispose();
+    }
 }

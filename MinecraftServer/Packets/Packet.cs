@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Microsoft.IO;
 
 namespace MinecraftServer.Packets;
 
@@ -10,6 +11,7 @@ public abstract class Packet
     public abstract uint Id { get; }
 
     private static List<Packet> _packets = new ();
+    private static readonly RecyclableMemoryStreamManager manager = new RecyclableMemoryStreamManager();
 
     static Packet() {
         foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
@@ -64,17 +66,17 @@ public abstract class Packet
         throw new ArgumentException($"Unknown packet of type {typeof(T)}");
     }
     
-    public abstract Task<PacketData> ReadPacket(NetworkConnection stream);
+    public abstract PacketData ReadPacket(NetworkConnection stream);
     
-    public abstract Task WritePacket(NetworkConnection stream, PacketData data);
+    public abstract void WritePacket(NetworkConnection stream, PacketData data);
     public async ValueTask SendPacket(PacketData data, NetworkConnection connection)
     {
         using var stream = new MemoryStream();
-        await WritePacket(new NetworkConnection(stream), data);
-        await connection.WriteVarInt((int)stream.Length + 1);
-        await connection.WriteVarInt((int)Id);
-        await connection.WriteBytes(stream.GetBuffer());
-        await connection.Flush();
+        WritePacket(new NetworkConnection(stream), data);
+        connection.WriteVarInt((int)stream.Length + 1);
+        connection.WriteVarInt((int)Id);
+        connection.WriteBytes(stream.GetBuffer());
+        connection.Flush();
     }
 }
 
