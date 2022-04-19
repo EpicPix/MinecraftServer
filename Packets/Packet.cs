@@ -65,20 +65,25 @@ public abstract class Packet
     }
     
     public abstract Task<PacketData> ReadPacket(NetworkConnection stream);
+    
     public abstract Task WritePacket(NetworkConnection stream, PacketData data);
+    public async ValueTask SendPacket(PacketData data, NetworkConnection connection)
+    {
+        using var stream = new MemoryStream();
+        await WritePacket(new NetworkConnection(stream), data);
+        await connection.WriteVarInt((int)stream.Length + 1);
+        await connection.WriteVarInt((int)Id);
+        await connection.WriteBytes(stream.GetBuffer());
+        await connection.Flush();
+    }
 }
 
 public abstract class Packet<R, T> : Packet where T : Packet<R, T> where R : PacketData
 {
-    public static async ValueTask SendPacket(R data, NetworkConnection connection)
+    public static ValueTask Send(R data, NetworkConnection connection)
     {
-        using var stream = new MemoryStream();
         var packet = GetPacket<T>();
-        await packet.WritePacket(new NetworkConnection(stream), data);
-        await connection.WriteVarInt((int)stream.Length + 1);
-        await connection.WriteVarInt((int)packet.Id);
-        await connection.WriteBytes(stream.GetBuffer());
-        await connection.Flush();
+        return packet.SendPacket(data, connection);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
