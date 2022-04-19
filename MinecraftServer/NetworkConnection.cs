@@ -14,7 +14,8 @@ public class NetworkConnection : IDisposable
 
     public PacketType CurrentState = PacketType.Handshake;
     public bool Connected = true;
-    
+    public string Username;
+
     public NetworkConnection(Stream stream)
     {
         _reader = new BinaryReader(stream);
@@ -75,7 +76,7 @@ public class NetworkConnection : IDisposable
         WriteUByte((byte) value);
     }
 
-    public string ReadString(ushort max)
+    public string ReadString(uint max)
     {
         var length = ReadVarInt();
         if (length > max)
@@ -114,8 +115,18 @@ public class NetworkConnection : IDisposable
             throw new CheckoutException($"The stream reached EOF before reading all of the expected bytes");
         }
     }
+    
+    public void WriteBytesLen(byte[] bytes, uint max)
+    {
+        if (bytes.Length > max)
+        {
+            throw new ConstraintException($"bytes length {bytes.Length} > {max}");
+        }
+        WriteVarInt(bytes.Length);
+        _writer.Write(bytes);
+    }
 
-    public void WriteString(string str, ushort max)
+    public void WriteString(string str, uint max)
     {
         if (str.Length > max)
         {

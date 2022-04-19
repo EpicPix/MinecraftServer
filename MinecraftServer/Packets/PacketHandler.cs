@@ -24,12 +24,18 @@ public static class PacketHandler
             {
                 throw new NotSupportedException($"Unsupported packet type {handshake.NextState}");
             }
-        }else if (packet is CsStatusRequest) {
+        }else if (packet is CsStatusRequest)
+        {
             ScStatusResponse.Send(new (server.ServerInfo), connection);
-        }else if (packet is CsStatusPing && data is CsStatusPingPacketData pingData) {
+        }else if (packet is CsStatusPing && data is CsStatusPingPacketData pingData)
+        {
             ScStatusPong.Send(pingData, connection);
             connection.Connected = false;
-        } else
+        }else if (packet is CsLoginLoginStart && data is CsLoginLoginStartPacketData loginData)
+        {
+            ScLoginDisconnect.Send(new ScLoginDisconnectPacketData(new ChatComponent($"the rest not implemented lol, and you're {loginData.Name}")), connection);
+            connection.Connected = false;
+        }else
         {
             throw new NotImplementedException($"Unsupported packet handler for packet {packet}");
         }

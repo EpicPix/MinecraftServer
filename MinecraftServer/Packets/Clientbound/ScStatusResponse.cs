@@ -17,6 +17,9 @@ public class ScStatusResponse : Packet<ScStatusResponse, ScStatusResponsePacketD
 
     public override void WritePacket(NetworkConnection stream, PacketData data)
     {
-        stream.WriteString(JsonSerializer.Serialize(Of(data).ServerInfo), 32768);
+        
+        using var mem = new MemoryStream();
+        JsonSerializer.Serialize(mem, Of(data).ServerInfo);
+        stream.WriteBytesLen(mem.GetBuffer(), 32768);
     }
 }

@@ -21,5 +21,5 @@ while (true)
         PacketHandler.HandlePacket(mcServer, connection, packet);
     }
     
-    // client.Close();
+    client.Close();
 }
