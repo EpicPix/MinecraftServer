@@ -91,9 +91,19 @@ public abstract class DataAdapter : Stream
         return WriteBytes(tbuf);
     }
 
+    public async ValueTask<float> ReadFloat()
+    {
+        return BitConverter.Int32BitsToSingle(await ReadInt());
+    }
+
     public ValueTask WriteFloat(float value)
     {
         return WriteInt(BitConverter.SingleToInt32Bits(value));
+    }
+
+    public async ValueTask<double> ReadDouble()
+    {
+        return BitConverter.UInt64BitsToDouble(await ReadULong());
     }
 
     public ValueTask WriteDouble(double value)

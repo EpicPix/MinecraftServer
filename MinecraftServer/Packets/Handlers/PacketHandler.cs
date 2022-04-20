@@ -54,9 +54,13 @@ public static partial class PacketHandler
         {
             Console.WriteLine($"Received plugin message: {pluginMessage}");
         }
+        else if (packet is CsPlayPlayerPositionAndRotation && data is CsPlayPlayerPositionAndRotationPacketData positionAndRotation)
+        {
+            
+        }
         else
         {
-            throw new NotImplementedException($"Unsupported packet handler for packet {packet}");
+            throw new NotImplementedException($"Unsupported packet handler for packet {packet} and data {data}");
         }
     }
     
