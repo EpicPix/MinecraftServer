@@ -12,7 +12,7 @@ public class EncryptionAdapter : DataAdapter
         aes.Mode = CipherMode.CFB;
         aes.Key = key;
         aes.IV = key;
-        ReadStream = new CryptoStream(baseAdapter, aes.CreateEncryptor(), CryptoStreamMode.Read);
+        ReadStream = new CryptoStream(baseAdapter, aes.CreateDecryptor(), CryptoStreamMode.Read);
         WriteStream = new CryptoStream(baseAdapter, aes.CreateEncryptor(), CryptoStreamMode.Write);
         BaseAdapter = baseAdapter;
     }
