@@ -4,10 +4,10 @@ namespace MinecraftServer.Networking;
 
 public class DecompressionAdapter : DataAdapter
 {
-    private DeflateStream _stream;
+    private ZLibStream _stream;
     public DecompressionAdapter(DataAdapter baseAdapter)
     {
-        _stream = new DeflateStream(baseAdapter, CompressionMode.Decompress);
+        _stream = new ZLibStream(baseAdapter, CompressionMode.Decompress);
     }
     public override void Close()
     {

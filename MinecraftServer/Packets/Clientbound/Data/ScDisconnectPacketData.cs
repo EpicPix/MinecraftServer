@@ -1,17 +1,17 @@
 namespace MinecraftServer.Packets.Clientbound.Data;
 
-public class ScLoginDisconnectPacketData : PacketData
+public class ScDisconnectPacketData : PacketData
 {
     public ChatComponent Reason { get; }
 
-    public ScLoginDisconnectPacketData(ChatComponent reason)
+    public ScDisconnectPacketData(ChatComponent reason)
     {
         Reason = reason;
     }
 
     public override string ToString()
     {
-        return $"ScLoginDisconnectPacketData[Reason={Reason}]";
+        return $"ScDisconnectPacketData[Reason={Reason}]";
     }
 
 }

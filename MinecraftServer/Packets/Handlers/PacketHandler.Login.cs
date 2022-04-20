@@ -39,7 +39,7 @@ public static partial class PacketHandler
 
         if (result.StatusCode != HttpStatusCode.OK)
         {
-            await ScLoginDisconnect.Send(new ScLoginDisconnectPacketData(new ChatComponent("Authentication Failed")), connection);
+            await ScLoginDisconnect.Send(new ScDisconnectPacketData(new ChatComponent("Authentication Failed")), connection);
             throw new Exception("Not authenticated with Mojang");
         }
 

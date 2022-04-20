@@ -4,10 +4,10 @@ namespace MinecraftServer.Networking;
 
 public class CompressionAdapter : DataAdapter
 {
-    private DeflateStream _stream;
+    private ZLibStream _stream;
     public CompressionAdapter(DataAdapter baseAdapter)
     {
-        _stream = new DeflateStream(baseAdapter, CompressionMode.Compress);
+        _stream = new ZLibStream(baseAdapter, CompressionMode.Compress);
     }
     public override ValueTask<int> ReadAsync(Memory<byte> buf, CancellationToken ct = default)
     {

@@ -4,7 +4,7 @@ using MinecraftServer.Packets.Clientbound.Data;
 
 namespace MinecraftServer.Packets.Clientbound.Login;
 
-public class ScLoginDisconnect : Packet<ScLoginDisconnect, ScLoginDisconnectPacketData>
+public class ScLoginDisconnect : Packet<ScLoginDisconnect, ScDisconnectPacketData>
 {
 
     public override PacketType Type => PacketType.Login;
@@ -18,13 +18,13 @@ public class ScLoginDisconnect : Packet<ScLoginDisconnect, ScLoginDisconnectPack
         {
             throw new NullReferenceException("Deserializing returned null");
         }
-        return new ScLoginDisconnectPacketData(chatComponent);
+        return new ScDisconnectPacketData(chatComponent);
     }
 
     public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
-        using var mem = new MemoryStream();
-        JsonSerializer.Serialize(mem, Of(data).Reason);
+        await using var mem = new MemoryStream();
+        await JsonSerializer.SerializeAsync(mem, Of(data).Reason);
         await stream.WriteBytesLen(mem.GetBuffer(), ushort.MaxValue);
     }
 }

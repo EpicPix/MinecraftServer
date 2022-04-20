@@ -50,13 +50,23 @@ public class Server
                 {
                     var fullLength = await conn.ReadVarInt();
                     var dataLength = await conn.ReadVarInt();
-                    conn.AddTransformer((x) =>
-                        new DecompressionAdapter(x));
-                    var id = await conn.ReadVarInt();
-                    var packet = Packet.GetPacket(conn.CurrentState, PacketBound.Server, (uint) id);
-                    var data = await packet.ReadPacket(conn);
-                    conn.PopTransformer();
-                    await PacketHandler.HandlePacket(this, conn, packet, data);
+                    if (dataLength != 0) conn.AddTransformer(x => new DecompressionAdapter(x));
+                    try
+                    {
+
+                        var id = await conn.ReadVarInt();
+                        var packet = Packet.GetPacket(conn.CurrentState, PacketBound.Server, (uint) id);
+                        var data = await packet.ReadPacket(conn);
+
+                        if (dataLength != 0) conn.PopTransformer();
+                        await PacketHandler.HandlePacket(this, conn, packet, data);
+                    } catch (ArgumentException e)
+                    {
+                        Console.WriteLine(e);
+                        conn.Connected = false;
+                    }
+                    if (!conn.Connected) break;
+                    if (dataLength != 0) conn.PopTransformer();
                 }
                 else
                 {
