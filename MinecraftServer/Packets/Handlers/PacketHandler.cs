@@ -6,6 +6,7 @@ using MinecraftServer.Packets.Clientbound.Status;
 using MinecraftServer.Packets.Serverbound.Data;
 using MinecraftServer.Packets.Serverbound.Handshake;
 using MinecraftServer.Packets.Serverbound.Login;
+using MinecraftServer.Packets.Serverbound.Play;
 using MinecraftServer.Packets.Serverbound.Status;
 
 namespace MinecraftServer.Packets.Handlers;
@@ -41,13 +42,29 @@ public static partial class PacketHandler
         {
             await HandleLoginStart(server, connection, loginData);
         }
-        else if (packet is CsLoginEncryptionResponse && data is CsLoginEncryptionResponsePacketData loginEncryptionResponse)
+        else if (packet is CsLoginEncryptionResponse && data is CsLoginEncryptionResponsePacketData loginEncryptionResponseData)
         {
-            await HandleEncryptionResponse(server, connection, loginEncryptionResponse);
+            await HandleEncryptionResponse(server, connection, loginEncryptionResponseData);
+        }
+        else if (packet is CsPlayClientSettings && data is CsPlayClientSettingsPacketData clientSettingsData)
+        {
+            
+        }
+        else if (packet is CsPlayPluginMessage && data is CsPlayPluginMessagePacketData pluginMessageData)
+        {
+            Console.WriteLine($"Received plugin message: {pluginMessageData}");
+        }
+        else if (packet is CsPlayPlayerPositionAndRotation && data is CsPlayPlayerPositionAndRotationPacketData positionAndRotationData)
+        {
+            
+        }
+        else if (packet is CsPlayPlayerPosition && data is CsPlayPlayerPositionPacketData positionData)
+        {
+            
         }
         else
         {
-            throw new NotImplementedException($"Unsupported packet handler for packet {packet}");
+            throw new NotImplementedException($"Unsupported packet handler for packet {packet} and data {data}");
         }
     }
     
