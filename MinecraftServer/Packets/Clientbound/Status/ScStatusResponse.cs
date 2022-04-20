@@ -13,14 +13,14 @@ public class ScStatusResponse : Packet<ScStatusResponse, ScStatusResponsePacketD
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
         var info = await stream.ReadString(32768);
-        return new ScStatusResponsePacketData(JsonSerializer.Deserialize<ServerInfo>(info));
+        return new ScStatusResponsePacketData(JsonSerializer.Deserialize(info, SerializationContext.Default.ServerInfo!));
     }
 
     public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
         
         using var mem = new MemoryStream();
-        JsonSerializer.Serialize(mem, Of(data).ServerInfo);
+        JsonSerializer.Serialize(mem, Of(data).ServerInfo, SerializationContext.Default.ServerInfo!);
         await stream.WriteBytesLen(mem.GetBuffer(), 32768);
     }
 }

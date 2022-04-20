@@ -8,6 +8,7 @@
 	</PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="7.0.0-preview.5.22220.2" />
       <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
     </ItemGroup>
 

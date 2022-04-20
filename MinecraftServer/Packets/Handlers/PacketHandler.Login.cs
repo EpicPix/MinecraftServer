@@ -43,8 +43,8 @@ public static partial class PacketHandler
             throw new Exception("Not authenticated with Mojang");
         }
 
-        connection.PlayerProfile = JsonSerializer.Deserialize<GameProfile>(await result.Content.ReadAsStringAsync());
-        Console.WriteLine($"Player has connected with info: {JsonSerializer.Serialize(connection.PlayerProfile)}");
+        connection.PlayerProfile = JsonSerializer.Deserialize(await result.Content.ReadAsStringAsync(), SerializationContext.Default.GameProfile!);
+        Console.WriteLine($"Player has connected with info: {JsonSerializer.Serialize(connection.PlayerProfile, SerializationContext.Default.GameProfile!)}");
         connection.Encrypt();
         Console.WriteLine(@"Stream is now encrypted");
 
