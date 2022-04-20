@@ -50,6 +50,10 @@ public static partial class PacketHandler
         {
             
         }
+        else if (packet is CsPlayPluginMessage && data is CsPlayPluginMessagePacketData pluginMessage)
+        {
+            Console.WriteLine($"Received plugin message: {pluginMessage}");
+        }
         else
         {
             throw new NotImplementedException($"Unsupported packet handler for packet {packet}");
