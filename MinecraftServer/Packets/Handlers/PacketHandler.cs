@@ -42,19 +42,23 @@ public static partial class PacketHandler
         {
             await HandleLoginStart(server, connection, loginData);
         }
-        else if (packet is CsLoginEncryptionResponse && data is CsLoginEncryptionResponsePacketData loginEncryptionResponse)
+        else if (packet is CsLoginEncryptionResponse && data is CsLoginEncryptionResponsePacketData loginEncryptionResponseData)
         {
-            await HandleEncryptionResponse(server, connection, loginEncryptionResponse);
+            await HandleEncryptionResponse(server, connection, loginEncryptionResponseData);
         }
-        else if (packet is CsPlayClientSettings && data is CsPlayClientSettingsPacketData clientSettings)
+        else if (packet is CsPlayClientSettings && data is CsPlayClientSettingsPacketData clientSettingsData)
         {
             
         }
-        else if (packet is CsPlayPluginMessage && data is CsPlayPluginMessagePacketData pluginMessage)
+        else if (packet is CsPlayPluginMessage && data is CsPlayPluginMessagePacketData pluginMessageData)
         {
-            Console.WriteLine($"Received plugin message: {pluginMessage}");
+            Console.WriteLine($"Received plugin message: {pluginMessageData}");
         }
-        else if (packet is CsPlayPlayerPositionAndRotation && data is CsPlayPlayerPositionAndRotationPacketData positionAndRotation)
+        else if (packet is CsPlayPlayerPositionAndRotation && data is CsPlayPlayerPositionAndRotationPacketData positionAndRotationData)
+        {
+            
+        }
+        else if (packet is CsPlayPlayerPosition && data is CsPlayPlayerPositionPacketData positionData)
         {
             
         }
