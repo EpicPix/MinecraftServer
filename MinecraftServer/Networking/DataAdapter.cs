@@ -5,6 +5,7 @@ namespace MinecraftServer.Networking;
 
 public abstract class DataAdapter : Stream
 {
+    private static byte[] _drainBytes = new byte[4096];
     public override int Read(byte[] buffer, int offset, int count)
     {
         return ReadAsync(new ArraySegment<byte>(buffer, offset, count)).Result;
@@ -209,6 +210,15 @@ public abstract class DataAdapter : Stream
         using var buf = PooledArray.Allocate(Encoding.UTF8.GetByteCount(str));
         Encoding.UTF8.GetBytes(str, buf.Data);
         await WriteAsync(buf.Data);
+    }
+
+    public async ValueTask Skip(int bytes)
+    {
+        int rem = bytes;
+        while (rem > 0)
+        {
+            rem -= await ReadAsync(new ArraySegment<byte>(_drainBytes, 0, Math.Min(4096, rem)));
+        }
     }
     
     public async ValueTask<int> ReadVarInt()

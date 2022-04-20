@@ -6,6 +6,8 @@ using System.Security.Cryptography.X509Certificates;
 using Microsoft.IO;
 using MinecraftServer.Networking;
 using MinecraftServer.Packets;
+using MinecraftServer.Packets.Clientbound.Data;
+using MinecraftServer.Packets.Clientbound.Play;
 using MinecraftServer.Packets.Handlers;
 
 namespace MinecraftServer;
@@ -58,7 +60,12 @@ public class Server
                     try
                     {
                         var id = await conn.ReadVarInt();
-                        var packet = Packet.GetPacket(conn.CurrentState, PacketBound.Server, (uint) id);
+                        if(!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out var packet))
+                        {
+                            Console.WriteLine($"Unknown packet detected Id: {id} State: {conn.CurrentState}. Skipping gracefully.");
+                            await conn.Skip(fullLength - Utils.GetVarIntLength(dataLength) - Utils.GetVarIntLength(id));
+                            continue;
+                        }
                         var data = await packet.ReadPacket(conn);
 
                         if (dataLength != 0) conn.PopTransformer();
@@ -75,7 +82,12 @@ public class Server
                 {
                     var length = await conn.ReadVarInt();
                     var id = await conn.ReadVarInt();
-                    var packet = Packet.GetPacket(conn.CurrentState, PacketBound.Server, (uint) id);
+                    if (!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out var packet))
+                    {
+                        Console.WriteLine($"Unknown packet detected Id: {id} State: {conn.CurrentState}. Skipping gracefully.");
+                        await conn.Skip(length - Utils.GetVarIntLength(id));
+                        continue;
+                    }
                     var data = await packet.ReadPacket(conn);
                     await PacketHandler.HandlePacket(this, conn, packet, data);
                 }

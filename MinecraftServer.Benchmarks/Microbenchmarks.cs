@@ -21,9 +21,9 @@ public class Microbenchmarks
     }
     
     [Benchmark]
-    public Packet DynamicGetPacketPerformance()
+    public bool DynamicGetPacketPerformance()
     {
-        return Packet.GetPacket(TestPacket.Type, TestPacket.Bound, TestPacket.Id);
+        return Packet.TryGetPacket(TestPacket.Type, TestPacket.Bound, TestPacket.Id, out _);
     }
     
     [Benchmark]

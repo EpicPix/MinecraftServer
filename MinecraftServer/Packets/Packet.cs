@@ -27,17 +27,18 @@ public abstract class Packet
         }
     }
 
-    public static Packet GetPacket(PacketType type, PacketBound bound, uint id)
+    public static bool TryGetPacket(PacketType type, PacketBound bound, uint id, out Packet? result)
     {
         foreach (var packet in _packets)
         {
             if (packet.Type == type && packet.Bound == bound && packet.Id == id)
             {
-                return packet;
+                result = packet;
+                return true;
             }
         }
-
-        throw new ArgumentException($"Unknown packet {bound}bound {type} with id {id}");
+        result = null;
+        return false;
     }
 
     public static T GetPacket<T>() where T : Packet

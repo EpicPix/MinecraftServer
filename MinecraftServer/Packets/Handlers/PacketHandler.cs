@@ -15,15 +15,16 @@ public static partial class PacketHandler
 {
     public static async Task HandlePacket(Server server, NetworkConnection connection, Packet packet, PacketData data)
     {
+        Console.WriteLine($"Handling packet {packet}");
         if (packet is CsHandshake && data is CsHandshakePacketData handshake)
         {
             Console.WriteLine($"Protocol version: {handshake.ProtocolVersion} / Server IP: {handshake.ServerIp} / Server Port: {handshake.ServerPort} / Next State: {(PacketType) handshake.NextState}");
             if (handshake.NextState == (int) PacketType.Status)
             {
-                connection.CurrentState = PacketType.Status;
+                connection.ChangeState(PacketType.Status);
             }else if (handshake.NextState == (int) PacketType.Login)
             {
-                connection.CurrentState = PacketType.Login;
+                connection.ChangeState(PacketType.Login);
             } else
             {
                 throw new NotSupportedException($"Unsupported packet type {handshake.NextState}");
@@ -61,6 +62,13 @@ public static partial class PacketHandler
         else if (packet is CsPlayPlayerPosition && data is CsPlayPlayerPositionPacketData positionData)
         {
             
+        }
+        else if (packet is CsPlayKeepAlive && data is ScPlayKeepAlivePacketData keepAliveData)
+        {
+            if (keepAliveData.KeepAliveId == connection.LastKeepAliveValue.Ticks)
+            {
+                connection.LastKeepAlive = DateTime.UtcNow;
+            }
         }
         else
         {

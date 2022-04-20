@@ -56,15 +56,13 @@ public static partial class PacketHandler
         
         
         await ScLoginLoginSuccess.Send(
-            new ScLoginLoginSuccessPacketData(connection.Profile.Uuid, connection.Profile.name), connection, () =>
-            {
-                connection.CurrentState = PacketType.Play;
-                return ValueTask.CompletedTask;
-            });
+            new ScLoginLoginSuccessPacketData(connection.Profile.Uuid, connection.Profile.name), connection);
 
-        
-        
-        await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
+        await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection, () =>
+        {
+            connection.ChangeState(PacketType.Play);
+            return ValueTask.CompletedTask;
+        });
         await ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);
     }
 
@@ -77,9 +75,12 @@ public static partial class PacketHandler
             connection.IsCompressed = true;
             
             await ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(Utils.GuidFromString($"OfflinePlayer:{connection.Username}"), connection.Username), connection);
-            connection.CurrentState = PacketType.Play;
-            
-            await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
+
+            await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection, () =>
+            {
+                connection.ChangeState(PacketType.Play);
+                return ValueTask.CompletedTask;
+            });
             await ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);
             // ScLoginDisconnect.Send(new ScLoginDisconnectPacketData(new ChatComponent($"{loginData.Name}")), connection);
             // connection.Connected = false;
