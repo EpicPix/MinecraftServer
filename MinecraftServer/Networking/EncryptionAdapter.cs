@@ -6,14 +6,22 @@ public class EncryptionAdapter : DataAdapter
 {
     public Stream ReadStream { get; }
     public Stream WriteStream { get; }
-    public EncryptionAdapter(DataAdapter baseAdapter, byte[] key)
+
+    private Aes GetInstance(byte[] key)
     {
         var aes = Aes.Create();
         aes.Mode = CipherMode.CFB;
+        aes.Padding = PaddingMode.None;
+        aes.KeySize = 128;
+        aes.FeedbackSize = 8;
         aes.Key = key;
         aes.IV = key;
-        ReadStream = new CryptoStream(baseAdapter, aes.CreateEncryptor(), CryptoStreamMode.Read);
-        WriteStream = new CryptoStream(baseAdapter, aes.CreateEncryptor(), CryptoStreamMode.Write);
+        return aes;
+    }
+    public EncryptionAdapter(DataAdapter baseAdapter, byte[] key)
+    {
+        ReadStream = new CryptoStream(baseAdapter, GetInstance(key).CreateDecryptor(), CryptoStreamMode.Read);
+        WriteStream = new CryptoStream(baseAdapter, GetInstance(key).CreateEncryptor(), CryptoStreamMode.Write);
         BaseAdapter = baseAdapter;
     }
 
@@ -28,6 +36,12 @@ public class EncryptionAdapter : DataAdapter
     {
         await ReadStream.DisposeAsync();
         await WriteStream.DisposeAsync();
+    }
+
+    public override void Flush()
+    {
+        ReadStream.Flush();
+        WriteStream.Flush();
     }
 
     public DataAdapter BaseAdapter { get; }

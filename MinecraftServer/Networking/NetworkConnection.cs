@@ -43,6 +43,11 @@ public class NetworkConnection : DataAdapter, IDisposable
         _writeStream.Dispose();
     }
 
+    public override void Flush()
+    {
+        _writeStream.Flush();
+    }
+
     public override ValueTask<int> ReadAsync(Memory<byte> buf, CancellationToken ct = default)
     {
         return _transformerStack.Peek().ReadAsync(buf, ct);

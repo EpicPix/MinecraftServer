@@ -101,6 +101,7 @@ public abstract class Packet
             stream.TryGetBuffer(out var buf);
             await connection.WriteBytes(buf);
         }
+        connection.Flush();
     }
 }
 

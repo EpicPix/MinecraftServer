@@ -22,6 +22,11 @@ public class StreamAdapter : DataAdapter
         await WriteStream.DisposeAsync();
     }
 
+    public override void Flush()
+    {
+        WriteStream.Flush();
+    }
+
     public override void Close()
     {
         ReadStream.Close();

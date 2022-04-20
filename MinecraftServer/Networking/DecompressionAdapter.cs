@@ -19,6 +19,12 @@ public class DecompressionAdapter : DataAdapter
     {
         await _stream.DisposeAsync();
     }
+
+    public override void Flush()
+    {
+        _stream.Flush();
+    }
+
     public override ValueTask<int> ReadAsync(Memory<byte> buf, CancellationToken ct = default)
     {
         return _stream.ReadAsync(buf, ct);

@@ -244,9 +244,4 @@ public abstract class DataAdapter : Stream
     {
         await WriteAsync(bytes.Data);
     }
-
-    public override void Flush()
-    {
-        
-    }
 }
