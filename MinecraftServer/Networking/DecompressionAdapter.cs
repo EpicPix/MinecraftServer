@@ -22,7 +22,7 @@ public class DecompressionAdapter : DataAdapter
 
     public override void Flush()
     {
-        _stream.Flush();
+        _stream.Flush();    
     }
 
     public override ValueTask<int> ReadAsync(Memory<byte> buf, CancellationToken ct = default)

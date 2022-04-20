@@ -4,9 +4,6 @@ namespace MinecraftServer.Networking;
 
 public class NetworkConnection : DataAdapter, IDisposable
 {
-    private Stream _readStream;
-    private Stream _writeStream;
-
     public PacketType CurrentState = PacketType.Handshake;
     public bool Connected = true;
     public string? Username = null;
@@ -39,13 +36,12 @@ public class NetworkConnection : DataAdapter, IDisposable
     
     public void Dispose()
     {
-        _readStream.Dispose();
-        _writeStream.Dispose();
+        _transformerStack.Peek().Dispose();
     }
 
     public override void Flush()
     {
-        _writeStream.Flush();
+        _transformerStack.Peek().Flush();
     }
 
     public override ValueTask<int> ReadAsync(Memory<byte> buf, CancellationToken ct = default)

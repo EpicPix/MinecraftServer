@@ -164,7 +164,7 @@ public abstract class DataAdapter : Stream
     public async ValueTask<PooledArray> ReadBytes(int toRead)
     {
         var buf = PooledArray.Allocate(toRead);
-        await ReadBytes(buf.Data);
+        await ReadBytes(buf);
         return buf;
     }
 
@@ -235,13 +235,13 @@ public abstract class DataAdapter : Stream
         }
     }
 
-    public async ValueTask WriteBytes(Memory<byte> bytes)
+    public ValueTask WriteBytes(Memory<byte> bytes)
     {
-        await WriteAsync(bytes);
+        return WriteAsync(bytes);
     }
     
-    public async ValueTask WriteBytes(PooledArray bytes)
+    public ValueTask WriteBytes(PooledArray bytes)
     {
-        await WriteAsync(bytes.Data);
+        return WriteAsync(bytes.Data);
     }
 }

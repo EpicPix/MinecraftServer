@@ -44,31 +44,40 @@ public class Server
     private async Task HandleConnection(NetworkConnection conn)
     {
         ActiveConnections.Add(conn);
-        while (conn.Connected)
+        try
         {
-            if (conn.IsCompressed)
+            while (conn.Connected)
             {
-                var fullLength = await conn.ReadVarInt();
-                var dataLength = await conn.ReadVarInt();
-                conn.AddTransformer((x) => 
-                    new DecompressionAdapter(x));
-                var length = await conn.ReadVarInt();
-                var id = await conn.ReadVarInt();
-                var packet = Packet.GetPacket(conn.CurrentState, PacketBound.Server, (uint) id);
-                var data = await packet.ReadPacket(conn);
-                conn.PopTransformer();
-                await PacketHandler.HandlePacket(this, conn, packet, data);
-            }
-            else
-            {
-                var length = await conn.ReadVarInt();
-                var id = await conn.ReadVarInt();
-                var packet = Packet.GetPacket(conn.CurrentState, PacketBound.Server, (uint) id);
-                var data = await packet.ReadPacket(conn);
-                await PacketHandler.HandlePacket(this, conn, packet, data);
+                if (conn.IsCompressed)
+                {
+                    var fullLength = await conn.ReadVarInt();
+                    var dataLength = await conn.ReadVarInt();
+                    conn.AddTransformer((x) => 
+                        new DecompressionAdapter(x));
+                    var length = await conn.ReadVarInt();
+                    var id = await conn.ReadVarInt();
+                    var packet = Packet.GetPacket(conn.CurrentState, PacketBound.Server, (uint) id);
+                    var data = await packet.ReadPacket(conn);
+                    conn.PopTransformer();
+                    await PacketHandler.HandlePacket(this, conn, packet, data);
+                }
+                else
+                {
+                    var length = await conn.ReadVarInt();
+                    var id = await conn.ReadVarInt();
+                    var packet = Packet.GetPacket(conn.CurrentState, PacketBound.Server, (uint) id);
+                    var data = await packet.ReadPacket(conn);
+                    await PacketHandler.HandlePacket(this, conn, packet, data);
+                }
             }
         }
-
-        ActiveConnections.Remove(conn);
+        catch(Exception e)
+        {
+            Console.WriteLine(e);
+        }
+        finally
+        {
+            ActiveConnections.Remove(conn);
+        }
     }
 }
