@@ -6,6 +6,7 @@ using MinecraftServer.Packets.Clientbound.Status;
 using MinecraftServer.Packets.Serverbound.Data;
 using MinecraftServer.Packets.Serverbound.Handshake;
 using MinecraftServer.Packets.Serverbound.Login;
+using MinecraftServer.Packets.Serverbound.Play;
 using MinecraftServer.Packets.Serverbound.Status;
 
 namespace MinecraftServer.Packets.Handlers;
@@ -44,6 +45,10 @@ public static partial class PacketHandler
         else if (packet is CsLoginEncryptionResponse && data is CsLoginEncryptionResponsePacketData loginEncryptionResponse)
         {
             await HandleEncryptionResponse(server, connection, loginEncryptionResponse);
+        }
+        else if (packet is CsPlayClientSettings && data is CsPlayClientSettingsPacketData clientSettings)
+        {
+            
         }
         else
         {
