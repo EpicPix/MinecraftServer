@@ -9,13 +9,13 @@ public class ScLoginSetCompression : Packet<ScLoginSetCompression, ScLoginSetCom
     public override PacketBound Bound => PacketBound.Client;
     public override uint Id => 0x04;
 
-    public override async ValueTask<PacketData> ReadPacket(NetworkConnection stream)
+    public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
         return new ScLoginSetCompressionPacketData(await stream.ReadVarInt());
     }
 
-    public override async ValueTask WritePacket(NetworkConnection stream, PacketData data)
+    public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
-        await stream.WriteVarInt(Of(data).MaxPacketSize);
+        await stream.WriteVarInt(Of(data).CompressionThreshold);
     }
 }

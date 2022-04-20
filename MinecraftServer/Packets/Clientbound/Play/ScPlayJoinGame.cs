@@ -10,12 +10,12 @@ public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
     public override PacketBound Bound => PacketBound.Server;
     public override uint Id => 0x26;
 
-    public override ValueTask<PacketData> ReadPacket(NetworkConnection stream)
+    public override ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
         throw new NotImplementedException();
     }
 
-    public override async ValueTask WritePacket(NetworkConnection stream, PacketData data)
+    public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
         await stream.WriteInt(0);
         await stream.WriteBool(false);

@@ -11,12 +11,12 @@ public class NbtTagFloat : NbtTag
         Float = f;
     }
 
-    public ValueTask Read(NetworkConnection reader)
+    public ValueTask Read(DataAdapter reader)
     {
         throw new NotImplementedException();
     }
 
-    public ValueTask Write(NetworkConnection writer)
+    public ValueTask Write(DataAdapter writer)
     {
         return writer.WriteFloat(Float);
     }

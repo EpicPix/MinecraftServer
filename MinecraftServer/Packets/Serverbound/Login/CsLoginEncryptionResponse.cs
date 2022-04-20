@@ -7,7 +7,7 @@ public class CsLoginEncryptionResponse : Packet<CsLoginEncryptionResponse, CsLog
     public override PacketType Type => PacketType.Login;
     public override PacketBound Bound => PacketBound.Server;
     public override uint Id => 0x01;
-    public override async ValueTask<PacketData> ReadPacket(NetworkConnection stream)
+    public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
         int sslen = await stream.ReadVarInt();
         var ssbytes = new byte[sslen];
@@ -18,7 +18,7 @@ public class CsLoginEncryptionResponse : Packet<CsLoginEncryptionResponse, CsLog
         return new CsLoginEncryptionResponsePacketData(ssbytes, vtbytes);
     }
 
-    public override async ValueTask WritePacket(NetworkConnection stream, PacketData data)
+    public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
         var pkt = Of(data);
         await stream.WriteBytesLen(pkt.SharedSecret, 128);

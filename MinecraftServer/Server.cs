@@ -17,7 +17,7 @@ public class Server
     public bool OnlineMode { get; } = false;
     internal RSA? RsaServer { get; }
     internal byte[]? ServerPublicKey { get; }
-    public const int MaxPacketSize = 2097151;
+    public const int NetworkCompressionThreshold = 256;
 
     public Server(bool isOnline = true)
     {
@@ -47,21 +47,24 @@ public class Server
         {
             if (conn.IsCompressed)
             {
-                // var fullLength = await conn.ReadVarInt();
-                // var dataLength = await conn.ReadVarInt();
-                // var packet = PooledArray.Allocate(fullLength);
-                // await conn.ReadBytes(packet);
-                // using var ms = new MemoryStream(packet.Data.Array);
-                // using var deflate = new DeflateStream(ms, CompressionMode.Decompress);
-                // var decompPacket = PooledArray.Allocate(dataLength);
-                // await Utils.FillBytes(decompPacket.Data, deflate);
+                var fullLength = await conn.ReadVarInt();
+                var dataLength = await conn.ReadVarInt();
+                conn.AddTransformer((x) => 
+                    new DecompressionAdapter(x));
+                var length = await conn.ReadVarInt();
+                var id = await conn.ReadVarInt();
+                var packet = Packet.GetPacket(conn.CurrentState, PacketBound.Server, (uint) id);
+                var data = await packet.ReadPacket(conn);
+                conn.PopTransformer();
+                await PacketHandler.HandlePacket(this, conn, packet, data);
             }
             else
             {
                 var length = await conn.ReadVarInt();
                 var id = await conn.ReadVarInt();
                 var packet = Packet.GetPacket(conn.CurrentState, PacketBound.Server, (uint) id);
-                await PacketHandler.HandlePacket(this, conn, packet);
+                var data = await packet.ReadPacket(conn);
+                await PacketHandler.HandlePacket(this, conn, packet, data);
             }
         }
 

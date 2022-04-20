@@ -39,7 +39,7 @@ public class Utils
         }
     }
     
-    public static async ValueTask FillBytes(ArraySegment<byte> toRead, Stream stream)
+    public static async ValueTask FillBytes(ArraySegment<byte> toRead, DataAdapter stream)
     {
         int remLen = toRead.Count;
         int pos = 0;
@@ -48,6 +48,22 @@ public class Utils
             int read = await stream.ReadAsync(toRead.Slice(pos, remLen));
             pos += read;
             remLen -= read;
+        }
+    }
+    
+    public static int GetVarIntLength(int value)
+    {
+        int len = 0;
+        while (true)
+        {
+            if ((value & ~0x7F) == 0)
+            {
+                len++;
+                return len;
+            }
+
+            len++;
+            value >>= 7;
         }
     }
 }

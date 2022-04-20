@@ -9,14 +9,14 @@ public class ScLoginLoginSuccess : Packet<ScLoginLoginSuccess, ScLoginLoginSucce
     public override PacketBound Bound => PacketBound.Client;
     public override uint Id => 2;
 
-    public override async ValueTask<PacketData> ReadPacket(NetworkConnection stream)
+    public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
         var uuid = await stream.ReadUUID();
         var username = await stream.ReadString(16);
         return new ScLoginLoginSuccessPacketData(uuid, username);
     }
 
-    public override async ValueTask WritePacket(NetworkConnection stream, PacketData data)
+    public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
         var packet = Of(data);
         await stream.WriteUUID(packet.Uuid);

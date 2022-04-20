@@ -4,7 +4,7 @@ namespace MinecraftServer.Nbt;
 
 public class NbtTagRoot : NbtTagCompound
 {
-    public override async ValueTask Write(NetworkConnection writer)
+    public override async ValueTask Write(DataAdapter writer)
     {
         await writer.WriteUByte(Id);
         await writer.WriteStringShort("");

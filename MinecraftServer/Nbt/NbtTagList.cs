@@ -7,12 +7,12 @@ public class NbtTagList<T> : NbtTag where T : NbtTag
     public byte Id => 9;
     private List<T> tags = new();
 
-    public ValueTask Read(NetworkConnection reader)
+    public ValueTask Read(DataAdapter reader)
     {
         throw new NotImplementedException();
     }
 
-    public async ValueTask Write(NetworkConnection writer)
+    public async ValueTask Write(DataAdapter writer)
     {
         await writer.WriteUByte(NbtTag.GetTag<T>());
         await writer.WriteInt(tags.Count);

@@ -11,10 +11,8 @@ namespace MinecraftServer.Packets.Handlers;
 
 public static partial class PacketHandler
 {
-    public static async Task HandlePacket(Server server, NetworkConnection connection, Packet packet)
+    public static async Task HandlePacket(Server server, NetworkConnection connection, Packet packet, PacketData data)
     {
-        var data = await packet.ReadPacket(connection);
-
         if (packet is CsHandshake && data is CsHandshakePacketData handshake)
         {
             Console.WriteLine($"Protocol version: {handshake.ProtocolVersion} / Server IP: {handshake.ServerIp} / Server Port: {handshake.ServerPort} / Next State: {(PacketType) handshake.NextState}");

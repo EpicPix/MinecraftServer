@@ -8,7 +8,7 @@ public class CsHandshake : Packet<CsHandshake, CsHandshakePacketData>
     public override PacketBound Bound => PacketBound.Server;
     public override uint Id => 0;
 
-    public override async ValueTask<PacketData> ReadPacket(NetworkConnection connection)
+    public override async ValueTask<PacketData> ReadPacket(DataAdapter connection)
     {
         var protocolVersion = await connection.ReadVarInt();
         var serverIp = await connection.ReadString(255);
@@ -17,7 +17,7 @@ public class CsHandshake : Packet<CsHandshake, CsHandshakePacketData>
         return new CsHandshakePacketData(protocolVersion, serverIp, serverPort, nextState);
     }
 
-    public override async ValueTask WritePacket(NetworkConnection connection, PacketData input)
+    public override async ValueTask WritePacket(DataAdapter connection, PacketData input)
     {
         var data = Of(input);
         await connection.WriteVarInt(data.ProtocolVersion);

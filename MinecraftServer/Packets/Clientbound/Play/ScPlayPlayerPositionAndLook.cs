@@ -9,12 +9,12 @@ public class ScPlayPlayerPositionAndLook : Packet<ScPlayPlayerPositionAndLook, S
     public override PacketBound Bound => PacketBound.Server;
     public override uint Id => 0x38;
 
-    public override ValueTask<PacketData> ReadPacket(NetworkConnection stream)
+    public override ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
         throw new NotImplementedException();
     }
 
-    public override async ValueTask WritePacket(NetworkConnection stream, PacketData data)
+    public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
         var packet = Of(data);
         

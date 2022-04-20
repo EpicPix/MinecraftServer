@@ -1,43 +1,40 @@
-using System.ComponentModel.Design;
-using System.Data;
-using System.Net.Sockets;
-using System.Security.Cryptography;
+﻿using System.Data;
 using System.Text;
-using MinecraftServer.Packets;
 
 namespace MinecraftServer;
 
-public class NetworkConnection : IDisposable
+public abstract class DataAdapter : Stream
 {
-    private Stream _readStream;
-    private Stream _writeStream;
+    public override int Read(byte[] buffer, int offset, int count)
+    {
+        return ReadAsync(new ArraySegment<byte>(buffer, offset, count)).Result;
+    }
 
-    public PacketType CurrentState = PacketType.Handshake;
-    public bool Connected = true;
-    public string? Username = null;
-    public byte[] VerifyToken;
-    public byte[] EncryptionKey;
-    public bool IsCompressed = false;
+    public abstract override ValueTask<int> ReadAsync(Memory<byte> buf, CancellationToken ct = default);
+    public override long Seek(long offset, SeekOrigin origin)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void SetLength(long value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void Write(byte[] buffer, int offset, int count)
+    {
+        WriteAsync(new ArraySegment<byte>(buffer, offset, count)).GetAwaiter().GetResult();
+    }
+
     private byte[] _singleByteRead = new byte[1];
     private byte[] _singleByteWrite = new byte[1];
-    public GameProfile? PlayerProfile;
+    public abstract override ValueTask WriteAsync(ReadOnlyMemory<byte> buf, CancellationToken ct = default);
+    public override bool CanRead => true;
+    public override bool CanSeek => false;
+    public override bool CanWrite => true;
+    public override long Length => throw new NotImplementedException();
+    public override long Position { get; set; }
 
-    public NetworkConnection(Stream client)
-    {
-        _readStream = client;
-        _writeStream = client;
-    }
-
-    public void Encrypt()
-    {
-        var aes = Aes.Create();
-        aes.Mode = CipherMode.CFB;
-        aes.Key = EncryptionKey;
-        aes.IV = EncryptionKey;
-        _readStream = new CryptoStream(_readStream, aes.CreateEncryptor(), CryptoStreamMode.Read);
-        _writeStream = new CryptoStream(_writeStream, aes.CreateEncryptor(), CryptoStreamMode.Write);
-    }
-    
     public ValueTask WriteBool(bool value)
     {
         using var tbuf = PooledArray.Allocate(1);
@@ -55,12 +52,12 @@ public class NetworkConnection : IDisposable
     public async ValueTask WriteUByte(byte value)
     {
         _singleByteWrite[0] = value;
-        await _writeStream.WriteAsync(_singleByteWrite);
+        await WriteAsync(_singleByteWrite);
     }
 
     public async ValueTask<byte> ReadUByte()
     {
-        await _readStream.ReadAsync(_singleByteRead);
+        await ReadAsync(_singleByteRead);
         return _singleByteRead[0];
     }
 
@@ -151,12 +148,12 @@ public class NetworkConnection : IDisposable
             throw new ConstraintException($"bytes length {bytes.Length} > {max}");
         }
         await WriteVarInt(bytes.Length);
-        await _writeStream.WriteAsync(bytes);
+        await WriteAsync(bytes);
     }
 
     public ValueTask ReadBytes(ArraySegment<byte> toRead)
     {
-        return Utils.FillBytes(toRead, _readStream);
+        return Utils.FillBytes(toRead, this);
     }
     
     public ValueTask ReadBytes(PooledArray toRead)
@@ -193,7 +190,7 @@ public class NetworkConnection : IDisposable
         await WriteVarInt(str.Length);
         using var buf = PooledArray.Allocate(Encoding.UTF8.GetByteCount(str));
         Encoding.UTF8.GetBytes(str, buf.Data);
-        await _writeStream.WriteAsync(buf.Data);
+        await WriteAsync(buf.Data);
     }
     
     public async ValueTask WriteStringShort(string str)
@@ -201,7 +198,7 @@ public class NetworkConnection : IDisposable
         await WriteUShort((ushort)str.Length);
         using var buf = PooledArray.Allocate(Encoding.UTF8.GetByteCount(str));
         Encoding.UTF8.GetBytes(str, buf.Data);
-        await _writeStream.WriteAsync(buf.Data);
+        await WriteAsync(buf.Data);
     }
     
     public async ValueTask<int> ReadVarInt()
@@ -240,17 +237,16 @@ public class NetworkConnection : IDisposable
 
     public async ValueTask WriteBytes(Memory<byte> bytes)
     {
-        await _writeStream.WriteAsync(bytes);
+        await WriteAsync(bytes);
     }
     
     public async ValueTask WriteBytes(PooledArray bytes)
     {
-        await _writeStream.WriteAsync(bytes.Data);
+        await WriteAsync(bytes.Data);
     }
-    
-    public void Dispose()
+
+    public override void Flush()
     {
-        _readStream.Dispose();
-        _writeStream.Dispose();
+        
     }
 }

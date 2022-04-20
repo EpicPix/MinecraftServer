@@ -7,7 +7,7 @@ public class ScLoginEncryptionRequest : Packet<ScLoginEncryptionRequest, ScLogin
     public override PacketType Type => PacketType.Login;
     public override PacketBound Bound => PacketBound.Client;
     public override uint Id => 0x01;
-    public override async ValueTask<PacketData> ReadPacket(NetworkConnection stream)
+    public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
         var serverId = await stream.ReadString(16);
         var pkl = await stream.ReadVarInt();
@@ -19,7 +19,7 @@ public class ScLoginEncryptionRequest : Packet<ScLoginEncryptionRequest, ScLogin
         return new ScLoginEncryptionRequestPacketData(serverId, pubKey, verifyToken);
     }
 
-    public override async ValueTask WritePacket(NetworkConnection stream, PacketData data)
+    public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
         var pkt = Of(data);
         await stream.WriteString(pkt.ServerId, 16);

@@ -7,12 +7,12 @@ public class NbtTagCompound : NbtTag
     public byte Id => 10;
     private Dictionary<string, NbtTag?> tags = new();
 
-    public ValueTask Read(NetworkConnection reader)
+    public ValueTask Read(DataAdapter reader)
     {
         throw new NotImplementedException();
     }
 
-    public virtual async ValueTask Write(NetworkConnection writer)
+    public virtual async ValueTask Write(DataAdapter writer)
     {
         foreach (var (key, value) in tags)
         {
