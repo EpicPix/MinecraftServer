@@ -1,4 +1,5 @@
-﻿using MinecraftServer.Packets.Clientbound.Data;
+﻿using MinecraftServer.Networking;
+using MinecraftServer.Packets.Clientbound.Data;
 
 namespace MinecraftServer.Packets.Clientbound.Login;
 

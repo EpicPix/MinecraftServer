@@ -1,6 +1,6 @@
 ﻿using System.Buffers;
 
-namespace MinecraftServer;
+namespace MinecraftServer.Networking;
 
 public readonly struct PooledArray : IDisposable
 {

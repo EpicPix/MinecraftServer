@@ -1,4 +1,4 @@
-﻿namespace MinecraftServer;
+﻿namespace MinecraftServer.Networking;
 
 public class StreamAdapter : DataAdapter
 {

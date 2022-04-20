@@ -4,6 +4,7 @@ using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.IO;
+using MinecraftServer.Networking;
 using MinecraftServer.Packets;
 using MinecraftServer.Packets.Handlers;
 

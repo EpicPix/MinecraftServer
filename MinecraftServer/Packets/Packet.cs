@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.IO;
+using MinecraftServer.Networking;
 
 namespace MinecraftServer.Packets;
 

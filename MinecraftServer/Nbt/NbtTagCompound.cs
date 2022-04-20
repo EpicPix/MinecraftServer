@@ -1,4 +1,5 @@
 using System.Diagnostics.Tracing;
+using MinecraftServer.Networking;
 
 namespace MinecraftServer.Nbt;
 

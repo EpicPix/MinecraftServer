@@ -1,4 +1,4 @@
-﻿namespace MinecraftServer.Packets;
+﻿namespace MinecraftServer;
 
 public class GameProfile
 {

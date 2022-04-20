@@ -1,6 +1,6 @@
 ﻿using System.IO.Compression;
 
-namespace MinecraftServer;
+namespace MinecraftServer.Networking;
 
 public class DecompressionAdapter : DataAdapter
 {

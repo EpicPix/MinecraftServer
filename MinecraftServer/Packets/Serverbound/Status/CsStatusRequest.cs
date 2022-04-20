@@ -1,3 +1,5 @@
+using MinecraftServer.Networking;
+
 namespace MinecraftServer.Packets.Serverbound.Status;
 
 public class CsStatusRequest : Packet<CsStatusRequest, PacketData>

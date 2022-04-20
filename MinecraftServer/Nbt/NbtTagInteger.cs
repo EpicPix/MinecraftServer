@@ -1,3 +1,5 @@
+using MinecraftServer.Networking;
+
 namespace MinecraftServer.Nbt;
 
 public class NbtTagInteger : NbtTag

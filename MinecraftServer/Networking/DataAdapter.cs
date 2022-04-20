@@ -1,7 +1,7 @@
 ﻿using System.Data;
 using System.Text;
 
-namespace MinecraftServer;
+namespace MinecraftServer.Networking;
 
 public abstract class DataAdapter : Stream
 {

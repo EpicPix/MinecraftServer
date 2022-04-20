@@ -1,11 +1,6 @@
-using System.ComponentModel.Design;
-using System.Data;
-using System.Net.Sockets;
-using System.Security.Cryptography;
-using System.Text;
 using MinecraftServer.Packets;
 
-namespace MinecraftServer;
+namespace MinecraftServer.Networking;
 
 public class NetworkConnection : DataAdapter, IDisposable
 {

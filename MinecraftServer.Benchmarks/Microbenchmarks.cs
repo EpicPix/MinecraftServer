@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
+using MinecraftServer.Networking;
 using MinecraftServer.Packets;
 using MinecraftServer.Packets.Serverbound;
 using MinecraftServer.Packets.Serverbound.Data;

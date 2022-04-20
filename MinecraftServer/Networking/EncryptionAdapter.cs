@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-namespace MinecraftServer;
+namespace MinecraftServer.Networking;
 
 public class EncryptionAdapter : DataAdapter
 {
