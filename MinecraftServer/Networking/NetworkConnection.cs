@@ -10,12 +10,14 @@ public class NetworkConnection : DataAdapter, IDisposable
     public byte[] VerifyToken;
     public byte[] EncryptionKey;
     public bool IsCompressed = false;
-    public GameProfile? PlayerProfile;
+    public GameProfile? Profile { get; internal set; }
     private Stack<DataAdapter> _transformerStack = new();
+    public PlayerPacketQueue PacketQueue { get; }
 
     public NetworkConnection(Stream client)
     {
         _transformerStack.Push(new StreamAdapter(client));
+        PacketQueue = new PlayerPacketQueue();
     }
 
     public void Encrypt()

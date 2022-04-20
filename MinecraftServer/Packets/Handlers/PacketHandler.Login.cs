@@ -43,18 +43,26 @@ public static partial class PacketHandler
             throw new Exception("Not authenticated with Mojang");
         }
 
-        connection.PlayerProfile = JsonSerializer.Deserialize(await result.Content.ReadAsStringAsync(), SerializationContext.Default.GameProfile!);
-        Console.WriteLine($"Player has connected with info: {JsonSerializer.Serialize(connection.PlayerProfile, SerializationContext.Default.GameProfile!)}");
+        connection.Profile = JsonSerializer.Deserialize(await result.Content.ReadAsStringAsync(), SerializationContext.Default.GameProfile!);
+        Console.WriteLine($"Player has connected with info: {JsonSerializer.Serialize(connection.Profile, SerializationContext.Default.GameProfile!)}");
         connection.Encrypt();
         Console.WriteLine(@"Stream is now encrypted");
 
-        await ScLoginSetCompression.Send(new ScLoginSetCompressionPacketData(Server.NetworkCompressionThreshold), connection);
-        connection.IsCompressed = true;
+        await ScLoginSetCompression.Send(new ScLoginSetCompressionPacketData(Server.NetworkCompressionThreshold), connection, () =>
+            {
+                connection.IsCompressed = true;
+                return ValueTask.CompletedTask;
+            });
+        
         
         await ScLoginLoginSuccess.Send(
-            new ScLoginLoginSuccessPacketData(connection.PlayerProfile.Uuid, connection.PlayerProfile.name), connection);
+            new ScLoginLoginSuccessPacketData(connection.Profile.Uuid, connection.Profile.name), connection, () =>
+            {
+                connection.CurrentState = PacketType.Play;
+                return ValueTask.CompletedTask;
+            });
 
-        connection.CurrentState = PacketType.Play;
+        
         
         await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
         await ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);

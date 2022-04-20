@@ -56,52 +56,13 @@ public abstract class Packet
     public abstract ValueTask<PacketData> ReadPacket(DataAdapter stream);
     
     public abstract ValueTask WritePacket(DataAdapter stream, PacketData data);
+    public async ValueTask SendPacket(PacketData data, NetworkConnection connection, Func<ValueTask> runOnCompletion)
+    {
+        await connection.PacketQueue.Queue.Writer.WriteAsync(new PlayerPacketQueue.QueuedPacket(this, data, runOnCompletion));
+    }
     public async ValueTask SendPacket(PacketData data, NetworkConnection connection)
     {
-        if (connection.IsCompressed)
-        {
-            await using var stream = Server.MS_MANAGER.GetStream();
-            // get packet data
-            await WritePacket(new StreamAdapter(stream), data);
-            stream.TryGetBuffer(out var packetData);
-            var idLength = Utils.GetVarIntLength((int) Id);
-            if (packetData.Count + idLength + Utils.GetVarIntLength(0) < Server.NetworkCompressionThreshold)
-            {
-                await connection.WriteVarInt(packetData.Count + idLength + Utils.GetVarIntLength(0));
-                await connection.WriteVarInt(0);
-                await connection.WriteVarInt((int)Id);
-                await connection.WriteBytes(packetData);
-                return;
-            }
-            
-            await using var compressedStream = Server.MS_MANAGER.GetStream();
-            var comprAdapter = new CompressionAdapter(new StreamAdapter(compressedStream));
-            
-            // write id
-            await comprAdapter.WriteVarInt((int)Id);
-            // write data
-            await comprAdapter.WriteBytes(packetData);
-        
-            comprAdapter.Flush();
-            
-            compressedStream.TryGetBuffer(out var compressedPacketData);
-            
-            var uncompressedPacketSize = packetData.Count + idLength;
-            var compressedPacketSize = compressedPacketData.Count + Utils.GetVarIntLength(uncompressedPacketSize);
-            
-            await connection.WriteVarInt(compressedPacketSize);
-            await connection.WriteVarInt(uncompressedPacketSize);
-            await connection.WriteBytes(compressedPacketData);
-        }
-        else
-        {
-            await using var stream = Server.MS_MANAGER.GetStream();
-            await WritePacket(new StreamAdapter(stream), data);
-            await connection.WriteVarInt((int)stream.Length + Utils.GetVarIntLength((int) Id));
-            await connection.WriteVarInt((int)Id);
-            stream.TryGetBuffer(out var buf);
-            await connection.WriteBytes(buf);
-        }
+        await connection.PacketQueue.Queue.Writer.WriteAsync(new PlayerPacketQueue.QueuedPacket(this, data, ()=> ValueTask.CompletedTask));
     }
 }
 
@@ -111,6 +72,12 @@ public abstract class Packet<TPacket, TPacketData> : Packet where TPacket : Pack
     {
         var packet = GetPacket<TPacket>();
         await packet.SendPacket(data, connection);
+    }
+    
+    public static async ValueTask Send(TPacketData data, NetworkConnection connection, Func<ValueTask> runOnCompletion)
+    {
+        var packet = GetPacket<TPacket>();
+        await packet.SendPacket(data, connection, runOnCompletion);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

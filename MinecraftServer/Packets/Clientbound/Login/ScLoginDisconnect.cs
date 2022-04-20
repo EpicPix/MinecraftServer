@@ -25,6 +25,6 @@ public class ScLoginDisconnect : Packet<ScLoginDisconnect, ScDisconnectPacketDat
     {
         await using var mem = new MemoryStream();
         await JsonSerializer.SerializeAsync(mem, Of(data).Reason, SerializationContext.Default.ChatComponent);
-        await stream.WriteBytesLen(mem.GetBuffer(), ushort.MaxValue);
+        await stream.WriteBytesLen(mem.ToArray(), ushort.MaxValue);
     }
 }

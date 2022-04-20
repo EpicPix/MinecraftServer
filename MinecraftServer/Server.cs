@@ -37,9 +37,13 @@ public class Server
         }
     }
 
-    public void AddConnection(NetworkConnection connection) => Task.Run(() => HandleConnection(connection));
+    public void AddConnection(NetworkConnection connection)
+    {
+        Task.Run(() => HandleIncomingPackets(connection));
+        Task.Run(() => connection.PacketQueue.ForwardPackets(connection));
+    }
 
-    private async Task HandleConnection(NetworkConnection conn)
+    private async Task HandleIncomingPackets(NetworkConnection conn)
     {
         ActiveConnections.Add(conn);
         try
@@ -53,7 +57,6 @@ public class Server
                     if (dataLength != 0) conn.AddTransformer(x => new DecompressionAdapter(x));
                     try
                     {
-
                         var id = await conn.ReadVarInt();
                         var packet = Packet.GetPacket(conn.CurrentState, PacketBound.Server, (uint) id);
                         var data = await packet.ReadPacket(conn);
