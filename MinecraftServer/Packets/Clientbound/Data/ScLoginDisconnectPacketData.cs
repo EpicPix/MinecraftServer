@@ -8,4 +8,10 @@ public class ScLoginDisconnectPacketData : PacketData
     {
         Reason = reason;
     }
+
+    public override string ToString()
+    {
+        return $"ScLoginDisconnectPacketData[Reason={Reason}]";
+    }
+
 }

@@ -7,7 +7,7 @@ public class DecompressionAdapter : DataAdapter
     private DeflateStream _stream;
     public DecompressionAdapter(DataAdapter baseAdapter)
     {
-        _stream = new DeflateStream(baseAdapter, CompressionMode.Compress);
+        _stream = new DeflateStream(baseAdapter, CompressionMode.Decompress);
     }
     public override void Close()
     {

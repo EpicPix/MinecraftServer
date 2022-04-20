@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -28,7 +29,7 @@ public static partial class PacketHandler
         await ms.WriteAsync(server.ServerPublicKey);
         var hash = Utils.MinecraftShaDigest(ms.ToArray());
 
-        var client = new HttpClient();
+        using var client = new HttpClient();
         var uriBuilder = new UriBuilder("https://sessionserver.mojang.com/session/minecraft/hasJoined");
         var query = HttpUtility.ParseQueryString(uriBuilder.Query);
         query["username"] = connection.Username;
@@ -36,13 +37,14 @@ public static partial class PacketHandler
         uriBuilder.Query = query.ToString();
         var result = await client.GetAsync(uriBuilder.ToString());
 
-        if ((int)result.StatusCode != 200)
+        if (result.StatusCode != HttpStatusCode.OK)
         {
+            await ScLoginDisconnect.Send(new ScLoginDisconnectPacketData(new ChatComponent("Authentication Failed")), connection);
             throw new Exception("Not authenticated with Mojang");
         }
 
         connection.PlayerProfile = JsonSerializer.Deserialize<GameProfile>(await result.Content.ReadAsStringAsync());
-        Console.WriteLine(@"Player has connected with info: " + JsonSerializer.Serialize(connection.PlayerProfile));
+        Console.WriteLine($"Player has connected with info: {JsonSerializer.Serialize(connection.PlayerProfile)}");
         connection.Encrypt();
         Console.WriteLine(@"Stream is now encrypted");
 
@@ -60,11 +62,11 @@ public static partial class PacketHandler
         connection.Username = data.Name;
         if (!server.OnlineMode)
         {
-            await ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(Utils.GuidFromString($"OfflinePlayer:{connection.Username}"), connection.Username), connection);
-            connection.CurrentState = PacketType.Play;
-
             await ScLoginSetCompression.Send(new ScLoginSetCompressionPacketData(Server.NetworkCompressionThreshold), connection);
             connection.IsCompressed = true;
+            
+            await ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(Utils.GuidFromString($"OfflinePlayer:{connection.Username}"), connection.Username), connection);
+            connection.CurrentState = PacketType.Play;
             
             await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
             // ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);

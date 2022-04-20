@@ -12,7 +12,7 @@ namespace MinecraftServer;
 
 public class Server
 {
-    public static readonly RecyclableMemoryStreamManager MS_MANAGER = new RecyclableMemoryStreamManager();
+    public static readonly RecyclableMemoryStreamManager MS_MANAGER = new();
     public ServerInfo ServerInfo { get; }
     public volatile List<NetworkConnection> ActiveConnections;
     public bool OnlineMode { get; } = false;
@@ -36,10 +36,8 @@ public class Server
             ServerPublicKey = RsaServer.ExportSubjectPublicKeyInfo();
         }
     }
-    public void AddConnection(NetworkConnection connection)
-    {
-        Task.Run(() => HandleConnection(connection));
-    }
+
+    public void AddConnection(NetworkConnection connection) => Task.Run(() => HandleConnection(connection));
 
     private async Task HandleConnection(NetworkConnection conn)
     {
@@ -52,9 +50,8 @@ public class Server
                 {
                     var fullLength = await conn.ReadVarInt();
                     var dataLength = await conn.ReadVarInt();
-                    conn.AddTransformer((x) => 
+                    conn.AddTransformer((x) =>
                         new DecompressionAdapter(x));
-                    var length = await conn.ReadVarInt();
                     var id = await conn.ReadVarInt();
                     var packet = Packet.GetPacket(conn.CurrentState, PacketBound.Server, (uint) id);
                     var data = await packet.ReadPacket(conn);

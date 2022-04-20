@@ -10,4 +10,10 @@ public class ScLoginLoginSuccessPacketData : PacketData
         Uuid = uuid;
         Username = username;
     }
+
+    public override string ToString()
+    {
+        return $"ScLoginLoginSuccessPacketData[Uuid={Uuid},Username={Username}]";
+    }
+    
 }

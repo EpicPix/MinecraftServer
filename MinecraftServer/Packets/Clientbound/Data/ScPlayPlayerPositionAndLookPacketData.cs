@@ -2,8 +2,10 @@ namespace MinecraftServer.Packets.Clientbound.Data;
 
 public class ScPlayPlayerPositionAndLookPacketData : PacketData
 {
+    [Flags]
     public enum RelativeFlags
     {
+        None = 0x00,
         X = 0x01,
         Y = 0x02,
         Z = 0x04,

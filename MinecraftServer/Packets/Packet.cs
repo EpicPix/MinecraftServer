@@ -27,17 +27,17 @@ public abstract class Packet
         }
     }
 
-    public static Packet GetPacket(PacketType type, PacketBound Bound, uint id)
+    public static Packet GetPacket(PacketType type, PacketBound bound, uint id)
     {
         foreach (var packet in _packets)
         {
-            if (packet.Type == type && packet.Bound == Bound && packet.Id == id)
+            if (packet.Type == type && packet.Bound == bound && packet.Id == id)
             {
                 return packet;
             }
         }
 
-        throw new ArgumentException($"Unknown packet {type} at {Bound} with id {id}");
+        throw new ArgumentException($"Unknown packet {bound}bound {type} with id {id}");
     }
 
     public static T GetPacket<T>() where T : Packet
@@ -60,33 +60,34 @@ public abstract class Packet
     {
         if (connection.IsCompressed)
         {
-            using var stream = Server.MS_MANAGER.GetStream();
+            await using var stream = Server.MS_MANAGER.GetStream();
             // get packet data
             await WritePacket(new StreamAdapter(stream), data);
             stream.TryGetBuffer(out var packetData);
-
-            if (packetData.Count + 1 < Server.NetworkCompressionThreshold)
+            var idLength = Utils.GetVarIntLength((int) Id);
+            if (packetData.Count + idLength + Utils.GetVarIntLength(0) < Server.NetworkCompressionThreshold)
             {
-                await connection.WriteVarInt(packetData.Count + 2);
+                await connection.WriteVarInt(packetData.Count + idLength + Utils.GetVarIntLength(0));
                 await connection.WriteVarInt(0);
+                await connection.WriteVarInt((int)Id);
                 await connection.WriteBytes(packetData);
                 return;
             }
             
-            using var compressedStream = Server.MS_MANAGER.GetStream();
+            await using var compressedStream = Server.MS_MANAGER.GetStream();
             var comprAdapter = new CompressionAdapter(new StreamAdapter(compressedStream));
             
             // write id
             await comprAdapter.WriteVarInt((int)Id);
             // write data
             await comprAdapter.WriteBytes(packetData);
-
+        
             comprAdapter.Flush();
             
             compressedStream.TryGetBuffer(out var compressedPacketData);
             
-            int uncompressedPacketSize = packetData.Count + Utils.GetVarIntLength((int)Id);
-            int compressedPacketSize = compressedPacketData.Count + Utils.GetVarIntLength(uncompressedPacketSize);
+            var uncompressedPacketSize = packetData.Count + idLength;
+            var compressedPacketSize = compressedPacketData.Count + Utils.GetVarIntLength(uncompressedPacketSize);
             
             await connection.WriteVarInt(compressedPacketSize);
             await connection.WriteVarInt(uncompressedPacketSize);
@@ -94,14 +95,13 @@ public abstract class Packet
         }
         else
         {
-            using var stream = Server.MS_MANAGER.GetStream();
+            await using var stream = Server.MS_MANAGER.GetStream();
             await WritePacket(new StreamAdapter(stream), data);
-            await connection.WriteVarInt((int)stream.Length + 1);
+            await connection.WriteVarInt((int)stream.Length + Utils.GetVarIntLength((int) Id));
             await connection.WriteVarInt((int)Id);
             stream.TryGetBuffer(out var buf);
             await connection.WriteBytes(buf);
         }
-        connection.Flush();
     }
 }
 

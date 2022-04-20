@@ -8,7 +8,7 @@ public class ScLoginSetCompression : Packet<ScLoginSetCompression, ScLoginSetCom
 
     public override PacketType Type => PacketType.Login;
     public override PacketBound Bound => PacketBound.Client;
-    public override uint Id => 0x04;
+    public override uint Id => 0x03;
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {

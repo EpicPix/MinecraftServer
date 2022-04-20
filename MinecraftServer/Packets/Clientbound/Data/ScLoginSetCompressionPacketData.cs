@@ -8,4 +8,10 @@ public class ScLoginSetCompressionPacketData : PacketData
     {
         CompressionThreshold = size;
     }
+
+    public override string ToString()
+    {
+        return $"ScLoginSetCompressionPacketData[CompressionThreshold={CompressionThreshold}]";
+    }
+    
 }

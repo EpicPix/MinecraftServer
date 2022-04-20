@@ -7,8 +7,8 @@ namespace MinecraftServer.Packets.Clientbound.Play;
 public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
 {
 
-    public override PacketType Type => PacketType.Login;
-    public override PacketBound Bound => PacketBound.Server;
+    public override PacketType Type => PacketType.Play;
+    public override PacketBound Bound => PacketBound.Client;
     public override uint Id => 0x26;
 
     public override ValueTask<PacketData> ReadPacket(DataAdapter stream)
