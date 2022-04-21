@@ -12,6 +12,7 @@ public class NetworkConnection : DataAdapter, IDisposable
     public PacketType CurrentState { get; private set; } = PacketType.Handshake;
     public bool Connected = true;
     public string? Username = null;
+    public Guid Uuid;
     public byte[] VerifyToken;
     public byte[] EncryptionKey;
     public bool IsCompressed = false;

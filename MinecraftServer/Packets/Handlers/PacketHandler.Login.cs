@@ -42,8 +42,10 @@ public static partial class PacketHandler
             await ScLoginDisconnect.Send(new ScDisconnectPacketData(new ChatComponent("Authentication Failed")), connection);
             throw new Exception("Not authenticated with Mojang");
         }
-
+        
         connection.Profile = JsonSerializer.Deserialize(await result.Content.ReadAsStringAsync(), SerializationContext.Default.GameProfile!);
+        connection.Username = connection.Profile.name;
+        connection.Uuid = connection.Profile.Uuid;
         Console.WriteLine($"Player has connected with info: {JsonSerializer.Serialize(connection.Profile, SerializationContext.Default.GameProfile!)}");
         connection.Encrypt();
         Console.WriteLine(@"Stream is now encrypted");
@@ -76,8 +78,9 @@ public static partial class PacketHandler
                     return ValueTask.CompletedTask;
                 });
             }
-
-            await ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(Utils.GuidFromString($"OfflinePlayer:{connection.Username}"), connection.Username), connection);
+            var uuid = Utils.GuidFromString($"OfflinePlayer:{connection.Username}");
+            connection.Uuid = uuid;
+            await ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(uuid, connection.Username), connection);
             connection.ChangeState(PacketType.Play);
             await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
             await ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);
