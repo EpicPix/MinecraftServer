@@ -23,7 +23,7 @@ public static partial class PacketHandler
         Debug.Assert(decryptedToken.SequenceEqual(connection.VerifyToken));
         
         connection.EncryptionKey = server.RsaServer.Decrypt(data.SharedSecret, RSAEncryptionPadding.Pkcs1);
-        using var ms = new MemoryStream();
+        await using var ms = new MemoryStream();
         await ms.WriteAsync(Encoding.ASCII.GetBytes(""));
         await ms.WriteAsync(connection.EncryptionKey);
         await ms.WriteAsync(server.ServerPublicKey);
@@ -48,9 +48,9 @@ public static partial class PacketHandler
         connection.Encrypt();
         Console.WriteLine(@"Stream is now encrypted");
 
-        await ScLoginSetCompression.Send(new ScLoginSetCompressionPacketData(Server.NetworkCompressionThreshold), connection, () =>
+        await ScLoginSetCompression.Send(new ScLoginSetCompressionPacketData(Server.NetworkCompressionThreshold), connection, conn =>
             {
-                connection.IsCompressed = true;
+                conn.IsCompressed = true;
                 return ValueTask.CompletedTask;
             });
         
@@ -58,9 +58,9 @@ public static partial class PacketHandler
         await ScLoginLoginSuccess.Send(
             new ScLoginLoginSuccessPacketData(connection.Profile.Uuid, connection.Profile.name), connection);
 
-        await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection, () =>
+        await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection, conn =>
         {
-            connection.ChangeState(PacketType.Play);
+            conn.ChangeState(PacketType.Play);
             return ValueTask.CompletedTask;
         });
         await ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);
@@ -76,9 +76,9 @@ public static partial class PacketHandler
             
             await ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(Utils.GuidFromString($"OfflinePlayer:{connection.Username}"), connection.Username), connection);
 
-            await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection, () =>
+            await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection, conn =>
             {
-                connection.ChangeState(PacketType.Play);
+                conn.ChangeState(PacketType.Play);
                 return ValueTask.CompletedTask;
             });
             await ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);

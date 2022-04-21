@@ -57,13 +57,13 @@ public abstract class Packet
     public abstract ValueTask<PacketData> ReadPacket(DataAdapter stream);
     
     public abstract ValueTask WritePacket(DataAdapter stream, PacketData data);
-    public async ValueTask SendPacket(PacketData data, NetworkConnection connection, Func<ValueTask> runOnCompletion)
+    public async ValueTask SendPacket(PacketData data, NetworkConnection connection, Func<NetworkConnection, ValueTask> runOnCompletion)
     {
         await connection.PacketQueue.Queue.Writer.WriteAsync(new PlayerPacketQueue.QueuedPacket(this, data, runOnCompletion));
     }
     public async ValueTask SendPacket(PacketData data, NetworkConnection connection)
     {
-        await connection.PacketQueue.Queue.Writer.WriteAsync(new PlayerPacketQueue.QueuedPacket(this, data, ()=> ValueTask.CompletedTask));
+        await connection.PacketQueue.Queue.Writer.WriteAsync(new PlayerPacketQueue.QueuedPacket(this, data, _ => ValueTask.CompletedTask));
     }
 }
 
@@ -75,7 +75,7 @@ public abstract class Packet<TPacket, TPacketData> : Packet where TPacket : Pack
         await packet.SendPacket(data, connection);
     }
     
-    public static async ValueTask Send(TPacketData data, NetworkConnection connection, Func<ValueTask> runOnCompletion)
+    public static async ValueTask Send(TPacketData data, NetworkConnection connection, Func<NetworkConnection, ValueTask> runOnCompletion)
     {
         var packet = GetPacket<TPacket>();
         await packet.SendPacket(data, connection, runOnCompletion);

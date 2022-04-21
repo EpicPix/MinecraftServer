@@ -1,6 +1,6 @@
 ﻿namespace MinecraftServer.Packets.Handlers;
 
-public partial class PacketHandler
+public static partial class PacketHandler
 {
     
 }

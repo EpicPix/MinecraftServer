@@ -1,7 +1,5 @@
 using System.Numerics;
-using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
-using System.Text;
 using MinecraftServer.Networking;
 
 namespace MinecraftServer;
@@ -10,7 +8,7 @@ public class Utils
 {
     public static Guid GuidFromString(string str)
     {
-        using var md5 = System.Security.Cryptography.MD5.Create();
+        using var md5 = MD5.Create();
         var inputBytes = System.Text.Encoding.UTF8.GetBytes(str);
         var hashBytes = md5.ComputeHash(inputBytes);
         hashBytes[6]  &= 0x0f;  /* clear version        */
@@ -57,13 +55,12 @@ public class Utils
         int len = 0;
         while (true)
         {
+            len++;
             if ((value & ~0x7F) == 0)
             {
-                len++;
                 return len;
             }
 
-            len++;
             value >>= 7;
         }
     }

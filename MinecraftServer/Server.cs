@@ -1,13 +1,8 @@
-using System.Buffers;
-using System.Formats.Asn1;
-using System.IO.Compression;
+using System.Net.Sockets;
 using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using Microsoft.IO;
 using MinecraftServer.Networking;
 using MinecraftServer.Packets;
-using MinecraftServer.Packets.Clientbound.Data;
-using MinecraftServer.Packets.Clientbound.Play;
 using MinecraftServer.Packets.Handlers;
 
 namespace MinecraftServer;
@@ -56,38 +51,47 @@ public class Server
                 {
                     var fullLength = await conn.ReadVarInt();
                     var dataLength = await conn.ReadVarInt();
-                    if (dataLength != 0) conn.AddTransformer(x => new DecompressionAdapter(x));
-                    try
-                    {
-                        var id = await conn.ReadVarInt();
-                        if(!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out var packet))
-                        {
-                            Console.WriteLine($"Unknown packet detected Id: {id} State: {conn.CurrentState}. Skipping gracefully.");
-                            await conn.Skip(fullLength - Utils.GetVarIntLength(dataLength) - Utils.GetVarIntLength(id));
-                            continue;
-                        }
-                        var data = await packet.ReadPacket(conn);
+                    var packetDataLength = fullLength;
 
-                        if (dataLength != 0) conn.PopTransformer();
-                        await PacketHandler.HandlePacket(this, conn, packet, data);
-                    } catch (ArgumentException e)
+                    if (dataLength != 0)
                     {
-                        Console.WriteLine(e);
-                        conn.Connected = false;
+                        conn.AddTransformer(x => new DecompressionAdapter(x));
+                        packetDataLength = dataLength;
+                    } else
+                    {
+                        packetDataLength -= Utils.GetVarIntLength(dataLength); // dataLength is 0, but i dont care
                     }
-                    if (!conn.Connected) break;
+                    
+                    var id = await conn.ReadVarInt();
+
+                    packetDataLength -= Utils.GetVarIntLength(id);
+                    if(!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out var packet))
+                    {
+                        Console.WriteLine($"Unknown packet detected on state {conn.CurrentState} with id {id}. Skipping gracefully.");
+                        await conn.Skip(packetDataLength);
+                        continue;
+                    }
+                    conn.PacketDataLength = (uint) packetDataLength;
+                    var data = await packet.ReadPacket(conn);
+                    
                     if (dataLength != 0) conn.PopTransformer();
+                    
+                    await PacketHandler.HandlePacket(this, conn, packet, data);
+                    
+                    if (!conn.Connected) break;
                 }
                 else
                 {
                     var length = await conn.ReadVarInt();
                     var id = await conn.ReadVarInt();
+                    var packetDataLength = length - Utils.GetVarIntLength(id);
                     if (!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out var packet))
                     {
-                        Console.WriteLine($"Unknown packet detected Id: {id} State: {conn.CurrentState}. Skipping gracefully.");
-                        await conn.Skip(length - Utils.GetVarIntLength(id));
+                        Console.WriteLine($"Unknown packet detected on state {conn.CurrentState} with id {id}. Skipping gracefully.");
+                        await conn.Skip(packetDataLength);
                         continue;
                     }
+                    conn.PacketDataLength = (uint) packetDataLength;
                     var data = await packet.ReadPacket(conn);
                     await PacketHandler.HandlePacket(this, conn, packet, data);
                 }
@@ -95,7 +99,10 @@ public class Server
         }
         catch(Exception e)
         {
-            Console.WriteLine(e);
+            if (e is not SocketException)
+            {
+                Console.WriteLine(e);
+            }
         }
         finally
         {

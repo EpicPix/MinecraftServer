@@ -1,3 +1,5 @@
+using System.Net.Sockets;
+using System.Security.Cryptography;
 using MinecraftServer.Packets;
 using MinecraftServer.Packets.Clientbound.Data;
 using MinecraftServer.Packets.Clientbound.Play;
@@ -16,7 +18,9 @@ public class NetworkConnection : DataAdapter, IDisposable
     private Stack<DataAdapter> _transformerStack = new();
     public PlayerPacketQueue PacketQueue { get; }
     public DateTime LastKeepAlive = DateTime.MinValue;
-    public DateTime LastKeepAliveValue = DateTime.MinValue;
+    public long LastKeepAliveValue;
+
+    public Socket Socket => ((NetworkStream) ((StreamAdapter) _transformerStack.ToArray()[_transformerStack.Count - 1]).ReadStream).Socket;
 
     public NetworkConnection(Stream client)
     {
@@ -31,23 +35,25 @@ public class NetworkConnection : DataAdapter, IDisposable
 
     public void ChangeState(PacketType newState)
     {
-        if (newState <= CurrentState)
+        if (newState == CurrentState) return;
+        
+        if (newState < CurrentState)
         {
             throw new InvalidOperationException(
                 $"The state transition is not allowed, from {CurrentState} to {newState}");
         }
 
-        if (newState is PacketType.Play)
+        if (newState == PacketType.Play)
         {
-            Task.Run(SendKeepAlive);  
+            Task.Run(SendKeepAlive);
         }
 
         CurrentState = newState;
     }
     
-    private async Task SendKeepAlive()
+    private async void SendKeepAlive()
     {
-        await Task.Delay(5000);
+        await Task.Delay(10000);
         try
         {
             while (Connected)
@@ -57,18 +63,19 @@ public class NetworkConnection : DataAdapter, IDisposable
                     if (DateTime.UtcNow - LastKeepAlive > TimeSpan.FromSeconds(30))
                     {
                         Disconnect();
+                        break;
                     }
                 }
                 else
                 {
-                    var time = DateTime.UtcNow;
-                    LastKeepAliveValue = time;
-                    await ScPlayKeepAlive.Send(new ScPlayKeepAlivePacketData()
+                    var randomId = (long) RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue) << 32 | (long) RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue);
+                    LastKeepAliveValue = randomId;
+                    await ScPlayKeepAlive.Send(new ScPlayKeepAlivePacketData
                     {
-                        KeepAliveId = time.Ticks
+                        KeepAliveId = randomId
                     }, this);
                 }
-                await Task.Delay(5000);
+                await Task.Delay(10000);
             }
         }
         catch(Exception e)

@@ -12,8 +12,11 @@ public class CsPlayPluginMessage : Packet<CsPlayPluginMessage, CsPlayPluginMessa
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
+        if (stream is not NetworkConnection con) throw new ArgumentException($"Expected {typeof(NetworkConnection)} but got {stream.GetType()}");
+        
         var identifier = await stream.ReadString(ushort.MaxValue);
-        byte[] bytes = new byte[await stream.ReadVarInt()];
+        var bytesLength = con.PacketDataLength - Utils.GetVarIntLength(identifier.Length) - identifier.Length;
+        byte[] bytes = new byte[bytesLength];
         await stream.ReadBytes(bytes);
         return new CsPlayPluginMessagePacketData(identifier, bytes);
     }

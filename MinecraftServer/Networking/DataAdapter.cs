@@ -36,6 +36,8 @@ public abstract class DataAdapter : Stream
     public override long Length => throw new NotImplementedException();
     public override long Position { get; set; }
 
+    public uint PacketDataLength { get; set; }
+
     public ValueTask WriteBool(bool value)
     {
         using var tbuf = PooledArray.Allocate(1);
