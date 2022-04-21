@@ -48,21 +48,18 @@ public static partial class PacketHandler
         connection.Encrypt();
         Console.WriteLine(@"Stream is now encrypted");
 
-        await ScLoginSetCompression.Send(new ScLoginSetCompressionPacketData(Server.NetworkCompressionThreshold), connection, conn =>
-            {
+        if (Server.NetworkCompressionThreshold > 0)
+        {
+            await ScLoginSetCompression.Send(new ScLoginSetCompressionPacketData(Server.NetworkCompressionThreshold), connection, conn => {
                 conn.IsCompressed = true;
                 return ValueTask.CompletedTask;
             });
-        
-        
-        await ScLoginLoginSuccess.Send(
-            new ScLoginLoginSuccessPacketData(connection.Profile.Uuid, connection.Profile.name), connection);
+        }
 
-        await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection, conn =>
-        {
-            conn.ChangeState(PacketType.Play);
-            return ValueTask.CompletedTask;
-        });
+
+        await ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(connection.Profile.Uuid, connection.Profile.name), connection);
+        connection.ChangeState(PacketType.Play);
+        await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
         await ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);
     }
 
@@ -71,18 +68,19 @@ public static partial class PacketHandler
         connection.Username = data.Name;
         if (!server.OnlineMode)
         {
-            await ScLoginSetCompression.Send(new ScLoginSetCompressionPacketData(Server.NetworkCompressionThreshold), connection);
-            connection.IsCompressed = true;
-            
-            await ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(Utils.GuidFromString($"OfflinePlayer:{connection.Username}"), connection.Username), connection);
-
-            await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection, conn =>
+            if (Server.NetworkCompressionThreshold > 0)
             {
-                conn.ChangeState(PacketType.Play);
-                return ValueTask.CompletedTask;
-            });
+                await ScLoginSetCompression.Send(new ScLoginSetCompressionPacketData(Server.NetworkCompressionThreshold), connection, conn => {
+                    conn.IsCompressed = true;
+                    return ValueTask.CompletedTask;
+                });
+            }
+
+            await ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(Utils.GuidFromString($"OfflinePlayer:{connection.Username}"), connection.Username), connection);
+            connection.ChangeState(PacketType.Play);
+            await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
             await ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);
-            // ScLoginDisconnect.Send(new ScLoginDisconnectPacketData(new ChatComponent($"{loginData.Name}")), connection);
+            // await ScLoginDisconnect.Send(new ScDisconnectPacketData(new ChatComponent($"{data.Name}")), connection);
             // connection.Connected = false;
             return;
         }

@@ -66,15 +66,14 @@ public class NetworkConnection : DataAdapter, IDisposable
                         break;
                     }
                 }
-                else
+                
+                var randomId = (long) RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue) << 32 | (uint) RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue);
+                LastKeepAliveValue = randomId;
+                Console.WriteLine($"W: 0x{randomId:x}");
+                await ScPlayKeepAlive.Send(new ScPlayKeepAlivePacketData
                 {
-                    var randomId = (long) RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue) << 32 | (long) RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue);
-                    LastKeepAliveValue = randomId;
-                    await ScPlayKeepAlive.Send(new ScPlayKeepAlivePacketData
-                    {
-                        KeepAliveId = randomId
-                    }, this);
-                }
+                    KeepAliveId = randomId
+                }, this);
                 await Task.Delay(10000);
             }
         }

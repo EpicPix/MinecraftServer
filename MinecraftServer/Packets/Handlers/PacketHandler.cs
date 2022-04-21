@@ -65,6 +65,7 @@ public static partial class PacketHandler
         }
         else if (packet is CsPlayKeepAlive && data is ScPlayKeepAlivePacketData keepAliveData)
         {
+            Console.WriteLine($"R: 0x{keepAliveData.KeepAliveId:x} / 0x{connection.LastKeepAliveValue:x}");
             if (keepAliveData.KeepAliveId == connection.LastKeepAliveValue)
             {
                 connection.LastKeepAlive = DateTime.UtcNow;
