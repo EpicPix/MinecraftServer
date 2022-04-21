@@ -61,6 +61,7 @@ public static partial class PacketHandler
         connection.ChangeState(PacketType.Play);
         await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
         await ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);
+        await ScPlayChatMessage.Send(new ScPlayChatMessagePacketData(new ChatComponent("Test message, in online mode"), ScPlayChatMessagePacketData.PositionType.Chat, Guid.Empty), connection);
     }
 
     public static async ValueTask HandleLoginStart(Server server, NetworkConnection connection, CsLoginLoginStartPacketData data)
@@ -80,6 +81,7 @@ public static partial class PacketHandler
             connection.ChangeState(PacketType.Play);
             await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
             await ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);
+            await ScPlayChatMessage.Send(new ScPlayChatMessagePacketData(new ChatComponent("Test message, in offline mode"), ScPlayChatMessagePacketData.PositionType.Chat, Guid.Empty), connection);
             // await ScLoginDisconnect.Send(new ScDisconnectPacketData(new ChatComponent($"{data.Name}")), connection);
             // connection.Connected = false;
             return;
