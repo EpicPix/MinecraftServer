@@ -80,7 +80,6 @@ public class NetworkConnection : DataAdapter, IDisposable
                 
                 var randomId = (long) RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue) << 32 | (uint) RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue);
                 LastKeepAliveValue = randomId;
-                Console.WriteLine($"W: 0x{randomId:x}");
                 await ScPlayKeepAlive.Send(new ScPlayKeepAlivePacketData(randomId), this);
                 await Task.Delay(10000);
             }

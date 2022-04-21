@@ -12,7 +12,6 @@ public class PlayerPacketQueue
     {
         await foreach (var packet in Queue.Reader.ReadAllAsync())
         {
-            Console.WriteLine($"[S->C] {packet.PacketDefinition}");
             try
             {
                 var data = packet.PacketData;

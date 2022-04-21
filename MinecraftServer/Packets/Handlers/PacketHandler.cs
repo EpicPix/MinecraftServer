@@ -15,7 +15,6 @@ public static partial class PacketHandler
 {
     public static async Task HandlePacket(Server server, NetworkConnection connection, Packet packet, PacketData data)
     {
-        Console.WriteLine($"[C->S] {packet}");
         
         if (packet is CsHandshake && data is CsHandshakePacketData handshake)
         {
@@ -66,7 +65,6 @@ public static partial class PacketHandler
         }
         else if (packet is CsPlayKeepAlive && data is ScPlayKeepAlivePacketData keepAliveData)
         {
-            Console.WriteLine($"R: 0x{keepAliveData.KeepAliveId:x} / 0x{connection.LastKeepAliveValue:x}");
             if (keepAliveData.KeepAliveId == connection.LastKeepAliveValue)
             {
                 connection.LastKeepAlive = DateTime.UtcNow;
