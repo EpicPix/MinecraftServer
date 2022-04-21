@@ -10,9 +10,8 @@ public class CsPlayKeepAlive : Packet<CsPlayKeepAlive, ScPlayKeepAlivePacketData
     public override uint Id => 0x0F;
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
-        var packet = new ScPlayKeepAlivePacketData();
-        packet.KeepAliveId = (long)await stream.ReadULong();
-        return packet;
+        var id = (long)await stream.ReadULong();
+        return new ScPlayKeepAlivePacketData(id);
     }
 
     public override ValueTask WritePacket(DataAdapter stream, PacketData data)

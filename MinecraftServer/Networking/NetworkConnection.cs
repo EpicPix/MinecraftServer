@@ -28,7 +28,7 @@ public class NetworkConnection : DataAdapter, IDisposable
         PacketQueue = new PlayerPacketQueue();
     }
 
-    public void Disconnect()
+    public void Disconnect(string reason = "")
     {
         throw new NotImplementedException();
     }
@@ -62,7 +62,7 @@ public class NetworkConnection : DataAdapter, IDisposable
                 {
                     if (DateTime.UtcNow - LastKeepAlive > TimeSpan.FromSeconds(30))
                     {
-                        Disconnect();
+                        Disconnect("Timed out");
                         break;
                     }
                 }
@@ -70,10 +70,7 @@ public class NetworkConnection : DataAdapter, IDisposable
                 var randomId = (long) RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue) << 32 | (uint) RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue);
                 LastKeepAliveValue = randomId;
                 Console.WriteLine($"W: 0x{randomId:x}");
-                await ScPlayKeepAlive.Send(new ScPlayKeepAlivePacketData
-                {
-                    KeepAliveId = randomId
-                }, this);
+                await ScPlayKeepAlive.Send(new ScPlayKeepAlivePacketData(randomId), this);
                 await Task.Delay(10000);
             }
         }
