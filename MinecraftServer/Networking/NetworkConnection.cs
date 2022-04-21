@@ -2,6 +2,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using MinecraftServer.Packets;
 using MinecraftServer.Packets.Clientbound.Data;
+using MinecraftServer.Packets.Clientbound.Login;
 using MinecraftServer.Packets.Clientbound.Play;
 
 namespace MinecraftServer.Networking;
@@ -28,9 +29,18 @@ public class NetworkConnection : DataAdapter, IDisposable
         PacketQueue = new PlayerPacketQueue();
     }
 
-    public void Disconnect(string reason = "")
+    public async ValueTask Disconnect(string reason = "")
     {
-        throw new NotImplementedException();
+        if (CurrentState == PacketType.Login)
+        {
+            await ScLoginDisconnect.Send(new ScDisconnectPacketData(new ChatComponent(reason)), this);
+        }
+        else if (CurrentState == PacketType.Play)
+        {
+            await ScPlayDisconnect.Send(new ScDisconnectPacketData(new ChatComponent(reason)), this);
+        }
+
+        Connected = false;
     }
 
     public void ChangeState(PacketType newState)
@@ -62,7 +72,7 @@ public class NetworkConnection : DataAdapter, IDisposable
                 {
                     if (DateTime.UtcNow - LastKeepAlive > TimeSpan.FromSeconds(30))
                     {
-                        Disconnect("Timed out");
+                        await Disconnect("Timed out");
                         break;
                     }
                 }

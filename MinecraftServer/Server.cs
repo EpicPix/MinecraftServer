@@ -69,6 +69,7 @@ public class Server
                     {
                         Console.WriteLine($"Unknown packet detected on state {conn.CurrentState} with id {id}. Skipping gracefully.");
                         await conn.Skip(packetDataLength);
+                        if (dataLength != 0) conn.PopTransformer();
                         continue;
                     }
                     conn.PacketDataLength = (uint) packetDataLength;
