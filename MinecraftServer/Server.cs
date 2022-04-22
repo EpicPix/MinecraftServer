@@ -14,10 +14,10 @@ public class Server
 
     public static readonly IReadOnlyList<PacketEventHandler> PacketHandlers;
 
-    internal static void GeneratePacketHandler<T>(MethodInfo method, Packet packet, List<PacketEventHandler> handlers) where T : PacketData
+    internal static void GeneratePacketHandler<T>(MethodInfo method, Packet packet, long priority, List<PacketEventHandler> handlers) where T : PacketData
     {
         var delg = Delegate.CreateDelegate(typeof(Action<T, NetworkConnection, Server>), method);
-        var handler = new PacketEventHandler<T>(packet, (Action<T, NetworkConnection, Server>) delg);
+        var handler = new PacketEventHandler<T>(packet, priority, (Action<T, NetworkConnection, Server>) delg);
         handlers.Add(handler);
     }
     
@@ -43,13 +43,12 @@ public class Server
                     if(ps[1].ParameterType != typeof(NetworkConnection)) throw new InvalidOperationException($"{ps[1].ParameterType} != {typeof(NetworkConnection)}");
                     if(ps[2].ParameterType != typeof(Server)) throw new InvalidOperationException($"{ps[2].ParameterType} != {typeof(Server)}");
 
-                    var delegateGen = typeof(Server).GetMethod("GeneratePacketHandler", BindingFlags.NonPublic | BindingFlags.Static).MakeGenericMethod(packetDataType);
-                    
-                    delegateGen.Invoke(null, BindingFlags.NonPublic | BindingFlags.Static, null, new object[]{ method, attr.Packet, handlers }, null);
+                    var handlerAdder = typeof(Server).GetMethod("GeneratePacketHandler", BindingFlags.NonPublic | BindingFlags.Static).MakeGenericMethod(packetDataType);
+                    handlerAdder.Invoke(null, BindingFlags.NonPublic | BindingFlags.Static, null, new object[]{ method, attr.Packet, attr.Priority, handlers }, null);
                 }
             }
         }
-
+        handlers.Sort((a, b) => -a.Priority.CompareTo(b.Priority));
         PacketHandlers = handlers.AsReadOnly();
     }
     

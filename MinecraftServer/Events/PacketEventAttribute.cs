@@ -6,9 +6,11 @@ namespace MinecraftServer.Events;
 public class PacketEventAttribute : Attribute
 {
     public Packet Packet { get; }
+    public long Priority { get; }
 
-    public PacketEventAttribute(Type packet)
+    public PacketEventAttribute(Type packet, long priority = 0)
     {
         Packet = Packet.GetPacket(packet);
+        Priority = priority;
     }
 }
