@@ -5,6 +5,11 @@ namespace MinecraftServer.Networking;
 
 public abstract class DataAdapter : Stream
 {
+    private CancellationToken _ct;
+    public DataAdapter(CancellationToken token)
+    {
+        _ct = token;
+    }
     private static byte[] _drainBytes = new byte[4096];
     public override int Read(byte[] buffer, int offset, int count)
     {
@@ -166,7 +171,7 @@ public abstract class DataAdapter : Stream
 
     public ValueTask ReadBytes(ArraySegment<byte> toRead)
     {
-        return Utils.FillBytes(toRead, this);
+        return Utils.FillBytes(toRead, this, _ct);
     }
     
     public ValueTask ReadBytes(PooledArray toRead)
@@ -217,7 +222,7 @@ public abstract class DataAdapter : Stream
     public async ValueTask Skip(int bytes)
     {
         int rem = bytes;
-        while (rem > 0)
+        while (rem > 0 && !_ct.IsCancellationRequested)
         {
             rem -= await ReadAsync(new ArraySegment<byte>(_drainBytes, 0, Math.Min(4096, rem)));
         }
@@ -229,7 +234,7 @@ public abstract class DataAdapter : Stream
         int position = 0;
         byte currentByte;
 
-        while (true)
+        while (!_ct.IsCancellationRequested)
         {
             currentByte = await ReadUByte();
             value |= (currentByte & 0x7F) << position;
@@ -244,7 +249,7 @@ public abstract class DataAdapter : Stream
 
     public async ValueTask WriteVarInt(int value)
     {
-        while (true)
+        while (!_ct.IsCancellationRequested)
         {
             if ((value & ~0x7F) == 0)
             {
@@ -259,11 +264,11 @@ public abstract class DataAdapter : Stream
 
     public ValueTask WriteBytes(Memory<byte> bytes)
     {
-        return WriteAsync(bytes);
+        return WriteAsync(bytes, _ct);
     }
     
     public ValueTask WriteBytes(PooledArray bytes)
     {
-        return WriteAsync(bytes.Data);
+        return WriteAsync(bytes.Data, _ct);
     }
 }

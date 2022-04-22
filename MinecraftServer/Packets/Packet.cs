@@ -57,28 +57,32 @@ public abstract class Packet
     public abstract ValueTask<PacketData> ReadPacket(DataAdapter stream);
     
     public abstract ValueTask WritePacket(DataAdapter stream, PacketData data);
-    public async ValueTask SendPacket(PacketData data, NetworkConnection connection, Func<NetworkConnection, ValueTask> runOnCompletion)
+    public async ValueTask SendPacket(PacketData data, NetworkConnection connection, Func<NetworkConnection, ValueTask> runOnCompletion, bool priority = false)
     {
-        await connection.PacketQueue.Queue.Writer.WriteAsync(new PlayerPacketQueue.QueuedPacket(this, data, runOnCompletion));
+        var pkt = new PlayerPacketQueue.QueuedPacket(this, data, runOnCompletion);
+        if(priority) connection.PacketQueue.SetPriorityPacket(pkt.PacketCountId);
+        await connection.PacketQueue.Queue.Writer.WriteAsync(pkt);
     }
-    public async ValueTask SendPacket(PacketData data, NetworkConnection connection)
+    public async ValueTask SendPacket(PacketData data, NetworkConnection connection, bool priority = false)
     {
-        await connection.PacketQueue.Queue.Writer.WriteAsync(new PlayerPacketQueue.QueuedPacket(this, data, _ => ValueTask.CompletedTask));
+        var pkt = new PlayerPacketQueue.QueuedPacket(this, data, _ => ValueTask.CompletedTask);
+        if(priority) connection.PacketQueue.SetPriorityPacket(pkt.PacketCountId);
+        await connection.PacketQueue.Queue.Writer.WriteAsync(pkt);
     }
 }
 
 public abstract class Packet<TPacket, TPacketData> : Packet where TPacket : Packet<TPacket, TPacketData> where TPacketData : PacketData
 {
-    public static async ValueTask Send(TPacketData data, NetworkConnection connection)
+    public static async ValueTask Send(TPacketData data, NetworkConnection connection, bool priority = false)
     {
         var packet = GetPacket<TPacket>();
-        await packet.SendPacket(data, connection);
+        await packet.SendPacket(data, connection, priority);
     }
     
-    public static async ValueTask Send(TPacketData data, NetworkConnection connection, Func<NetworkConnection, ValueTask> runOnCompletion)
+    public static async ValueTask Send(TPacketData data, NetworkConnection connection, Func<NetworkConnection, ValueTask> runOnCompletion, bool priority = false)
     {
         var packet = GetPacket<TPacket>();
-        await packet.SendPacket(data, connection, runOnCompletion);
+        await packet.SendPacket(data, connection, runOnCompletion, priority);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -2,12 +2,12 @@
 
 public class StreamAdapter : DataAdapter
 {
-    public StreamAdapter(Stream readStream, Stream writeStream)
+    public StreamAdapter(Stream readStream, Stream writeStream, CancellationToken ct = default) : base(ct)
     {
         ReadStream = readStream;
         WriteStream = writeStream;
     }
-    public StreamAdapter(Stream bidirectionStream)
+    public StreamAdapter(Stream bidirectionStream, CancellationToken ct = default) : base(ct)
     {
         ReadStream = bidirectionStream;
         WriteStream = bidirectionStream;

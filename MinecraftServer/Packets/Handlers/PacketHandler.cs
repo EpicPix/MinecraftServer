@@ -15,7 +15,6 @@ public static partial class PacketHandler
 {
     public static async Task HandlePacket(Server server, NetworkConnection connection, Packet packet, PacketData data)
     {
-        
         if (packet is CsHandshake && data is CsHandshakePacketData handshake)
         {
             Console.WriteLine($"Protocol version: {handshake.ProtocolVersion} / Server IP: {handshake.ServerIp} / Server Port: {handshake.ServerPort} / Next State: {(PacketType) handshake.NextState}");
@@ -37,7 +36,6 @@ public static partial class PacketHandler
         else if (packet is CsStatusPing && data is CsStatusPingPacketData pingData)
         {
             await ScStatusPong.Send(pingData, connection);
-            connection.Connected = false;
         }
         else if (packet is CsLoginLoginStart && data is CsLoginLoginStartPacketData loginData)
         {

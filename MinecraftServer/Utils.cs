@@ -38,15 +38,19 @@ public class Utils
         }
     }
     
-    public static async ValueTask FillBytes(ArraySegment<byte> toRead, DataAdapter stream)
+    public static async ValueTask FillBytes(ArraySegment<byte> toRead, DataAdapter stream, CancellationToken ct)
     {
         int remLen = toRead.Count;
         int pos = 0;
         while (remLen > 0)
         {
-            int read = await stream.ReadAsync(toRead.Slice(pos, remLen));
+            int read = await stream.ReadAsync(toRead.Slice(pos, remLen), ct);
             pos += read;
             remLen -= read;
+            if (read == 0)
+            {
+                return;
+            }
         }
     }
     

@@ -7,10 +7,9 @@ using MinecraftServer.Packets.Clientbound.Play;
 
 namespace MinecraftServer.Networking;
 
-public class NetworkConnection : DataAdapter, IDisposable
+public class NetworkConnection : DataAdapter
 {
     public PacketType CurrentState { get; private set; } = PacketType.Handshake;
-    public bool Connected = true;
     public string? Username = null;
     public Guid Uuid;
     public byte[] VerifyToken;
@@ -21,27 +20,54 @@ public class NetworkConnection : DataAdapter, IDisposable
     public PlayerPacketQueue PacketQueue { get; }
     public DateTime LastKeepAlive = DateTime.MinValue;
     public long LastKeepAliveValue;
+    public CancellationToken ConnectionState { get; }
+    public bool Connected => !ConnectionState.IsCancellationRequested;
+    private CancellationTokenSource _stateSource;
+    public bool HasMoreToRead { get; private set; } = true;
 
     public Socket Socket => ((NetworkStream) ((StreamAdapter) _transformerStack.ToArray()[_transformerStack.Count - 1]).ReadStream).Socket;
 
-    public NetworkConnection(Stream client)
+    public NetworkConnection(Stream client, CancellationToken shutdownToken = default) : base(shutdownToken)
     {
         _transformerStack.Push(new StreamAdapter(client));
         PacketQueue = new PlayerPacketQueue();
+        _stateSource = CancellationTokenSource.CreateLinkedTokenSource(shutdownToken);
+        ConnectionState = _stateSource.Token;
     }
 
-    public async ValueTask Disconnect(string reason = "")
+    public async ValueTask Disconnect(string reason = "", bool remote = false)
     {
-        if (CurrentState == PacketType.Login)
+        if (remote)
         {
-            await ScLoginDisconnect.Send(new ScDisconnectPacketData(new ChatComponent(reason)), this);
+            CloseConnection(this);
         }
-        else if (CurrentState == PacketType.Play)
+        else
         {
-            await ScPlayDisconnect.Send(new ScDisconnectPacketData(new ChatComponent(reason)), this);
+            if (CurrentState == PacketType.Login)
+            {
+                await ScLoginDisconnect.Send(new ScDisconnectPacketData(new ChatComponent(reason)), this, CloseConnection, true);
+            }
+            else if (CurrentState == PacketType.Play)
+            {
+                await ScPlayDisconnect.Send(new ScDisconnectPacketData(new ChatComponent(reason)), this, CloseConnection, true);
+            }
+            Task.Run(async () =>
+            {
+                await Task.Delay(5000);
+                // make sure to close the connection after 5 second timeout
+                if (Connected)
+                {
+                    CloseConnection(this);
+                }
+            });
         }
+    }
 
-        Connected = false;
+    private ValueTask CloseConnection(NetworkConnection conn)
+    {
+        _stateSource.Cancel();
+        Dispose();
+        return ValueTask.CompletedTask;
     }
 
     public void ChangeState(PacketType newState)
@@ -56,7 +82,7 @@ public class NetworkConnection : DataAdapter, IDisposable
 
         if (newState == PacketType.Play)
         {
-            Task.Run(SendKeepAlive);
+            Task.Run(SendKeepAlive, ConnectionState);
         }
 
         CurrentState = newState;
@@ -92,8 +118,8 @@ public class NetworkConnection : DataAdapter, IDisposable
 
     public void Encrypt()
     {
-        AddTransformer((x) => 
-            new EncryptionAdapter(x, EncryptionKey));
+        AddTransformer((x, ct) => 
+            new EncryptionAdapter(x, EncryptionKey, ct));
     }
 
     public void PopTransformer()
@@ -101,14 +127,21 @@ public class NetworkConnection : DataAdapter, IDisposable
         _transformerStack.Pop();
     }
 
-    public void AddTransformer(Func<DataAdapter, DataAdapter> transform)
+    public void AddTransformer(Func<DataAdapter, CancellationToken, DataAdapter> transform)
     {
-        _transformerStack.Push(transform(_transformerStack.Peek()));
+        _transformerStack.Push(transform(_transformerStack.Peek(), ConnectionState));
     }
-    
-    public new void Dispose()
+
+    protected override void Dispose(bool disposing)
     {
-        _transformerStack.Peek().Dispose();
+        if (disposing)
+        {
+            _stateSource.Dispose();
+            PacketQueue.Stop();
+            _transformerStack.Peek().Dispose();
+        }
+
+        base.Dispose(disposing);
     }
 
     public override void Flush()
@@ -116,9 +149,20 @@ public class NetworkConnection : DataAdapter, IDisposable
         _transformerStack.Peek().Flush();
     }
 
-    public override ValueTask<int> ReadAsync(Memory<byte> buf, CancellationToken ct = default)
+    public override async ValueTask<int> ReadAsync(Memory<byte> buf, CancellationToken ct = default)
     {
-        return _transformerStack.Peek().ReadAsync(buf, ct);
+        if (!HasMoreToRead)
+        {
+            await Task.Delay(100); // prevent high cpu usage from waiting for all data to be written
+            return 0;
+        }
+        int res = await _transformerStack.Peek().ReadAsync(buf, ct);
+        if (res == 0)
+        {
+            HasMoreToRead = false;
+        }
+
+        return res;
     }
 
     public override ValueTask WriteAsync(ReadOnlyMemory<byte> buf, CancellationToken ct = default)

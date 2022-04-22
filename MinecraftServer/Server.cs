@@ -45,7 +45,7 @@ public class Server
         ActiveConnections.Add(conn);
         try
         {
-            while (conn.Connected)
+            while (conn.HasMoreToRead)
             {
                 if (conn.IsCompressed)
                 {
@@ -55,7 +55,7 @@ public class Server
 
                     if (dataLength != 0)
                     {
-                        conn.AddTransformer(x => new DecompressionAdapter(x));
+                        conn.AddTransformer((x, ct) => new DecompressionAdapter(x, ct));
                         packetDataLength = dataLength;
                     } else
                     {
@@ -104,9 +104,15 @@ public class Server
             {
                 Console.WriteLine(e);
             }
+
+            if (conn.Connected)
+            {
+                await conn.Disconnect("", true);
+            }
         }
         finally
         {
+            conn.PacketQueue.Stop();
             ActiveConnections.Remove(conn);
         }
     }

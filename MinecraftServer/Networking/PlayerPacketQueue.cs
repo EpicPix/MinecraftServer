@@ -6,72 +6,98 @@ namespace MinecraftServer.Networking;
 public class PlayerPacketQueue
 {
     public Channel<QueuedPacket> Queue { get; } = Channel.CreateBounded<QueuedPacket>(64);
-    public record struct QueuedPacket(Packet PacketDefinition, PacketData PacketData, Func<NetworkConnection, ValueTask> Completion);
+
+    public record struct QueuedPacket(Packet PacketDefinition, PacketData PacketData,
+        Func<NetworkConnection, ValueTask> Completion)
+    {
+        private static volatile uint _internalPacketCount = 0;
+        public readonly uint PacketCountId = Interlocked.Increment(ref _internalPacketCount);
+    }
+
+    private uint _skipUntil = 0;
+
+    public void SetPriorityPacket(uint id)
+    {
+        _skipUntil = id;
+    }
 
     public async ValueTask ForwardPackets(NetworkConnection connection)
     {
-        await foreach (var packet in Queue.Reader.ReadAllAsync())
+        try
         {
-            try
+            await foreach (var packet in Queue.Reader.ReadAllAsync())
             {
-                var data = packet.PacketData;
-                var id = packet.PacketDefinition.Id;
-                await using var stream = Server.MS_MANAGER.GetStream();
-                await packet.PacketDefinition.WritePacket(new StreamAdapter(stream), data);
-                stream.TryGetBuffer(out var packetData);
-                if (connection.IsCompressed)
+                if (packet.PacketCountId < _skipUntil) continue;
+                try
                 {
-                    var idLength = Utils.GetVarIntLength((int)id);
-                    if (packetData.Count + idLength + Utils.GetVarIntLength(0) < Server.NetworkCompressionThreshold)
+                    var data = packet.PacketData;
+                    var id = packet.PacketDefinition.Id;
+                    await using var stream = Server.MS_MANAGER.GetStream();
+                    await packet.PacketDefinition.WritePacket(new StreamAdapter(stream), data);
+                    stream.TryGetBuffer(out var packetData);
+                    if (connection.IsCompressed)
                     {
-                        await connection.WriteVarInt(packetData.Count + idLength + Utils.GetVarIntLength(0));
-                        await connection.WriteVarInt(0);
+                        var idLength = Utils.GetVarIntLength((int)id);
+                        if (packetData.Count + idLength + Utils.GetVarIntLength(0) < Server.NetworkCompressionThreshold)
+                        {
+                            await connection.WriteVarInt(packetData.Count + idLength + Utils.GetVarIntLength(0));
+                            await connection.WriteVarInt(0);
+                            await connection.WriteVarInt((int)id);
+                            await connection.WriteBytes(packetData);
+                            continue;
+                        }
+
+                        await using var compressedStream = Server.MS_MANAGER.GetStream();
+                        var comprAdapter = new CompressionAdapter(new StreamAdapter(compressedStream), connection.ConnectionState);
+
+                        // write id
+                        await comprAdapter.WriteVarInt((int)id);
+                        // write data
+                        await comprAdapter.WriteBytes(packetData);
+
+                        comprAdapter.Flush();
+
+                        compressedStream.TryGetBuffer(out var compressedPacketData);
+
+                        var uncompressedPacketSize = packetData.Count + idLength;
+                        var compressedPacketSize =
+                            compressedPacketData.Count + Utils.GetVarIntLength(uncompressedPacketSize);
+
+                        await connection.WriteVarInt(compressedPacketSize);
+                        await connection.WriteVarInt(uncompressedPacketSize);
+                        await connection.WriteBytes(compressedPacketData);
+                    }
+                    else
+                    {
+                        await connection.WriteVarInt((int)stream.Length + Utils.GetVarIntLength((int)id));
                         await connection.WriteVarInt((int)id);
                         await connection.WriteBytes(packetData);
-                        continue;
                     }
-
-                    await using var compressedStream = Server.MS_MANAGER.GetStream();
-                    var comprAdapter = new CompressionAdapter(new StreamAdapter(compressedStream));
-
-                    // write id
-                    await comprAdapter.WriteVarInt((int)id);
-                    // write data
-                    await comprAdapter.WriteBytes(packetData);
-
-                    comprAdapter.Flush();
-
-                    compressedStream.TryGetBuffer(out var compressedPacketData);
-
-                    var uncompressedPacketSize = packetData.Count + idLength;
-                    var compressedPacketSize =
-                        compressedPacketData.Count + Utils.GetVarIntLength(uncompressedPacketSize);
-
-                    await connection.WriteVarInt(compressedPacketSize);
-                    await connection.WriteVarInt(uncompressedPacketSize);
-                    await connection.WriteBytes(compressedPacketData);
                 }
-                else
+                catch (Exception e)
                 {
-                    await connection.WriteVarInt((int)stream.Length + Utils.GetVarIntLength((int)id));
-                    await connection.WriteVarInt((int)id);
-                    await connection.WriteBytes(packetData);
+                    Console.WriteLine($"Failed write packet {packet.PacketDefinition}. {e.Message} {e.StackTrace}");
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Failed write packet {packet.PacketDefinition}. {e.Message} {e.StackTrace}");
-            }
 
-            try
-            {
-                await packet.Completion(connection);
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine($"Failed to execute post packet-sent code. {e.Message} {e.StackTrace}");
+                try
+                {
+                    await packet.Completion(connection);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Failed to execute post packet-sent code. {e.Message} {e.StackTrace}");
+                }
             }
         }
-        Console.WriteLine("finished");
+        finally
+        {
+            await connection.Disconnect("", true);
+            Console.WriteLine("finished");
+        }
+    }
+
+    public void Stop()
+    {
+        Queue.Writer.Complete();
     }
 }

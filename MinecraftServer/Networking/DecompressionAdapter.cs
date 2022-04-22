@@ -5,7 +5,7 @@ namespace MinecraftServer.Networking;
 public class DecompressionAdapter : DataAdapter
 {
     private ZLibStream _stream;
-    public DecompressionAdapter(DataAdapter baseAdapter)
+    public DecompressionAdapter(DataAdapter baseAdapter, CancellationToken ct = default) : base(ct)
     {
         _stream = new ZLibStream(baseAdapter, CompressionMode.Decompress);
     }
@@ -32,6 +32,6 @@ public class DecompressionAdapter : DataAdapter
 
     public override ValueTask WriteAsync(ReadOnlyMemory<byte> buf, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        return _stream.WriteAsync(buf, ct);
     }
 }

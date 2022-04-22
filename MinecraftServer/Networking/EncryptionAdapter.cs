@@ -19,7 +19,7 @@ public class EncryptionAdapter : DataAdapter
         cipher.Init(encrypt, new ParametersWithIV(new KeyParameter(key), key));
         return cipher;
     }
-    public EncryptionAdapter(DataAdapter baseAdapter, byte[] key)
+    public EncryptionAdapter(DataAdapter baseAdapter, byte[] key, CancellationToken ct = default) : base(ct)
     {
         _encrypt = GetInstance(key, true);
         _decrypt = GetInstance(key, false);
@@ -61,6 +61,6 @@ public class EncryptionAdapter : DataAdapter
         }
         using var tCipherText = PooledArray.Allocate(buf.Length);
         Transform(_encrypt, seg, tCipherText.Data);
-        await BaseAdapter.WriteAsync(tCipherText.Data.Slice(0, buf.Length));
+        await BaseAdapter.WriteAsync(tCipherText.Data.Slice(0, buf.Length), ct);
     }
 }

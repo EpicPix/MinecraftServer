@@ -5,7 +5,7 @@ namespace MinecraftServer.Networking;
 public class CompressionAdapter : DataAdapter
 {
     private ZLibStream _stream;
-    public CompressionAdapter(DataAdapter baseAdapter)
+    public CompressionAdapter(DataAdapter baseAdapter, CancellationToken ct = default) : base(ct)
     {
         _stream = new ZLibStream(baseAdapter, CompressionMode.Compress);
     }
