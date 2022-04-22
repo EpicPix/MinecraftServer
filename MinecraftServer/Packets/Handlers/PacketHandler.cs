@@ -1,3 +1,4 @@
+using MinecraftServer.Events;
 using MinecraftServer.Networking;
 using MinecraftServer.Packets.Clientbound.Play;
 using MinecraftServer.Packets.Clientbound.Data;
@@ -19,7 +20,11 @@ public static partial class PacketHandler
         {
             if (packetHandler.Packet == packet)
             {
-                packetHandler.Run(data, connection, server);
+                var status = packetHandler.Run(data, connection, server);
+                if ((status & PacketEventHandlerStatus.Stop) == PacketEventHandlerStatus.Stop)
+                {
+                    break;
+                }
             }
         }
         

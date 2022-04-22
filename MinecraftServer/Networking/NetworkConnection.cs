@@ -27,10 +27,10 @@ public class NetworkConnection : DataAdapter
 
     public Socket Socket => ((NetworkStream) ((StreamAdapter) _transformerStack.ToArray()[_transformerStack.Count - 1]).ReadStream).Socket;
 
-    public NetworkConnection(Stream client, CancellationToken shutdownToken = default) : base(shutdownToken)
+    public NetworkConnection(Server server, Stream client, CancellationToken shutdownToken = default) : base(shutdownToken)
     {
         _transformerStack.Push(new StreamAdapter(client));
-        PacketQueue = new PlayerPacketQueue();
+        PacketQueue = new PlayerPacketQueue(server);
         _stateSource = CancellationTokenSource.CreateLinkedTokenSource(shutdownToken);
         ConnectionState = _stateSource.Token;
     }

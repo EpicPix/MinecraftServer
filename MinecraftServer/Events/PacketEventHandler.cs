@@ -14,21 +14,28 @@ public abstract class PacketEventHandler
         Priority = priority;
     }
 
-    public abstract void Run(PacketData data, NetworkConnection connection, Server server);
+    public abstract PacketEventHandlerStatus Run(PacketData data, NetworkConnection connection, Server server);
 }
 
 public class PacketEventHandler<T> : PacketEventHandler where T : PacketData
 {
 
-    private Action<T, NetworkConnection, Server> _action;
+    private Func<T, NetworkConnection, Server, PacketEventHandlerStatus> _func;
 
-    public PacketEventHandler(Packet packet, long priority, Action<T, NetworkConnection, Server> action) : base(packet, priority)
+    public PacketEventHandler(Packet packet, long priority, Func<T, NetworkConnection, Server, PacketEventHandlerStatus> func) : base(packet, priority)
     {
-        _action = action;
+        _func = func;
     }
 
-    public override void Run(PacketData data, NetworkConnection connection, Server server)
+    public override PacketEventHandlerStatus Run(PacketData data, NetworkConnection connection, Server server)
     {
-        _action.Invoke((T) data, connection, server);
+        return _func.Invoke((T) data, connection, server);
     }
+}
+
+[Flags]
+public enum PacketEventHandlerStatus
+{
+    Continue = 0x01, // continue running events
+    Stop = 0x02, // stop running any events after
 }

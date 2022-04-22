@@ -16,8 +16,8 @@ public class Server
 
     internal static void GeneratePacketHandler<T>(MethodInfo method, Packet packet, long priority, List<PacketEventHandler> handlers) where T : PacketData
     {
-        var delg = Delegate.CreateDelegate(typeof(Action<T, NetworkConnection, Server>), method);
-        var handler = new PacketEventHandler<T>(packet, priority, (Action<T, NetworkConnection, Server>) delg);
+        var delg = Delegate.CreateDelegate(typeof(Func<T, NetworkConnection, Server, PacketEventHandlerStatus>), method);
+        var handler = new PacketEventHandler<T>(packet, priority, (Func<T, NetworkConnection, Server, PacketEventHandlerStatus>) delg);
         handlers.Add(handler);
     }
     

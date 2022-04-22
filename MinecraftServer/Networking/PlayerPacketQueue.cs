@@ -1,10 +1,14 @@
 ﻿using System.Threading.Channels;
+using MinecraftServer.Events;
 using MinecraftServer.Packets;
 
 namespace MinecraftServer.Networking;
 
 public class PlayerPacketQueue
 {
+
+    public Server Server { get; }
+
     public Channel<QueuedPacket> Queue { get; } = Channel.CreateBounded<QueuedPacket>(64);
 
     public record struct QueuedPacket(Packet PacketDefinition, PacketData PacketData,
@@ -16,6 +20,11 @@ public class PlayerPacketQueue
 
     private uint _skipUntil = 0;
 
+    public PlayerPacketQueue(Server server)
+    {
+        Server = server;
+    }
+    
     public void SetPriorityPacket(uint id)
     {
         _skipUntil = id;
@@ -44,28 +53,29 @@ public class PlayerPacketQueue
                             await connection.WriteVarInt(0);
                             await connection.WriteVarInt((int)id);
                             await connection.WriteBytes(packetData);
-                            continue;
+                        } else
+                        {
+
+                            await using var compressedStream = Server.MS_MANAGER.GetStream();
+                            var comprAdapter = new CompressionAdapter(new StreamAdapter(compressedStream), connection.ConnectionState);
+
+                            // write id
+                            await comprAdapter.WriteVarInt((int) id);
+                            // write data
+                            await comprAdapter.WriteBytes(packetData);
+
+                            comprAdapter.Flush();
+
+                            compressedStream.TryGetBuffer(out var compressedPacketData);
+
+                            var uncompressedPacketSize = packetData.Count + idLength;
+                            var compressedPacketSize =
+                                compressedPacketData.Count + Utils.GetVarIntLength(uncompressedPacketSize);
+
+                            await connection.WriteVarInt(compressedPacketSize);
+                            await connection.WriteVarInt(uncompressedPacketSize);
+                            await connection.WriteBytes(compressedPacketData);
                         }
-
-                        await using var compressedStream = Server.MS_MANAGER.GetStream();
-                        var comprAdapter = new CompressionAdapter(new StreamAdapter(compressedStream), connection.ConnectionState);
-
-                        // write id
-                        await comprAdapter.WriteVarInt((int)id);
-                        // write data
-                        await comprAdapter.WriteBytes(packetData);
-
-                        comprAdapter.Flush();
-
-                        compressedStream.TryGetBuffer(out var compressedPacketData);
-
-                        var uncompressedPacketSize = packetData.Count + idLength;
-                        var compressedPacketSize =
-                            compressedPacketData.Count + Utils.GetVarIntLength(uncompressedPacketSize);
-
-                        await connection.WriteVarInt(compressedPacketSize);
-                        await connection.WriteVarInt(uncompressedPacketSize);
-                        await connection.WriteBytes(compressedPacketData);
                     }
                     else
                     {
@@ -86,6 +96,21 @@ public class PlayerPacketQueue
                 catch (Exception e)
                 {
                     Console.WriteLine($"Failed to execute post packet-sent code. {e.Message} {e.StackTrace}");
+                }
+
+                if (Server != null) // might be null, the only place it is are the benchmarks
+                {
+                    foreach (var packetHandler in Server.PacketHandlers)
+                    {
+                        if (packetHandler.Packet == packet.PacketDefinition)
+                        {
+                            var status = packetHandler.Run(packet.PacketData, connection, Server);
+                            if ((status & PacketEventHandlerStatus.Stop) == PacketEventHandlerStatus.Stop)
+                            {
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -16,5 +16,5 @@ var mcServer = new Server();
 while (true)
 {
     var client = await server.AcceptAsync();
-    mcServer.AddConnection(new NetworkConnection(new NetworkStream(client)));
+    mcServer.AddConnection(new NetworkConnection(mcServer, new NetworkStream(client)));
 }
