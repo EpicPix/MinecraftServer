@@ -15,6 +15,13 @@ public static partial class PacketHandler
 {
     public static async Task HandlePacket(Server server, NetworkConnection connection, Packet packet, PacketData data)
     {
+        foreach (var packetHandler in Server.PacketHandlers)
+        {
+            if (packetHandler.Packet == packet)
+            {
+                packetHandler.Run(data, connection, server);
+            }
+        }
         
         if (packet is CsHandshake && data is CsHandshakePacketData handshake)
         {
@@ -47,21 +54,9 @@ public static partial class PacketHandler
         {
             await HandleEncryptionResponse(server, connection, loginEncryptionResponseData);
         }
-        else if (packet is CsPlayClientSettings && data is CsPlayClientSettingsPacketData clientSettingsData)
-        {
-            
-        }
         else if (packet is CsPlayPluginMessage && data is CsPlayPluginMessagePacketData pluginMessageData)
         {
             Console.WriteLine($"Received plugin message: {pluginMessageData}");
-        }
-        else if (packet is CsPlayPlayerPositionAndRotation && data is CsPlayPlayerPositionAndRotationPacketData positionAndRotationData)
-        {
-            
-        }
-        else if (packet is CsPlayPlayerPosition && data is CsPlayPlayerPositionPacketData positionData)
-        {
-            
         }
         else if (packet is CsPlayKeepAlive && data is ScPlayKeepAlivePacketData keepAliveData)
         {
@@ -73,10 +68,6 @@ public static partial class PacketHandler
         else if (packet is CsPlayChatMessage && data is CsPlayChatMessagePacketData chatMessageData)
         {
             await HandlePacketChatMessage(server, connection, chatMessageData);
-        }
-        else
-        {
-            throw new NotImplementedException($"Unsupported packet handler for packet {packet} and data {data}");
         }
     }
     

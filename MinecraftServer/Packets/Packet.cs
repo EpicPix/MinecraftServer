@@ -53,6 +53,19 @@ public abstract class Packet
 
         throw new ArgumentException($"Unknown packet of type {typeof(T)}");
     }
+
+    public static Packet GetPacket(Type type)
+    {
+        foreach (var packet in _packets)
+        {
+            if (packet.GetType() == type)
+            {
+                return packet;
+            }
+        }
+
+        throw new ArgumentException($"Unknown packet of type {type}");
+    }
     
     public abstract ValueTask<PacketData> ReadPacket(DataAdapter stream);
     
