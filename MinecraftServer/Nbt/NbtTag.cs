@@ -8,6 +8,10 @@ public interface NbtTag
 
     public static byte GetTag<T>() where T : NbtTag
     {
+        if (typeof(T).IsAssignableTo(typeof(NbtTagLongArray)))
+        {
+            return 12;
+        }
         if (typeof(T).IsAssignableTo(typeof(NbtTagCompound)))
         {
             return 10;
