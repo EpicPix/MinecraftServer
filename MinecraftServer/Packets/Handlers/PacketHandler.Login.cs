@@ -90,6 +90,16 @@ public static partial class PacketHandler
         ScPlayChatMessage.Send(new ScPlayChatMessagePacketData(new ChatComponent("Test message, in online mode"), ScPlayChatMessagePacketData.PositionType.Chat, Guid.Empty), connection);
         ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData(0, 0), connection);
         ScPlayChunkDataAndUpdateLight.Send(null, connection);
+        ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.AddPlayer, new List<ScPlayPlayerInfoPacketData.IAction> {
+            new ScPlayPlayerInfoPacketData.AddPlayerAction {
+                Uuid = connection.Uuid,
+                Username = connection.Username,
+                Profile = connection.Profile,
+                Gamemode = 1,
+                Ping = 0,
+                DisplayName = null
+            }
+        }), connection);
     }
     
 }
