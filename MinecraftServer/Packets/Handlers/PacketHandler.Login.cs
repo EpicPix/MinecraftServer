@@ -86,7 +86,7 @@ public static partial class PacketHandler
         ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(connection.Uuid, connection.Username), connection);
         connection.ChangeState(PacketType.Play);
         ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
-        ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(16, 256, 0, 0, 0, 0x0, 0, false), connection);
+        ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(16, 80, 0, 0, 0, 0x0, 0, false), connection);
         ScPlayChatMessage.Send(new ScPlayChatMessagePacketData(new ChatComponent("Test message, in online mode"), ScPlayChatMessagePacketData.PositionType.Chat, Guid.Empty), connection);
         ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData(0, 0), connection);
         for (var x = -4; x <= 4; x++)

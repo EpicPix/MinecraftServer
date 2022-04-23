@@ -40,23 +40,47 @@ public class ScPlayChunkDataAndUpdateLight : Packet<ScPlayChunkDataAndUpdateLigh
         {
             await s.WriteUShort(16 * 16 * 8); // block count
 
-            await s.WriteUByte(8); // palette bits
-            await s.WriteVarInt(2); // palette length
-            await s.WriteVarInt(1); // element[0]
-            await s.WriteVarInt(2); // element[1]
-            
-            await s.WriteVarInt(16 * 16 * 2); // block data length (in longs)
-            for (var y = 0; y < 16; y++)
+            if (i <= 3) // (16 * 3)   48 up to 63
             {
-                for (var z = 0; z < 16; z++)
+                await s.WriteUByte(8); // palette bits
+                await s.WriteVarInt(4); // palette length
+                await s.WriteVarInt(9); // element[0], grass block
+                await s.WriteVarInt(10); // element[1], dirt
+                await s.WriteVarInt(1); // element[2], stone
+                await s.WriteVarInt(33); // element[3], bedrock
+
+                await s.WriteVarInt(16 * 16 * 2); // block data length (in longs)
+                for (var y = 0; y < 16; y++)
                 {
-                    for (var x = 0; x < 16; x++)
+                    var actualY = i * 16 + y;
+                    
+                    for (var z = 0; z < 16; z++)
                     {
-                        await s.WriteUByte((byte) (z >= 8 ? 0 : 1));
+                        for (var x = 0; x < 16; x++)
+                        {
+                            if (actualY == 63)
+                            {
+                                await s.WriteUByte(0);
+                            }else if (actualY > 60)
+                            {
+                                await s.WriteUByte(1);
+                            }else if (actualY == 0)
+                            {
+                                await s.WriteUByte(3);
+                            } else
+                            {
+                                await s.WriteUByte(2);
+                            }
+                        }
                     }
                 }
+            } else
+            {
+                await s.WriteUByte(0); // palette bits
+                await s.WriteVarInt(0); // block
+                await s.WriteVarInt(0); // block data length
             }
-
+            
             await s.WriteUByte(0);
             await s.WriteVarInt(1);
             await s.WriteVarInt(0);
