@@ -25,6 +25,7 @@ public static partial class PacketHandler
         if (data.KeepAliveId == connection.LastKeepAliveValue)
         {
             connection.LastKeepAlive = DateTime.UtcNow;
+            connection.Latency = (DateTime.UtcNow - connection.LastKeepAliveSend).Milliseconds;
         }
     }
 

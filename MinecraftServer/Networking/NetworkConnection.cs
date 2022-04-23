@@ -18,8 +18,19 @@ public class NetworkConnection : DataAdapter
     public GameProfile? Profile { get; internal set; }
     private Stack<DataAdapter> _transformerStack = new();
     public PlayerPacketQueue PacketQueue { get; }
+    public DateTime LastKeepAliveSend = DateTime.MinValue;
     public DateTime LastKeepAlive = DateTime.MinValue;
     public long LastKeepAliveValue;
+
+    private int _latency;
+    public int Latency {
+        get => _latency;
+        set {
+            Console.WriteLine($"Ping for {Username} set to {value}ms");
+            _latency = value;
+        }
+    }
+
     public CancellationToken ConnectionState { get; }
     public bool Connected => !ConnectionState.IsCancellationRequested;
     private CancellationTokenSource _stateSource;
@@ -90,7 +101,7 @@ public class NetworkConnection : DataAdapter
     
     private async void SendKeepAlive()
     {
-        await Task.Delay(10000);
+        await Task.Delay(10000, ConnectionState);
         try
         {
             while (Connected)
@@ -106,8 +117,11 @@ public class NetworkConnection : DataAdapter
                 
                 var randomId = (long) RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue) << 32 | (uint) RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue);
                 LastKeepAliveValue = randomId;
-                await ScPlayKeepAlive.SendAsync(new ScPlayKeepAlivePacketData(randomId), this);
-                await Task.Delay(10000);
+                await ScPlayKeepAlive.SendAsync(new ScPlayKeepAlivePacketData(randomId), this, connection => {
+                    LastKeepAliveSend = DateTime.UtcNow;
+                    return ValueTask.CompletedTask;
+                });
+                await Task.Delay(10000, ConnectionState);
             }
         }
         catch(Exception e)
