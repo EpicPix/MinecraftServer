@@ -22,6 +22,10 @@ public class NetworkConnection : DataAdapter
     public DateTime LastKeepAlive = DateTime.MinValue;
     public long LastKeepAliveValue;
 
+    public double PlayerX = 0;
+    public double PlayerY = 0;
+    public double PlayerZ = 0;
+
     private int _latency;
     public int Latency {
         get => _latency;

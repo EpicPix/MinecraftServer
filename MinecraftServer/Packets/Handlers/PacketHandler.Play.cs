@@ -29,4 +29,45 @@ public static partial class PacketHandler
         }
     }
 
+    [PacketEvent(typeof(CsPlayPlayerPosition), priority: 100)]
+    public static void HandlePosition(CsPlayPlayerPositionPacketData data, NetworkConnection connection, Server server)
+    {
+        if ((long) connection.PlayerX % 16 != (long) data.X % 16 || (long) connection.PlayerY % 16 != (long) data.Y % 16 || (long) connection.PlayerZ % 16 != (long) data.Z % 16)
+        { // yes, trigger it even on going up and down
+            ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData((int) data.X / 16, (int) data.Z / 16), connection);
+            
+            // very inefficient
+            for (var x = -4; x <= 4; x++)
+            {
+                for (var z = -4; z <= 4; z++)
+                {
+                    ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x + (int) data.X / 16, z + (int) data.Z / 16), connection);
+                }
+            }
+        } 
+        connection.PlayerX = data.X;
+        connection.PlayerY = data.Y;
+        connection.PlayerZ = data.Z;
+    }
+
+    [PacketEvent(typeof(CsPlayPlayerPositionAndRotation), priority: 100)]
+    public static void HandlePosition(CsPlayPlayerPositionAndRotationPacketData data, NetworkConnection connection, Server server)
+    {
+        if ((long) connection.PlayerX % 16 != (long) data.X || (long) connection.PlayerY % 16 != (long) data.Y || (long) connection.PlayerZ % 16 != (long) data.Z)
+        { // yes, trigger it even on going up and down
+            ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData((int) data.X / 16, (int) data.Z / 16), connection);
+            
+            // very inefficient
+            for (var x = -4; x <= 4; x++)
+            {
+                for (var z = -4; z <= 4; z++)
+                {
+                    ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x + (int) data.X / 16, z + (int) data.Z / 16), connection);
+                }
+            }
+        } 
+        connection.PlayerX = data.X;
+        connection.PlayerY = data.Y;
+        connection.PlayerZ = data.Z;
+    }
 }
