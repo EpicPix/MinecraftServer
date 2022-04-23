@@ -34,13 +34,13 @@ public abstract class DataAdapter : Stream
 
     public override void Write(byte[] buffer, int offset, int count)
     {
-        WriteAsync(new ArraySegment<byte>(buffer, offset, count)).GetAwaiter().GetResult();
+        WriteBytes(new ArraySegment<byte>(buffer, offset, count)).GetAwaiter().GetResult();
     }
 
+    private PooledArray.SingleThreadAllocator _readAllocator = new (1 << 15);
+    private PooledArray.SingleThreadAllocator _writeAllocator = new (1 << 15);
     private byte[] _singleByteRead = new byte[1];
     private byte[] _singleByteWrite = new byte[1];
-    private byte[] _readVarBytes = new byte[10];
-    private byte[] _writeVarBytes = new byte[10];
     public abstract override ValueTask WriteAsync(ReadOnlyMemory<byte> buf, CancellationToken ct = default);
     public override bool CanRead => true;
     public override bool CanSeek => false;
@@ -65,12 +65,12 @@ public abstract class DataAdapter : Stream
     public async ValueTask WriteUByte(byte value)
     {
         _singleByteWrite[0] = value;
-        await WriteAsync(_singleByteWrite, _ct);
+        await WriteBytes(_singleByteWrite);
     }
 
     public async ValueTask<byte> ReadUByte()
     {
-        await ReadAsync(_singleByteRead, _ct);
+        await ReadAsync(_singleByteRead);
         return _singleByteRead[0];
     }
 
@@ -171,7 +171,7 @@ public abstract class DataAdapter : Stream
             throw new ConstraintException($"bytes length {bytes.Length} > {max}");
         }
         await WriteVarInt(bytes.Length);
-        await WriteAsync(bytes);
+        await WriteBytes(bytes);
     }
 
     public ValueTask ReadBytes(ArraySegment<byte> toRead)
@@ -211,17 +211,17 @@ public abstract class DataAdapter : Stream
         }
 
         await WriteVarInt(str.Length);
-        using var buf = PooledArray.Allocate(Encoding.UTF8.GetByteCount(str));
+        using var buf = _writeAllocator.Allocate(Encoding.UTF8.GetByteCount(str));
         Encoding.UTF8.GetBytes(str, buf.Data);
-        await WriteAsync(buf.Data);
+        await WriteBytes(buf.Data);
     }
     
     public async ValueTask WriteStringShort(string str)
     { 
         await WriteUShort((ushort)str.Length);
-        using var buf = PooledArray.Allocate(Encoding.UTF8.GetByteCount(str));
+        using var buf = _writeAllocator.Allocate(Encoding.UTF8.GetByteCount(str));
         Encoding.UTF8.GetBytes(str, buf.Data);
-        await WriteAsync(buf.Data);
+        await WriteBytes(buf.Data);
     }
 
     public async ValueTask Skip(int bytes)
@@ -229,7 +229,7 @@ public abstract class DataAdapter : Stream
         int rem = bytes;
         while (rem > 0 && !_ct.IsCancellationRequested)
         {
-            rem -= await ReadAsync(new ArraySegment<byte>(_drainBytes, 0, Math.Min(4096, rem)));
+            rem -= await ReadAsync(new ArraySegment<byte>(_drainBytes, 0, Math.Min(4096, rem)), _ct);
         }
     }
     
@@ -252,19 +252,11 @@ public abstract class DataAdapter : Stream
         return value;
     }
 
-    public async ValueTask WriteVarInt(int value)
+    public ValueTask WriteVarInt(int value)
     {
-        while (!_ct.IsCancellationRequested)
-        {
-            if ((value & ~0x7F) == 0)
-            {
-                await WriteUByte((byte) value);
-                return;
-            }
-            
-            await WriteUByte((byte) ((value & 0x7F) | 0x80));
-            value >>= 7;
-        }
+        using var buf = _writeAllocator.Allocate(10);
+        var length = Utils.WriteVarInt(value, buf.Data);
+        return WriteBytes(buf.Data.Slice(0, length));
     }
 
     public ValueTask WriteBytes(Memory<byte> bytes)

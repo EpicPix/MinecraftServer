@@ -86,6 +86,7 @@ public class PlayerPacketQueue
                 } catch (Exception e)
                 {
                     Console.WriteLine($"Failed write packet {packet.PacketDefinition}. {e.Message} {e.StackTrace}");
+                    break;
                 }
 
                 try
