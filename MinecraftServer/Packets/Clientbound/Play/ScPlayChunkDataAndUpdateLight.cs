@@ -4,7 +4,7 @@ using MinecraftServer.Packets.Clientbound.Data;
 
 namespace MinecraftServer.Packets.Clientbound.Play;
 
-public class ScPlayChunkDataAndUpdateLight : Packet<ScPlayChunkDataAndUpdateLight, PacketData>
+public class ScPlayChunkDataAndUpdateLight : Packet<ScPlayChunkDataAndUpdateLight, ScPlayChunkDataAndUpdateLightPacketData>
 {
 
     public override PacketType Type => PacketType.Play;
@@ -16,13 +16,16 @@ public class ScPlayChunkDataAndUpdateLight : Packet<ScPlayChunkDataAndUpdateLigh
         throw new NotImplementedException();
     }
 
-    public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
+    public override async ValueTask WritePacket(DataAdapter stream, PacketData pData)
     {
-        await stream.WriteInt(0); // Chunk X
-        await stream.WriteInt(0); // Chunk Z
+        var data = Of(pData);
+        
+        await stream.WriteInt(data.ChunkX);
+        await stream.WriteInt(data.ChunkZ);
 
         var arr = new NbtTagLongArray();
-        for (uint i = 0; i < 32; i++) arr.Add(32);
+        // 8 bits per xz
+        for (uint i = 0; i < 32; i++) arr.Add(unchecked((long) 0xffffffffffffffff));
         
         await new NbtTagRoot()
             .Set("MOTION_BLOCKING", arr)
@@ -44,7 +47,7 @@ public class ScPlayChunkDataAndUpdateLight : Packet<ScPlayChunkDataAndUpdateLigh
         
         await stream.WriteVarInt(0);
 
-        await stream.WriteBool(false);
+        await stream.WriteBool(true);
         await stream.WriteVarInt(0);
         await stream.WriteVarInt(0);
         await stream.WriteVarInt(0);

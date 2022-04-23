@@ -86,10 +86,16 @@ public static partial class PacketHandler
         ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(connection.Uuid, connection.Username), connection);
         connection.ChangeState(PacketType.Play);
         ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
-        ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);
+        ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(7.5, 256, 7.5, 0, 0, 0x0, 0, false), connection);
         ScPlayChatMessage.Send(new ScPlayChatMessagePacketData(new ChatComponent("Test message, in online mode"), ScPlayChatMessagePacketData.PositionType.Chat, Guid.Empty), connection);
         ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData(0, 0), connection);
-        ScPlayChunkDataAndUpdateLight.Send(null, connection);
+        for (var x = -8; x <= 8; x++)
+        {
+            for (var z = -8; z <= 8; z++)
+            {
+                ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x, z), connection);
+            }
+        }
         ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.AddPlayer, new List<ScPlayPlayerInfoPacketData.IAction> {
             new ScPlayPlayerInfoPacketData.AddPlayerAction {
                 Uuid = connection.Uuid,
