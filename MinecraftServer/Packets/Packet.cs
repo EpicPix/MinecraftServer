@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading.Channels;
 using MinecraftServer.Networking;
 
 namespace MinecraftServer.Packets;
@@ -71,15 +72,23 @@ public abstract class Packet
     public abstract ValueTask WritePacket(DataAdapter stream, PacketData data);
     public async ValueTask SendPacket(PacketData data, NetworkConnection connection, Func<NetworkConnection, ValueTask> runOnCompletion, bool priority = false)
     {
-        var pkt = new PlayerPacketQueue.QueuedPacket(this, data, runOnCompletion);
-        if(priority) connection.PacketQueue.SetPriorityPacket(pkt.PacketCountId);
-        await connection.PacketQueue.Queue.Writer.WriteAsync(pkt);
+        try
+        {
+            var pkt = new PlayerPacketQueue.QueuedPacket(this, data, runOnCompletion);
+            if(priority) connection.PacketQueue.SetPriorityPacket(pkt.PacketCountId);
+            await connection.PacketQueue.Queue.Writer.WriteAsync(pkt);
+        }
+        catch (ChannelClosedException) { }
     }
     public async ValueTask SendPacket(PacketData data, NetworkConnection connection, bool priority = false)
     {
-        var pkt = new PlayerPacketQueue.QueuedPacket(this, data, _ => ValueTask.CompletedTask);
-        if(priority) connection.PacketQueue.SetPriorityPacket(pkt.PacketCountId);
-        await connection.PacketQueue.Queue.Writer.WriteAsync(pkt);
+        try
+        {
+            var pkt = new PlayerPacketQueue.QueuedPacket(this, data, _ => ValueTask.CompletedTask);
+            if(priority) connection.PacketQueue.SetPriorityPacket(pkt.PacketCountId);
+            await connection.PacketQueue.Queue.Writer.WriteAsync(pkt);
+        }
+        catch (ChannelClosedException) { }
     }
 }
 

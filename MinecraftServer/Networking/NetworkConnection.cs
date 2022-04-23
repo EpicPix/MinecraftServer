@@ -95,7 +95,7 @@ public class NetworkConnection : DataAdapter
 
         if (newState == PacketType.Play)
         {
-            Task.Run(SendKeepAlive, ConnectionState);
+            Task.Run(SendKeepAlive);
         }
 
         CurrentState = newState;
@@ -103,9 +103,9 @@ public class NetworkConnection : DataAdapter
     
     private async void SendKeepAlive()
     {
-        await Task.Delay(10000, ConnectionState);
         try
         {
+            await Task.Delay(10000, ConnectionState);
             while (Connected)
             {
                 if (LastKeepAlive != DateTime.MinValue)
@@ -116,17 +116,20 @@ public class NetworkConnection : DataAdapter
                         break;
                     }
                 }
-                
-                var randomId = (long) RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue) << 32 | (uint) RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue);
+
+                var randomId = (long)RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue) << 32 |
+                               (uint)RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue);
                 LastKeepAliveValue = randomId;
-                await ScPlayKeepAlive.SendAsync(new ScPlayKeepAlivePacketData(randomId), this, connection => {
+                await ScPlayKeepAlive.SendAsync(new ScPlayKeepAlivePacketData(randomId), this, connection =>
+                {
                     LastKeepAliveSend = DateTime.UtcNow;
                     return ValueTask.CompletedTask;
                 });
                 await Task.Delay(10000, ConnectionState);
             }
         }
-        catch(Exception e)
+        catch (TaskCanceledException) { }
+        catch (Exception e)
         {
             Console.WriteLine(e);
         }

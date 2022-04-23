@@ -9,7 +9,7 @@ public class PlayerPacketQueue
 
     public Server Server { get; }
 
-    public Channel<QueuedPacket> Queue { get; } = Channel.CreateBounded<QueuedPacket>(64);
+    public Channel<QueuedPacket> Queue { get; } = Channel.CreateUnbounded<QueuedPacket>();
 
     public record struct QueuedPacket(Packet PacketDefinition, PacketData PacketData,
         Func<NetworkConnection, ValueTask> Completion)
@@ -47,21 +47,23 @@ public class PlayerPacketQueue
                     stream.TryGetBuffer(out var packetData);
                     if (connection.IsCompressed)
                     {
-                        var idLength = Utils.GetVarIntLength((int) id);
+                        var idLength = Utils.GetVarIntLength((int)id);
                         if (packetData.Count + idLength + Utils.GetVarIntLength(0) < Server.NetworkCompressionThreshold)
                         {
                             await connection.WriteVarInt(packetData.Count + idLength + Utils.GetVarIntLength(0));
                             await connection.WriteVarInt(0);
-                            await connection.WriteVarInt((int) id);
+                            await connection.WriteVarInt((int)id);
                             await connection.WriteBytes(packetData);
-                        } else
+                        }
+                        else
                         {
 
                             await using var compressedStream = Server.MS_MANAGER.GetStream();
-                            var comprAdapter = new CompressionAdapter(new StreamAdapter(compressedStream), connection.ConnectionState);
+                            var comprAdapter = new CompressionAdapter(new StreamAdapter(compressedStream),
+                                connection.ConnectionState);
 
                             // write id
-                            await comprAdapter.WriteVarInt((int) id);
+                            await comprAdapter.WriteVarInt((int)id);
                             // write data
                             await comprAdapter.WriteBytes(packetData);
 
@@ -77,13 +79,19 @@ public class PlayerPacketQueue
                             await connection.WriteVarInt(uncompressedPacketSize);
                             await connection.WriteBytes(compressedPacketData);
                         }
-                    } else
+                    }
+                    else
                     {
-                        await connection.WriteVarInt((int) stream.Length + Utils.GetVarIntLength((int) id));
-                        await connection.WriteVarInt((int) id);
+                        await connection.WriteVarInt((int)stream.Length + Utils.GetVarIntLength((int)id));
+                        await connection.WriteVarInt((int)id);
                         await connection.WriteBytes(packetData);
                     }
-                } catch (Exception e)
+                }
+                catch (IOException)
+                {
+                    return;
+                }
+                catch (Exception e)
                 {
                     Console.WriteLine($"Failed write packet {packet.PacketDefinition}. {e.Message} {e.StackTrace}");
                     break;
