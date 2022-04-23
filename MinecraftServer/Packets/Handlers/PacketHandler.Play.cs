@@ -25,14 +25,16 @@ public static partial class PacketHandler
         if (data.KeepAliveId == connection.LastKeepAliveValue)
         {
             connection.LastKeepAlive = DateTime.UtcNow;
-            connection.Latency = (DateTime.UtcNow - connection.LastKeepAliveSend).Milliseconds;
+            connection.Player.Ping = (DateTime.UtcNow - connection.LastKeepAliveSend).Milliseconds;
         }
     }
 
     [PacketEvent(typeof(CsPlayPlayerPosition), priority: 100)]
     public static void HandlePosition(CsPlayPlayerPositionPacketData data, NetworkConnection connection, Server server)
     {
-        if ((long) connection.PlayerX / 16 != (long) data.X / 16 || (long) connection.PlayerZ / 16 != (long) data.Z / 16)
+        var player = connection.Player;
+        
+        if ((long) player.X / 16 != (long) data.X / 16 || (long) player.Z / 16 != (long) data.Z / 16)
         {
             ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData((int) data.X / 16, (int) data.Z / 16), connection);
             
@@ -49,15 +51,17 @@ public static partial class PacketHandler
                 }
             }
         } 
-        connection.PlayerX = data.X;
-        connection.PlayerY = data.Y;
-        connection.PlayerZ = data.Z;
+        player.X = data.X;
+        player.Y = data.Y;
+        player.Z = data.Z;
     }
 
     [PacketEvent(typeof(CsPlayPlayerPositionAndRotation), priority: 100)]
     public static void HandlePosition(CsPlayPlayerPositionAndRotationPacketData data, NetworkConnection connection, Server server)
     {
-        if ((long) connection.PlayerX / 16 != (long) data.X / 16 || (long) connection.PlayerZ / 16 != (long) data.Z / 16)
+        var player = connection.Player;
+        
+        if ((long) player.X / 16 != (long) data.X / 16 || (long) player.Z / 16 != (long) data.Z / 16)
         {
             ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData((int) data.X / 16, (int) data.Z / 16), connection);
             
@@ -74,8 +78,8 @@ public static partial class PacketHandler
                 }
             }
         } 
-        connection.PlayerX = data.X;
-        connection.PlayerY = data.Y;
-        connection.PlayerZ = data.Z;
+        player.X = data.X;
+        player.Y = data.Y;
+        player.Z = data.Z;
     }
 }

@@ -5,6 +5,8 @@ using Microsoft.IO;
 using MinecraftServer.Events;
 using MinecraftServer.Networking;
 using MinecraftServer.Packets;
+using MinecraftServer.Packets.Clientbound.Data;
+using MinecraftServer.Packets.Clientbound.Play;
 using MinecraftServer.Packets.Handlers;
 
 namespace MinecraftServer;
@@ -84,9 +86,11 @@ public class Server
     public static readonly RecyclableMemoryStreamManager MS_MANAGER = new();
     public ServerInfo ServerInfo { get; }
     public volatile List<NetworkConnection> ActiveConnections;
+    public volatile List<Player> Players;
     public bool OnlineMode { get; } = false;
     internal RSA? RsaServer { get; }
     internal byte[]? ServerPublicKey { get; }
+    private uint _currentEntityId;
     public const int NetworkCompressionThreshold = 256;
 
     public Server(bool isOnline = true)
@@ -98,11 +102,72 @@ public class Server
         };
 
         ActiveConnections = new();
+        Players = new();
         OnlineMode = isOnline;
         if (OnlineMode)
         {
             RsaServer = RSA.Create(1024);
             ServerPublicKey = RsaServer.ExportSubjectPublicKeyInfo();
+        }
+    }
+
+    public uint NextEntityId()
+    {
+        return _currentEntityId++;
+    }
+
+    public void BroadcastMessage(ChatComponent message)
+    {
+        Console.WriteLine(message.text);
+        var joinPacketData = new ScPlayChatMessagePacketData(message, ScPlayChatMessagePacketData.PositionType.Chat, Guid.Empty);
+        foreach (var onlinePlayer in Players)
+        {
+            ScPlayChatMessage.Send(joinPacketData, onlinePlayer.Connection);
+        }
+    }
+
+    public void OnPlayerJoin(Player player)
+    {
+        BroadcastMessage(new ChatComponent($"{player.Username} joined"));
+
+        var actions = new List<ScPlayPlayerInfoPacketData.IAction>();
+        foreach (var onlinePlayer in Players)
+        {
+            var action = new ScPlayPlayerInfoPacketData.AddPlayerAction {
+                Uuid = onlinePlayer.Uuid,
+                Username = onlinePlayer.Username,
+                Profile = onlinePlayer.Connection.Profile,
+                Gamemode = 1,
+                Ping = 0,
+                DisplayName = null
+            };
+            actions.Add(action);
+            if (player == onlinePlayer)
+            {
+                foreach (var eonlinePlayer in Players)
+                {
+                    if (eonlinePlayer == player) continue;
+                    ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.AddPlayer, new List<ScPlayPlayerInfoPacketData.IAction> { action }), eonlinePlayer.Connection);
+                }
+                continue;
+            }
+            ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.AddPlayer, new List<ScPlayPlayerInfoPacketData.IAction> { action }), onlinePlayer.Connection);
+        }
+        
+        ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.AddPlayer, actions), player.Connection);
+    }
+
+    public void OnPlayerLeave(Player player)
+    {
+        BroadcastMessage(new ChatComponent($"{player.Username} left"));
+        
+        foreach (var onlinePlayer in Players)
+        {
+            ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.RemovePlayer, new List<ScPlayPlayerInfoPacketData.IAction> {
+                new ScPlayPlayerInfoPacketData.RemovePlayerAction {
+                    Uuid = player.Uuid
+                }
+            }), onlinePlayer.Connection);
         }
     }
 
@@ -227,6 +292,11 @@ public class Server
         {
             conn.PacketQueue.Stop();
             ActiveConnections.Remove(conn);
+            if (conn.Player != null)
+            {
+                Players.Remove(conn.Player);
+                OnPlayerLeave(conn.Player);
+            }
         }
     }
 }

@@ -31,23 +31,12 @@ public class NetworkConnection : DataAdapter
     public override bool EndOfPhysicalStream => _readTransformerStack.Last().EndOfPhysicalStream;
     public long RawBytesWritten => _readTransformerStack.Last().BytesWritten;
 
-    private int _latency;
-    public int Latency {
-        get => _latency;
-        set {
-            Console.WriteLine($"Ping for {Username} set to {value}ms");
-            _latency = value;
-        }
-    }
-
     public CancellationToken ConnectionState { get; }
     public bool Connected => !ConnectionState.IsCancellationRequested;
     private CancellationTokenSource _stateSource;
     public bool HasMoreToRead { get; private set; } = true;
-    // TODO: Add player object, these are here for debugging
-    public double PlayerX = 0;
-    public double PlayerY = 0;
-    public double PlayerZ = 0;
+
+    public Player Player;
     public ConcurrentDictionary<(int, int), bool> SentChunks = new ();
 
     public NetworkConnection(Server server, Stream client, CancellationToken shutdownToken = default) : base(shutdownToken)

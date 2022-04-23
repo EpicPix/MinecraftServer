@@ -84,6 +84,11 @@ public static partial class PacketHandler
 
 
         ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(connection.Uuid, connection.Username), connection);
+        
+        connection.Player = new Player(connection, server.NextEntityId());
+        server.Players.Add(connection.Player);
+        server.OnPlayerJoin(connection.Player);
+        
         connection.ChangeState(PacketType.Play);
         ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
         ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(16, 80, 0, 0, 0, 0x0, 0, false), connection);
@@ -96,16 +101,6 @@ public static partial class PacketHandler
                 ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x, z), connection);
             }
         }
-        ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.AddPlayer, new List<ScPlayPlayerInfoPacketData.IAction> {
-            new ScPlayPlayerInfoPacketData.AddPlayerAction {
-                Uuid = connection.Uuid,
-                Username = connection.Username,
-                Profile = connection.Profile,
-                Gamemode = 1,
-                Ping = 0,
-                DisplayName = null
-            }
-        }), connection);
     }
     
 }
