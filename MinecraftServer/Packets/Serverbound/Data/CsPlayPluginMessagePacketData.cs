@@ -7,9 +7,9 @@ public class CsPlayPluginMessagePacketData : PacketData, IDisposable
 {
     
     public string Channel { get; }
-    public PooledArray Data { get; }
+    public IoBuffer Data { get; }
 
-    public CsPlayPluginMessagePacketData(string channel, PooledArray data)
+    public CsPlayPluginMessagePacketData(string channel, IoBuffer data)
     {
         Channel = channel;
         Data = data;

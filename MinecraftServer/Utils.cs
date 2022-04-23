@@ -68,4 +68,22 @@ public class Utils
             value >>= 7;
         }
     }
+    
+    public static int WriteVarInt(int value, ArraySegment<byte> bytes)
+    {
+        int len = 0;
+        while (true)
+        {
+            if ((value & ~0x7F) == 0)
+            {
+                bytes[len] = (byte)value;
+                len++;
+                return len;
+            }
+
+            bytes[len] = (byte)((value & 0x7F) | 0x80);
+            len++;
+            value >>= 7;
+        }
+    }
 }

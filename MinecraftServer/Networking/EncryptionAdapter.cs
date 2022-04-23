@@ -47,7 +47,7 @@ public class EncryptionAdapter : DataAdapter
         {
             throw new InvalidOperationException("How tf are u even using non-heap memory with an async method??");
         }
-        using var tPlainText = PooledArray.Allocate(len);
+        using var tPlainText = IoBuffer.Allocate(len);
         Transform(_decrypt, seg.Slice(0, len), tPlainText.Data);
         new Memory<byte>(tPlainText.Data.Array, tPlainText.Data.Offset, len).CopyTo(buf);
         return len;
@@ -59,7 +59,7 @@ public class EncryptionAdapter : DataAdapter
         {
             throw new InvalidOperationException("How tf are u even using non-heap memory with an async method??");
         }
-        using var tCipherText = PooledArray.Allocate(buf.Length);
+        using var tCipherText = IoBuffer.Allocate(buf.Length);
         Transform(_encrypt, seg, tCipherText.Data);
         await BaseAdapter.WriteAsync(tCipherText.Data.Slice(0, buf.Length), ct);
     }

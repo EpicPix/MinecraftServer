@@ -22,6 +22,10 @@ public class NetworkConnection : DataAdapter
     public PlayerPacketQueue PacketQueue { get; }
     public DateTime LastKeepAliveSend = DateTime.MinValue;
     public DateTime LastKeepAlive = DateTime.MinValue;
+    private readonly IoBuffer.IAllocator _readAllocator = new IoBuffer.SingleThreadAllocator(1 << 15);
+    private readonly IoBuffer.IAllocator _writeAllocator = new IoBuffer.SingleThreadAllocator(1 << 15);
+    protected override IoBuffer.IAllocator ReadAllocator => _readAllocator;
+    protected override IoBuffer.IAllocator WriteAllocator => _writeAllocator;
     public long LastKeepAliveValue;
     public long RawBytesRead => _readTransformerStack.Last().BytesRead;
     public override bool EndOfPhysicalStream => _readTransformerStack.Last().EndOfPhysicalStream;
