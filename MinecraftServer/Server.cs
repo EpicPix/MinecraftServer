@@ -91,6 +91,7 @@ public class Server
     internal RSA? RsaServer { get; }
     internal byte[]? ServerPublicKey { get; }
     private uint _currentEntityId;
+    public string Brand { get; }
     public const int NetworkCompressionThreshold = 256;
 
     public Server(bool isOnline = true)
@@ -103,6 +104,7 @@ public class Server
 
         ActiveConnections = new();
         Players = new();
+        Brand = "§k§l§o§nCustom... Text don't you love putting actual text where it shouldn't be§r";
         OnlineMode = isOnline;
         if (OnlineMode)
         {

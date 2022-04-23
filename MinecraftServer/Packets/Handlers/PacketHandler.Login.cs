@@ -92,7 +92,12 @@ public static partial class PacketHandler
         connection.ChangeState(PacketType.Play);
         ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
         ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(16, 80, 0, 0, 0, 0x0, 0, false), connection);
-        ScPlayChatMessage.Send(new ScPlayChatMessagePacketData(new ChatComponent("Test message, in online mode"), ScPlayChatMessagePacketData.PositionType.Chat, Guid.Empty), connection);
+        var b = IoBuffer.Allocate(Encoding.UTF8.GetByteCount(server.Brand));
+        Encoding.UTF8.GetBytes(server.Brand, b.Data);
+        ScPlayPluginMessage.Send(new CsPlayPluginMessagePacketData("minecraft:brand", b), connection, _ => {
+            b.Dispose();
+            return ValueTask.CompletedTask;
+        });
         ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData(0, 0), connection);
         for (var x = -4; x <= 4; x++)
         {
