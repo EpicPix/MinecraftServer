@@ -27,26 +27,42 @@ public class ScPlayChunkDataAndUpdateLight : Packet<ScPlayChunkDataAndUpdateLigh
         // 7 bits per xz
         for (uint i = 0; i < 37; i++)
         {
-            arr.Add(unchecked((long) 0xffffffffffffffff));
+            arr.Add(0);
         }
         
         await new NbtTagRoot()
             .Set("MOTION_BLOCKING", arr)
             .Write(stream);
 
-        await stream.WriteVarInt(128);
+        await using var ms = new MemoryStream();
+        await using var s = new StreamAdapter(ms);
         for (uint i = 0; i < 16; i++)
         {
-            await stream.WriteUShort(16 * 16 * 16); // block count
+            await s.WriteUShort(16 * 16 * 8); // block count
 
-            await stream.WriteUByte(0);
-            await stream.WriteVarInt(1);
-            await stream.WriteVarInt(0);
+            await s.WriteUByte(8); // palette bits
+            await s.WriteVarInt(2); // palette length
+            await s.WriteVarInt(1); // element[0]
+            await s.WriteVarInt(2); // element[1]
+            
+            await s.WriteVarInt(16 * 16 * 2); // block data length (in longs)
+            for (var y = 0; y < 16; y++)
+            {
+                for (var z = 0; z < 16; z++)
+                {
+                    for (var x = 0; x < 16; x++)
+                    {
+                        await s.WriteUByte((byte) (z >= 8 ? 0 : 1));
+                    }
+                }
+            }
 
-            await stream.WriteUByte(0);
-            await stream.WriteVarInt(1);
-            await stream.WriteVarInt(0);
+            await s.WriteUByte(0);
+            await s.WriteVarInt(1);
+            await s.WriteVarInt(0);
         }
+        await stream.WriteVarInt((int) ms.Length);
+        await stream.WriteBytes(ms.ToArray());
         
         await stream.WriteVarInt(0);
 

@@ -89,9 +89,9 @@ public static partial class PacketHandler
         ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(16, 256, 0, 0, 0, 0x0, 0, false), connection);
         ScPlayChatMessage.Send(new ScPlayChatMessagePacketData(new ChatComponent("Test message, in online mode"), ScPlayChatMessagePacketData.PositionType.Chat, Guid.Empty), connection);
         ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData(0, 0), connection);
-        for (var x = -8; x <= 8; x++)
+        for (var x = -4; x <= 4; x++)
         {
-            for (var z = -8; z <= 8; z++)
+            for (var z = -4; z <= 4; z++)
             {
                 ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x, z), connection);
             }
