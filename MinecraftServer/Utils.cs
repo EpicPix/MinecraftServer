@@ -42,7 +42,7 @@ public class Utils
     {
         int remLen = toRead.Count;
         int pos = 0;
-        while (remLen > 0)
+        while (remLen > 0 && !stream.EndOfPhysicalStream)
         {
             int read = await stream.ReadAsync(toRead.Slice(pos, remLen), ct);
             pos += read;

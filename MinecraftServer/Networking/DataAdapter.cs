@@ -84,7 +84,7 @@ public abstract class DataAdapter : Stream
 
     public async ValueTask WriteUShort(ushort value)
     {
-        using var tbuf = IoBuffer.Allocate(2);
+        using var tbuf = WriteAllocator.Allocate(2);
         tbuf[0] = (byte)(value >> 8);
         tbuf[1] = (byte)value;
         await WriteBytes(tbuf);
@@ -134,7 +134,7 @@ public abstract class DataAdapter : Stream
 
     public ValueTask WriteUUID(Guid uuid)
     {
-        using var tbuf = IoBuffer.Allocate(16);
+        using var tbuf = WriteAllocator.Allocate(16);
         uuid.TryWriteBytes(tbuf.Data);
         return WriteBytes(tbuf);
     }
@@ -154,7 +154,7 @@ public abstract class DataAdapter : Stream
 
     public ValueTask WriteULong(ulong value)
     {
-        using var tbuf = IoBuffer.Allocate(8);
+        using var tbuf = WriteAllocator.Allocate(8);
         tbuf[0] = (byte) (value >> 56);
         tbuf[1] = (byte) (value >> 48);
         tbuf[2] = (byte) (value >> 40);
@@ -188,6 +188,7 @@ public abstract class DataAdapter : Stream
 
     public async ValueTask<IoBuffer> ReadBytes(int toRead)
     {
+        // do not do "using" on this one. we don't want to dispose the returned buffer yet
         var buf = IoBuffer.Allocate(toRead);
         await ReadBytes(buf);
         return buf;
@@ -229,7 +230,7 @@ public abstract class DataAdapter : Stream
     public async ValueTask Skip(int bytes)
     {
         int rem = bytes;
-        while (rem > 0 && !_ct.IsCancellationRequested)
+        while (rem > 0 && !_ct.IsCancellationRequested && !EndOfPhysicalStream)
         {
             var res = await ReadAsync(new ArraySegment<byte>(_drainBytes, 0, Math.Min(4096, rem)), _ct);
             rem -= res;
@@ -243,7 +244,7 @@ public abstract class DataAdapter : Stream
         int position = 0;
         byte currentByte;
 
-        while (!_ct.IsCancellationRequested)
+        while (!_ct.IsCancellationRequested && !EndOfPhysicalStream)
         {
             currentByte = await ReadUByte();
             value |= (currentByte & 0x7F) << position;
