@@ -34,7 +34,6 @@ public class NetworkConnection : DataAdapter
     public CancellationToken ConnectionState { get; }
     public bool Connected => !ConnectionState.IsCancellationRequested;
     private CancellationTokenSource _stateSource;
-    public bool HasMoreToRead { get; private set; } = true;
 
     public Player Player;
     public ConcurrentDictionary<(int, int), bool> SentChunks = new ();
@@ -189,7 +188,7 @@ public class NetworkConnection : DataAdapter
     {
         if (EndOfPhysicalStream)
         {
-            await Task.Delay(100); // prevent high cpu usage from waiting for all data to be written
+            //await Task.Delay(100); // prevent high cpu usage from waiting for all data to be written
             return 0;
         }
         int res = await _readTransformerStack.Peek().ReadAsync(buf, ct);

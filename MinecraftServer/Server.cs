@@ -182,7 +182,7 @@ public class Server
         ActiveConnections.Add(conn);
         try
         {
-            while (conn.HasMoreToRead)
+            while (!conn.EndOfPhysicalStream)
             {
                 Packet? packet;
                 long curPos, expectedLength, readableUncompressedLength;

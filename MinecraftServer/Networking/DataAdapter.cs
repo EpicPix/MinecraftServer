@@ -231,7 +231,9 @@ public abstract class DataAdapter : Stream
         int rem = bytes;
         while (rem > 0 && !_ct.IsCancellationRequested)
         {
-            rem -= await ReadAsync(new ArraySegment<byte>(_drainBytes, 0, Math.Min(4096, rem)), _ct);
+            var res = await ReadAsync(new ArraySegment<byte>(_drainBytes, 0, Math.Min(4096, rem)), _ct);
+            rem -= res;
+            if (res == 0) break;
         }
     }
     
