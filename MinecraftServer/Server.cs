@@ -120,17 +120,26 @@ public class Server
             while (conn.HasMoreToRead)
             {
                 Packet? packet;
+                long curPos, expectedLength, readableUncompressedLength;
+                bool requirePopTransform = false;
                 if (conn.IsCompressed)
                 {
-                    var fullLength = await conn.ReadVarInt();
+                    expectedLength = await conn.ReadVarInt();
+                    curPos = conn.RawBytesRead;
                     var dataLength = await conn.ReadVarInt();
-                    var packetDataLength = fullLength;
+                    var packetDataLength = expectedLength;
 
+                    var decompAllowedLength = packetDataLength - Utils.GetVarIntLength(dataLength);
                     if (dataLength != 0)
                     {
-                        conn.AddTransformer((x, ct) => new DecompressionAdapter(x, ct), true);
+                        conn.AddTransformer((x, ct) =>
+                        {
+                            return new DecompressionAdapter(new StreamAdapter(x, decompAllowedLength, ct), ct);
+                        }, true);
+                        requirePopTransform = true;
                         packetDataLength = dataLength;
-                    } else
+                    } 
+                    else
                     {
                         packetDataLength -= Utils.GetVarIntLength(dataLength); // dataLength is 0, but i dont care
                     }
@@ -141,29 +150,26 @@ public class Server
                     if(!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out packet))
                     {
                         Console.WriteLine($"Unknown packet detected on state {conn.CurrentState} with id {id}. Skipping gracefully.");
-                        await conn.Skip(packetDataLength);
-                        if (dataLength != 0) conn.PopTransformer(true);
-                        continue;
+                        goto ProcessCorruption;
                     }
-                    conn.PacketDataLength = (uint) packetDataLength;
-                    
-                    if (dataLength != 0) conn.PopTransformer(true);
+
+                    readableUncompressedLength = packetDataLength;
                 }
                 else
                 {
-                    var length = await conn.ReadVarInt();
+                    expectedLength = await conn.ReadVarInt();
+                    curPos = conn.RawBytesRead;
                     var id = await conn.ReadVarInt();
-                    var packetDataLength = length - Utils.GetVarIntLength(id);
+                    var packetDataLength = expectedLength - Utils.GetVarIntLength(id);
                     if (!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out packet))
                     {
                         Console.WriteLine($"Unknown packet detected on state {conn.CurrentState} with id {id}. Skipping gracefully.");
-                        await conn.Skip(packetDataLength);
-                        continue;
+                        goto ProcessCorruption;
                     }
-                    conn.PacketDataLength = (uint) packetDataLength;
+                    readableUncompressedLength = packetDataLength;
                 }
-                var data = await packet.ReadPacket(conn);
-                
+                var data = await packet.ReadPacket(new StreamAdapter(conn, readableUncompressedLength, conn.ConnectionState));
+
                 foreach (var packetHandler in PacketHandlers)
                 {
                     if (packetHandler.Packet == packet)
@@ -182,6 +188,23 @@ public class Server
                         {
                             break;
                         }
+                    }
+                }
+                
+                ProcessCorruption:
+                if(requirePopTransform) conn.PopTransformer(true);
+                long readLength = conn.RawBytesRead - curPos;
+                if (readLength != expectedLength)
+                {
+                    if (readLength < expectedLength)
+                    {
+                        Console.WriteLine($"Packet reading corruption detected for {packet}: Expected Length {expectedLength} bytes. Read {readLength} bytes. {expectedLength - readLength} bytes will be skipped.");
+                        await conn.Skip((int)(expectedLength - readLength));
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Packet reading corruption detected for {packet}: Expected Length {expectedLength} bytes. Read {readLength} bytes. This is not recoverable. The connection will be closed.");
+                        await conn.Disconnect("", true);
                     }
                 }
                 

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using MinecraftServer.Packets;
@@ -22,10 +23,9 @@ public class NetworkConnection : DataAdapter
     public DateTime LastKeepAliveSend = DateTime.MinValue;
     public DateTime LastKeepAlive = DateTime.MinValue;
     public long LastKeepAliveValue;
-
-    public double PlayerX = 0;
-    public double PlayerY = 0;
-    public double PlayerZ = 0;
+    public long RawBytesRead => _readTransformerStack.Last().BytesRead;
+    public override bool EndOfPhysicalStream => _readTransformerStack.Last().EndOfPhysicalStream;
+    public long RawBytesWritten => _readTransformerStack.Last().BytesWritten;
 
     private int _latency;
     public int Latency {
@@ -40,6 +40,11 @@ public class NetworkConnection : DataAdapter
     public bool Connected => !ConnectionState.IsCancellationRequested;
     private CancellationTokenSource _stateSource;
     public bool HasMoreToRead { get; private set; } = true;
+    // TODO: Add player object, these are here for debugging
+    public double PlayerX = 0;
+    public double PlayerY = 0;
+    public double PlayerZ = 0;
+    public ConcurrentDictionary<long, bool> SentChunks = new ();
 
     public NetworkConnection(Server server, Stream client, CancellationToken shutdownToken = default) : base(shutdownToken)
     {
@@ -186,17 +191,12 @@ public class NetworkConnection : DataAdapter
 
     public override async ValueTask<int> ReadAsync(Memory<byte> buf, CancellationToken ct = default)
     {
-        if (!HasMoreToRead)
+        if (EndOfPhysicalStream)
         {
             await Task.Delay(100); // prevent high cpu usage from waiting for all data to be written
             return 0;
         }
         int res = await _readTransformerStack.Peek().ReadAsync(buf, ct);
-        if (res == 0)
-        {
-            HasMoreToRead = false;
-        }
-
         return res;
     }
 

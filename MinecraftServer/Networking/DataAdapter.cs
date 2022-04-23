@@ -16,15 +16,20 @@ public abstract class DataAdapter : Stream
         return ReadAsync(new ArraySegment<byte>(buffer, offset, count)).Result;
     }
 
+    public virtual long BytesRead => throw new NotImplementedException();
+    public virtual long BytesWritten => throw new NotImplementedException();
+    public virtual bool EndOfPhysicalStream => throw new NotImplementedException();
     public abstract override ValueTask<int> ReadAsync(Memory<byte> buf, CancellationToken ct = default);
     public override long Seek(long offset, SeekOrigin origin)
     {
         throw new NotImplementedException();
     }
 
+    protected long RemainingLength = long.MaxValue;
+
     public override void SetLength(long value)
     {
-        throw new NotImplementedException();
+        RemainingLength = value;
     }
 
     public override void Write(byte[] buffer, int offset, int count)
@@ -38,10 +43,8 @@ public abstract class DataAdapter : Stream
     public override bool CanRead => true;
     public override bool CanSeek => false;
     public override bool CanWrite => true;
-    public override long Length => throw new NotImplementedException();
+    public override long Length => RemainingLength;
     public override long Position { get; set; }
-
-    public uint PacketDataLength { get; set; }
 
     public ValueTask WriteBool(bool value)
     {

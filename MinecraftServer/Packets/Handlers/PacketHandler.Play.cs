@@ -41,7 +41,11 @@ public static partial class PacketHandler
             {
                 for (var z = -1; z <= 1; z++)
                 {
-                    ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x + (int) data.X / 16, z + (int) data.Z / 16), connection);
+                    if(!connection.SentChunks.ContainsKey(((long)(data.X / 16) << 32) | (long)(data.Z / 16)))
+                    {
+                        connection.SentChunks[((long)(data.X / 16) << 32) | (long)(data.Z / 16)] = true;
+                        ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x + (int)data.X / 16, z + (int)data.Z / 16), connection);
+                    }
                 }
             }
         } 
@@ -62,7 +66,11 @@ public static partial class PacketHandler
             {
                 for (var z = -1; z <= 1; z++)
                 {
-                    ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x + (int) data.X / 16, z + (int) data.Z / 16), connection);
+                    if (!connection.SentChunks.ContainsKey(((long)(data.X / 16) << 32) | (long)(data.Z / 16)))
+                    {
+                        connection.SentChunks[((long)(data.X / 16) << 32) | (long)(data.Z / 16)] = true;
+                        ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x + (int)data.X / 16, z + (int)data.Z / 16), connection);
+                    }
                 }
             }
         } 
