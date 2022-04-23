@@ -44,7 +44,7 @@ public class NetworkConnection : DataAdapter
     public double PlayerX = 0;
     public double PlayerY = 0;
     public double PlayerZ = 0;
-    public ConcurrentDictionary<long, bool> SentChunks = new ();
+    public ConcurrentDictionary<(int, int), bool> SentChunks = new ();
 
     public NetworkConnection(Server server, Stream client, CancellationToken shutdownToken = default) : base(shutdownToken)
     {

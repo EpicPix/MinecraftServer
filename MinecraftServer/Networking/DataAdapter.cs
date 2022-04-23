@@ -39,6 +39,8 @@ public abstract class DataAdapter : Stream
 
     private byte[] _singleByteRead = new byte[1];
     private byte[] _singleByteWrite = new byte[1];
+    private byte[] _readVarBytes = new byte[10];
+    private byte[] _writeVarBytes = new byte[10];
     public abstract override ValueTask WriteAsync(ReadOnlyMemory<byte> buf, CancellationToken ct = default);
     public override bool CanRead => true;
     public override bool CanSeek => false;
@@ -63,12 +65,12 @@ public abstract class DataAdapter : Stream
     public async ValueTask WriteUByte(byte value)
     {
         _singleByteWrite[0] = value;
-        await WriteAsync(_singleByteWrite);
+        await WriteAsync(_singleByteWrite, _ct);
     }
 
     public async ValueTask<byte> ReadUByte()
     {
-        await ReadAsync(_singleByteRead);
+        await ReadAsync(_singleByteRead, _ct);
         return _singleByteRead[0];
     }
 
