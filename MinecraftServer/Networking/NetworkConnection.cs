@@ -45,11 +45,11 @@ public class NetworkConnection : DataAdapter
         {
             if (CurrentState == PacketType.Login)
             {
-                await ScLoginDisconnect.Send(new ScDisconnectPacketData(new ChatComponent(reason)), this, CloseConnection, true);
+                await ScLoginDisconnect.SendAsync(new ScDisconnectPacketData(new ChatComponent(reason)), this, CloseConnection, true);
             }
             else if (CurrentState == PacketType.Play)
             {
-                await ScPlayDisconnect.Send(new ScDisconnectPacketData(new ChatComponent(reason)), this, CloseConnection, true);
+                await ScPlayDisconnect.SendAsync(new ScDisconnectPacketData(new ChatComponent(reason)), this, CloseConnection, true);
             }
             Task.Run(async () =>
             {
@@ -106,7 +106,7 @@ public class NetworkConnection : DataAdapter
                 
                 var randomId = (long) RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue) << 32 | (uint) RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue);
                 LastKeepAliveValue = randomId;
-                await ScPlayKeepAlive.Send(new ScPlayKeepAlivePacketData(randomId), this);
+                await ScPlayKeepAlive.SendAsync(new ScPlayKeepAlivePacketData(randomId), this);
                 await Task.Delay(10000);
             }
         }

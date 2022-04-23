@@ -18,14 +18,30 @@ public class Server
     {
         if (method.GetParameters().Length == 3)
         {
-            var delg = Delegate.CreateDelegate(typeof(PacketEventHandler<T>.PacketEventHandlerFunc), method);
-            var handler = new PacketEventHandler<T>(attr.Packet, attr.Priority, (PacketEventHandler<T>.PacketEventHandlerFunc) delg);
-            handlers.Add(handler);
+            if (method.ReturnType == typeof(ValueTask))
+            {
+                var delg = Delegate.CreateDelegate(typeof(PacketEventHandler<T>.PacketEventHandlerFuncAsync), method);
+                var handler = new PacketEventHandler<T>(attr.Packet, attr.Priority, (PacketEventHandler<T>.PacketEventHandlerFuncAsync) delg);
+                handlers.Add(handler);
+            } else
+            {
+                var delg = Delegate.CreateDelegate(typeof(PacketEventHandler<T>.PacketEventHandlerFunc), method);
+                var handler = new PacketEventHandler<T>(attr.Packet, attr.Priority, (PacketEventHandler<T>.PacketEventHandlerFunc) delg);
+                handlers.Add(handler);
+            }
         } else
         {
-            var delg = Delegate.CreateDelegate(typeof(PacketEventHandler<T>.PacketEventHandlerFuncStatus), method);
-            var handler = new PacketEventHandler<T>(attr.Packet, attr.Priority, (PacketEventHandler<T>.PacketEventHandlerFuncStatus) delg);
-            handlers.Add(handler);
+            if (method.ReturnType == typeof(ValueTask))
+            {
+                var delg = Delegate.CreateDelegate(typeof(PacketEventHandler<T>.PacketEventHandlerFuncStatusAsync), method);
+                var handler = new PacketEventHandler<T>(attr.Packet, attr.Priority, (PacketEventHandler<T>.PacketEventHandlerFuncStatusAsync) delg);
+                handlers.Add(handler);
+            } else
+            {
+                var delg = Delegate.CreateDelegate(typeof(PacketEventHandler<T>.PacketEventHandlerFuncStatus), method);
+                var handler = new PacketEventHandler<T>(attr.Packet, attr.Priority, (PacketEventHandler<T>.PacketEventHandlerFuncStatus) delg);
+                handlers.Add(handler);
+            }
         }
     }
     
@@ -103,6 +119,7 @@ public class Server
         {
             while (conn.HasMoreToRead)
             {
+                Packet? packet;
                 if (conn.IsCompressed)
                 {
                     var fullLength = await conn.ReadVarInt();
@@ -121,7 +138,7 @@ public class Server
                     var id = await conn.ReadVarInt();
 
                     packetDataLength -= Utils.GetVarIntLength(id);
-                    if(!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out var packet))
+                    if(!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out packet))
                     {
                         Console.WriteLine($"Unknown packet detected on state {conn.CurrentState} with id {id}. Skipping gracefully.");
                         await conn.Skip(packetDataLength);
@@ -129,29 +146,46 @@ public class Server
                         continue;
                     }
                     conn.PacketDataLength = (uint) packetDataLength;
-                    var data = await packet.ReadPacket(conn);
                     
                     if (dataLength != 0) conn.PopTransformer();
-                    
-                    await PacketHandler.HandlePacket(this, conn, packet, data);
-                    
-                    if (!conn.Connected) break;
                 }
                 else
                 {
                     var length = await conn.ReadVarInt();
                     var id = await conn.ReadVarInt();
                     var packetDataLength = length - Utils.GetVarIntLength(id);
-                    if (!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out var packet))
+                    if (!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out packet))
                     {
                         Console.WriteLine($"Unknown packet detected on state {conn.CurrentState} with id {id}. Skipping gracefully.");
                         await conn.Skip(packetDataLength);
                         continue;
                     }
                     conn.PacketDataLength = (uint) packetDataLength;
-                    var data = await packet.ReadPacket(conn);
-                    await PacketHandler.HandlePacket(this, conn, packet, data);
                 }
+                var data = await packet.ReadPacket(conn);
+                
+                foreach (var packetHandler in PacketHandlers)
+                {
+                    if (packetHandler.Packet == packet)
+                    {
+                        var status = PacketEventHandlerStatus.Continue;
+                        if (packetHandler.Async)
+                        {
+                            var reference = new PacketEventHandlerStatusRef(status);
+                            await packetHandler.RunAsync(data, conn, this, reference);
+                            status = reference.HandlerStatus;
+                        } else
+                        {
+                            packetHandler.Run(data, conn, this, ref status);
+                        }
+                        if ((status & PacketEventHandlerStatus.Stop) == PacketEventHandlerStatus.Stop)
+                        {
+                            break;
+                        }
+                    }
+                }
+                
+                if (!conn.Connected) break;
             }
         }
         catch(Exception e)

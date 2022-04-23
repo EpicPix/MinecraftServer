@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Net;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Web;
+using MinecraftServer.Events;
 using MinecraftServer.Networking;
 using MinecraftServer.Packets.Clientbound.Data;
 using MinecraftServer.Packets.Clientbound.Login;
@@ -16,7 +16,8 @@ namespace MinecraftServer.Packets.Handlers;
 
 public static partial class PacketHandler
 {
-    public static async ValueTask HandleEncryptionResponse(Server server, NetworkConnection connection, CsLoginEncryptionResponsePacketData data)
+    [PacketEvent(typeof(CsLoginEncryptionResponse), priority: 100)]
+    public static async ValueTask HandleEncryptionResponse(CsLoginEncryptionResponsePacketData data, NetworkConnection connection, Server server)
     {
         Debug.Assert(server.OnlineMode);
         var decryptedToken = server.RsaServer.Decrypt(data.VerifyToken, RSAEncryptionPadding.Pkcs1);
@@ -39,63 +40,56 @@ public static partial class PacketHandler
 
         if (result.StatusCode != HttpStatusCode.OK)
         {
-            await ScLoginDisconnect.Send(new ScDisconnectPacketData(new ChatComponent("Authentication Failed")), connection);
+            await ScLoginDisconnect.SendAsync(new ScDisconnectPacketData(new ChatComponent("Authentication Failed")), connection);
             throw new Exception("Not authenticated with Mojang");
         }
         
         connection.Profile = JsonSerializer.Deserialize(await result.Content.ReadAsStringAsync(), SerializationContext.Default.GameProfile!);
         connection.Username = connection.Profile.name;
         connection.Uuid = connection.Profile.Uuid;
-        Console.WriteLine($"Player has connected with info: {JsonSerializer.Serialize(connection.Profile, SerializationContext.Default.GameProfile!)}");
+        Console.WriteLine($"Player has connected with info: {JsonSerializer.Serialize(connection.Profile, SerializationContext.Default.GameProfile)}");
         connection.Encrypt();
         Console.WriteLine(@"Stream is now encrypted");
+        
+        FinishLogin(connection, server);
+    }
 
+    [PacketEvent(typeof(CsLoginLoginStart), priority: 100)]
+    public static void HandleLoginStart(CsLoginLoginStartPacketData data, NetworkConnection connection, Server server)
+    {
+        connection.Username = data.Name;
+        if (!server.OnlineMode)
+        {
+            var uuid = Utils.GuidFromString($"OfflinePlayer:{connection.Username}");
+            connection.Uuid = uuid;
+            
+            FinishLogin(connection, server);
+            return;
+        }
+
+        connection.VerifyToken = RandomNumberGenerator.GetBytes(4);
+        var encryptionReq = new ScLoginEncryptionRequestPacketData("", server.ServerPublicKey, connection.VerifyToken);
+        ScLoginEncryptionRequest.Send(encryptionReq, connection);
+    }
+
+    private static void FinishLogin(NetworkConnection connection, Server server)
+    {
         if (Server.NetworkCompressionThreshold > 0)
         {
-            await ScLoginSetCompression.Send(new ScLoginSetCompressionPacketData(Server.NetworkCompressionThreshold), connection, conn => {
+            ScLoginSetCompression.Send(new ScLoginSetCompressionPacketData(Server.NetworkCompressionThreshold), connection, conn => {
                 conn.IsCompressed = true;
                 return ValueTask.CompletedTask;
             });
         }
 
 
-        await ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(connection.Profile.Uuid, connection.Profile.name), connection);
+        ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(connection.Uuid, connection.Username), connection);
         connection.ChangeState(PacketType.Play);
-        await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
-        await ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);
-        await ScPlayChatMessage.Send(new ScPlayChatMessagePacketData(new ChatComponent("Test message, in online mode"), ScPlayChatMessagePacketData.PositionType.Chat, Guid.Empty), connection);
-        await ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData(0, 0), connection);
-        await ScPlayChunkDataAndUpdateLight.Send(null, connection);
+        ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
+        ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);
+        ScPlayChatMessage.Send(new ScPlayChatMessagePacketData(new ChatComponent("Test message, in online mode"), ScPlayChatMessagePacketData.PositionType.Chat, Guid.Empty), connection);
+        ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData(0, 0), connection);
+        ScPlayChunkDataAndUpdateLight.Send(null, connection);
     }
-
-    public static async ValueTask HandleLoginStart(Server server, NetworkConnection connection, CsLoginLoginStartPacketData data)
-    {
-        connection.Username = data.Name;
-        if (!server.OnlineMode)
-        {
-            if (Server.NetworkCompressionThreshold > 0)
-            {
-                await ScLoginSetCompression.Send(new ScLoginSetCompressionPacketData(Server.NetworkCompressionThreshold), connection, conn => {
-                    conn.IsCompressed = true;
-                    return ValueTask.CompletedTask;
-                });
-            }
-            var uuid = Utils.GuidFromString($"OfflinePlayer:{connection.Username}");
-            connection.Uuid = uuid;
-            await ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(uuid, connection.Username), connection);
-            connection.ChangeState(PacketType.Play);
-            await ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
-            await ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(0, 64, 0, 0, 0, 0x0, 0, false), connection);
-            await ScPlayChatMessage.Send(new ScPlayChatMessagePacketData(new ChatComponent("Test message, in offline mode"), ScPlayChatMessagePacketData.PositionType.Chat, Guid.Empty), connection);
-            await ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData(0, 0), connection);
-            await ScPlayChunkDataAndUpdateLight.Send(null, connection);
-            // await ScLoginDisconnect.Send(new ScDisconnectPacketData(new ChatComponent($"{data.Name}")), connection);
-            // connection.Connected = false;
-            return;
-        }
-
-        connection.VerifyToken = RandomNumberGenerator.GetBytes(4);
-        var encryptionReq = new ScLoginEncryptionRequestPacketData("", server.ServerPublicKey, connection.VerifyToken);
-        await ScLoginEncryptionRequest.Send(encryptionReq, connection);
-    }
+    
 }

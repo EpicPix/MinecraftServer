@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Microsoft.IO;
 using MinecraftServer.Networking;
 
 namespace MinecraftServer.Packets;
@@ -86,16 +85,27 @@ public abstract class Packet
 
 public abstract class Packet<TPacket, TPacketData> : Packet where TPacket : Packet<TPacket, TPacketData> where TPacketData : PacketData
 {
-    public static async ValueTask Send(TPacketData data, NetworkConnection connection, bool priority = false)
+    public static async ValueTask SendAsync(TPacketData data, NetworkConnection connection, bool priority = false)
     {
         var packet = GetPacket<TPacket>();
         await packet.SendPacket(data, connection, priority);
     }
     
-    public static async ValueTask Send(TPacketData data, NetworkConnection connection, Func<NetworkConnection, ValueTask> runOnCompletion, bool priority = false)
+    public static void Send(TPacketData data, NetworkConnection connection, bool priority = false)
+    {
+        SendAsync(data, connection, priority).GetAwaiter().GetResult();
+    }
+    
+    public static async ValueTask SendAsync(TPacketData data, NetworkConnection connection, Func<NetworkConnection, ValueTask> runOnCompletion, bool priority = false)
     {
         var packet = GetPacket<TPacket>();
         await packet.SendPacket(data, connection, runOnCompletion, priority);
+    }
+    
+    public static void Send(TPacketData data, NetworkConnection connection, Func<NetworkConnection, ValueTask> runOnCompletion, bool priority = false)
+    {
+        var packet = GetPacket<TPacket>();
+        packet.SendPacket(data, connection, runOnCompletion, priority).GetAwaiter().GetResult();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -37,6 +37,7 @@ public class PlayerPacketQueue
             await foreach (var packet in Queue.Reader.ReadAllAsync())
             {
                 if (packet.PacketCountId < _skipUntil) continue;
+
                 try
                 {
                     var data = packet.PacketData;
@@ -46,12 +47,12 @@ public class PlayerPacketQueue
                     stream.TryGetBuffer(out var packetData);
                     if (connection.IsCompressed)
                     {
-                        var idLength = Utils.GetVarIntLength((int)id);
+                        var idLength = Utils.GetVarIntLength((int) id);
                         if (packetData.Count + idLength + Utils.GetVarIntLength(0) < Server.NetworkCompressionThreshold)
                         {
                             await connection.WriteVarInt(packetData.Count + idLength + Utils.GetVarIntLength(0));
                             await connection.WriteVarInt(0);
-                            await connection.WriteVarInt((int)id);
+                            await connection.WriteVarInt((int) id);
                             await connection.WriteBytes(packetData);
                         } else
                         {
@@ -76,15 +77,13 @@ public class PlayerPacketQueue
                             await connection.WriteVarInt(uncompressedPacketSize);
                             await connection.WriteBytes(compressedPacketData);
                         }
-                    }
-                    else
+                    } else
                     {
-                        await connection.WriteVarInt((int)stream.Length + Utils.GetVarIntLength((int)id));
-                        await connection.WriteVarInt((int)id);
+                        await connection.WriteVarInt((int) stream.Length + Utils.GetVarIntLength((int) id));
+                        await connection.WriteVarInt((int) id);
                         await connection.WriteBytes(packetData);
                     }
-                }
-                catch (Exception e)
+                } catch (Exception e)
                 {
                     Console.WriteLine($"Failed write packet {packet.PacketDefinition}. {e.Message} {e.StackTrace}");
                 }
@@ -92,8 +91,7 @@ public class PlayerPacketQueue
                 try
                 {
                     await packet.Completion(connection);
-                }
-                catch (Exception e)
+                } catch (Exception e)
                 {
                     Console.WriteLine($"Failed to execute post packet-sent code. {e.Message} {e.StackTrace}");
                 }
@@ -105,7 +103,15 @@ public class PlayerPacketQueue
                         if (packetHandler.Packet == packet.PacketDefinition)
                         {
                             var status = PacketEventHandlerStatus.Continue;
-                            packetHandler.Run(packet.PacketData, connection, Server, ref status);
+                            if (packetHandler.Async)
+                            {
+                                var reference = new PacketEventHandlerStatusRef(status);
+                                await packetHandler.RunAsync(packet.PacketData, connection, Server, reference);
+                                status = reference.HandlerStatus;
+                            } else
+                            {
+                                packetHandler.Run(packet.PacketData, connection, Server, ref status);
+                            }
                             if ((status & PacketEventHandlerStatus.Stop) == PacketEventHandlerStatus.Stop)
                             {
                                 break;
