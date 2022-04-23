@@ -10,31 +10,28 @@ public static class TestPacketListener
 {
 
     [PacketEvent(typeof(CsPlayChatMessage))]
-    public static PacketEventHandlerStatus Test(CsPlayChatMessagePacketData data, NetworkConnection connection, Server server)
+    public static void Test(CsPlayChatMessagePacketData data, NetworkConnection connection, Server server, ref PacketEventHandlerStatus status)
     {
         Console.WriteLine($"Chat message (priority=0) packet event received {data.Message}");
-        return PacketEventHandlerStatus.Continue;
     }
     
     [PacketEvent(typeof(CsPlayChatMessage), 50)]
-    public static PacketEventHandlerStatus Test2(CsPlayChatMessagePacketData data, NetworkConnection connection, Server server)
+    public static void Test2(CsPlayChatMessagePacketData data, NetworkConnection connection, Server server, ref PacketEventHandlerStatus status)
     {
         Console.WriteLine($"Chat message (priority=50) packet event received {data.Message}");
-        return PacketEventHandlerStatus.Continue;
+        status = PacketEventHandlerStatus.Stop;
     }
     
     [PacketEvent(typeof(CsPlayChatMessage), -50)]
-    public static PacketEventHandlerStatus Test3(CsPlayChatMessagePacketData data, NetworkConnection connection, Server server)
+    public static void Test3(CsPlayChatMessagePacketData data, NetworkConnection connection, Server server)
     {
         Console.WriteLine($"Chat message (priority=-50) packet event received {data.Message}");
-        return PacketEventHandlerStatus.Continue;
     }
     
     [PacketEvent(typeof(ScPlayChatMessage))]
-    public static PacketEventHandlerStatus Test4(ScPlayChatMessagePacketData data, NetworkConnection connection, Server server)
+    public static void Test4(ScPlayChatMessagePacketData data, NetworkConnection connection, Server server)
     {
         Console.WriteLine($"Outgoing chat message {data.Data}");
-        return PacketEventHandlerStatus.Continue;
     }
     
 }

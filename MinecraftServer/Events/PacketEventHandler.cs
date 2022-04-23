@@ -14,22 +14,29 @@ public abstract class PacketEventHandler
         Priority = priority;
     }
 
-    public abstract PacketEventHandlerStatus Run(PacketData data, NetworkConnection connection, Server server);
+    public abstract void Run(PacketData data, NetworkConnection connection, Server server, ref PacketEventHandlerStatus status);
 }
 
 public class PacketEventHandler<T> : PacketEventHandler where T : PacketData
 {
 
-    private Func<T, NetworkConnection, Server, PacketEventHandlerStatus> _func;
+    private PacketEventHandlerFuncStatus _func;
+    
+    public delegate void PacketEventHandlerFunc(T packetData, NetworkConnection connection, Server server);
+    public delegate void PacketEventHandlerFuncStatus(T packetData, NetworkConnection connection, Server server, ref PacketEventHandlerStatus status);
 
-    public PacketEventHandler(Packet packet, long priority, Func<T, NetworkConnection, Server, PacketEventHandlerStatus> func) : base(packet, priority)
+    public PacketEventHandler(Packet packet, long priority, PacketEventHandlerFunc func)
+        : this(packet, priority, (T packetData, NetworkConnection connection, Server server, ref PacketEventHandlerStatus status) => func.Invoke(packetData, connection, server))
+    { }
+    
+    public PacketEventHandler(Packet packet, long priority, PacketEventHandlerFuncStatus func) : base(packet, priority)
     {
         _func = func;
     }
 
-    public override PacketEventHandlerStatus Run(PacketData data, NetworkConnection connection, Server server)
+    public override void Run(PacketData data, NetworkConnection connection, Server server, ref PacketEventHandlerStatus status)
     {
-        return _func.Invoke((T) data, connection, server);
+        _func.Invoke((T) data, connection, server, ref status);
     }
 }
 

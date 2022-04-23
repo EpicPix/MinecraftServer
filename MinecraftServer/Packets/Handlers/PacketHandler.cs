@@ -20,7 +20,8 @@ public static partial class PacketHandler
         {
             if (packetHandler.Packet == packet)
             {
-                var status = packetHandler.Run(data, connection, server);
+                var status = PacketEventHandlerStatus.Continue;
+                packetHandler.Run(data, connection, server, ref status);
                 if ((status & PacketEventHandlerStatus.Stop) == PacketEventHandlerStatus.Stop)
                 {
                     break;

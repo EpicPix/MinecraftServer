@@ -14,11 +14,19 @@ public class Server
 
     public static readonly IReadOnlyList<PacketEventHandler> PacketHandlers;
 
-    internal static void GeneratePacketHandler<T>(MethodInfo method, Packet packet, long priority, List<PacketEventHandler> handlers) where T : PacketData
+    internal static void GeneratePacketHandler<T>(MethodInfo method, PacketEventAttribute attr, List<PacketEventHandler> handlers) where T : PacketData
     {
-        var delg = Delegate.CreateDelegate(typeof(Func<T, NetworkConnection, Server, PacketEventHandlerStatus>), method);
-        var handler = new PacketEventHandler<T>(packet, priority, (Func<T, NetworkConnection, Server, PacketEventHandlerStatus>) delg);
-        handlers.Add(handler);
+        if (method.GetParameters().Length == 3)
+        {
+            var delg = Delegate.CreateDelegate(typeof(PacketEventHandler<T>.PacketEventHandlerFunc), method);
+            var handler = new PacketEventHandler<T>(attr.Packet, attr.Priority, (PacketEventHandler<T>.PacketEventHandlerFunc) delg);
+            handlers.Add(handler);
+        } else
+        {
+            var delg = Delegate.CreateDelegate(typeof(PacketEventHandler<T>.PacketEventHandlerFuncStatus), method);
+            var handler = new PacketEventHandler<T>(attr.Packet, attr.Priority, (PacketEventHandler<T>.PacketEventHandlerFuncStatus) delg);
+            handlers.Add(handler);
+        }
     }
     
     static Server()
@@ -35,7 +43,7 @@ public class Server
                     if (!method.IsStatic) throw new InvalidOperationException("Event Handler method must be static");
 
                     var ps = method.GetParameters();
-                    if (ps.Length != 3) throw new InvalidOperationException("Event Handler method must have 3 parameters");
+                    if (ps.Length != 3 && ps.Length != 4) throw new InvalidOperationException("Event Handler method must have 3 or 4 parameters");
 
                     var packetDataType = attr.Packet.GetType().BaseType.GenericTypeArguments[1];
                     
@@ -43,8 +51,13 @@ public class Server
                     if(ps[1].ParameterType != typeof(NetworkConnection)) throw new InvalidOperationException($"{ps[1].ParameterType} != {typeof(NetworkConnection)}");
                     if(ps[2].ParameterType != typeof(Server)) throw new InvalidOperationException($"{ps[2].ParameterType} != {typeof(Server)}");
 
+                    if (ps.Length == 4)
+                    {
+                        if(ps[3].ParameterType != typeof(PacketEventHandlerStatus).MakeByRefType()) throw new InvalidOperationException($"{ps[2].ParameterType} != {typeof(PacketEventHandlerStatus).MakeByRefType()}");
+                    }
+
                     var handlerAdder = typeof(Server).GetMethod("GeneratePacketHandler", BindingFlags.NonPublic | BindingFlags.Static).MakeGenericMethod(packetDataType);
-                    handlerAdder.Invoke(null, BindingFlags.NonPublic | BindingFlags.Static, null, new object[]{ method, attr.Packet, attr.Priority, handlers }, null);
+                    handlerAdder.Invoke(null, BindingFlags.NonPublic | BindingFlags.Static, null, new object[]{ method, attr, handlers }, null);
                 }
             }
         }

@@ -104,7 +104,8 @@ public class PlayerPacketQueue
                     {
                         if (packetHandler.Packet == packet.PacketDefinition)
                         {
-                            var status = packetHandler.Run(packet.PacketData, connection, Server);
+                            var status = PacketEventHandlerStatus.Continue;
+                            packetHandler.Run(packet.PacketData, connection, Server, ref status);
                             if ((status & PacketEventHandlerStatus.Stop) == PacketEventHandlerStatus.Stop)
                             {
                                 break;
