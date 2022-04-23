@@ -24,8 +24,11 @@ public class ScPlayChunkDataAndUpdateLight : Packet<ScPlayChunkDataAndUpdateLigh
         await stream.WriteInt(data.ChunkZ);
 
         var arr = new NbtTagLongArray();
-        // 8 bits per xz
-        for (uint i = 0; i < 32; i++) arr.Add(unchecked((long) 0xffffffffffffffff));
+        // 7 bits per xz
+        for (uint i = 0; i < 37; i++)
+        {
+            arr.Add(unchecked((long) 0xffffffffffffffff));
+        }
         
         await new NbtTagRoot()
             .Set("MOTION_BLOCKING", arr)
@@ -37,7 +40,7 @@ public class ScPlayChunkDataAndUpdateLight : Packet<ScPlayChunkDataAndUpdateLigh
             await stream.WriteUShort(16 * 16 * 16); // block count
 
             await stream.WriteUByte(0);
-            await stream.WriteVarInt(0x12);
+            await stream.WriteVarInt(1);
             await stream.WriteVarInt(0);
 
             await stream.WriteUByte(0);
