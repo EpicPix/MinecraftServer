@@ -32,6 +32,6 @@ public class DecompressionAdapter : DataAdapter
 
     public override ValueTask WriteAsync(ReadOnlyMemory<byte> buf, CancellationToken ct = default)
     {
-        return _stream.WriteAsync(buf, ct);
+        throw new NotImplementedException();
     }
 }

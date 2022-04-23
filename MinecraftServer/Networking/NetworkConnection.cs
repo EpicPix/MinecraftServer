@@ -16,7 +16,8 @@ public class NetworkConnection : DataAdapter
     public byte[] EncryptionKey;
     public bool IsCompressed = false;
     public GameProfile? Profile { get; internal set; }
-    private Stack<DataAdapter> _transformerStack = new();
+    private Stack<DataAdapter> _readTransformerStack = new();
+    private Stack<DataAdapter> _writeTransformerStack = new();
     public PlayerPacketQueue PacketQueue { get; }
     public DateTime LastKeepAliveSend = DateTime.MinValue;
     public DateTime LastKeepAlive = DateTime.MinValue;
@@ -40,11 +41,10 @@ public class NetworkConnection : DataAdapter
     private CancellationTokenSource _stateSource;
     public bool HasMoreToRead { get; private set; } = true;
 
-    public Socket Socket => ((NetworkStream) ((StreamAdapter) _transformerStack.ToArray()[_transformerStack.Count - 1]).ReadStream).Socket;
-
     public NetworkConnection(Server server, Stream client, CancellationToken shutdownToken = default) : base(shutdownToken)
     {
-        _transformerStack.Push(new StreamAdapter(client));
+        _readTransformerStack.Push(new StreamAdapter(client));
+        _writeTransformerStack.Push(new StreamAdapter(client));
         PacketQueue = new PlayerPacketQueue(server);
         _stateSource = CancellationTokenSource.CreateLinkedTokenSource(shutdownToken);
         ConnectionState = _stateSource.Token;
@@ -136,18 +136,34 @@ public class NetworkConnection : DataAdapter
 
     public void Encrypt()
     {
-        AddTransformer((x, ct) => 
-            new EncryptionAdapter(x, EncryptionKey, ct));
+        var transform = (DataAdapter x, CancellationToken ct) =>
+            new EncryptionAdapter(x, EncryptionKey, ct);
+        AddTransformer(transform, true);
+        AddTransformer(transform, false);
     }
 
-    public void PopTransformer()
+    public void PopTransformer(bool isRead)
     {
-        _transformerStack.Pop();
+        if (isRead)
+        {
+            _readTransformerStack.Pop();
+        }
+        else
+        {
+            _writeTransformerStack.Pop();
+        }
     }
 
-    public void AddTransformer(Func<DataAdapter, CancellationToken, DataAdapter> transform)
+    public void AddTransformer(Func<DataAdapter, CancellationToken, DataAdapter> transform, bool isRead)
     {
-        _transformerStack.Push(transform(_transformerStack.Peek(), ConnectionState));
+        if (isRead)
+        {
+            _readTransformerStack.Push(transform(_readTransformerStack.Peek(), ConnectionState));
+        }
+        else
+        {
+            _writeTransformerStack.Push(transform(_writeTransformerStack.Peek(), ConnectionState));
+        }
     }
 
     protected override void Dispose(bool disposing)
@@ -156,7 +172,8 @@ public class NetworkConnection : DataAdapter
         {
             _stateSource.Dispose();
             PacketQueue.Stop();
-            _transformerStack.Peek().Dispose();
+            _readTransformerStack.Peek().Dispose();
+            _writeTransformerStack.Peek().Dispose();
         }
 
         base.Dispose(disposing);
@@ -164,7 +181,7 @@ public class NetworkConnection : DataAdapter
 
     public override void Flush()
     {
-        _transformerStack.Peek().Flush();
+        _writeTransformerStack.Peek().Flush();
     }
 
     public override async ValueTask<int> ReadAsync(Memory<byte> buf, CancellationToken ct = default)
@@ -174,7 +191,7 @@ public class NetworkConnection : DataAdapter
             await Task.Delay(100); // prevent high cpu usage from waiting for all data to be written
             return 0;
         }
-        int res = await _transformerStack.Peek().ReadAsync(buf, ct);
+        int res = await _readTransformerStack.Peek().ReadAsync(buf, ct);
         if (res == 0)
         {
             HasMoreToRead = false;
@@ -185,6 +202,6 @@ public class NetworkConnection : DataAdapter
 
     public override ValueTask WriteAsync(ReadOnlyMemory<byte> buf, CancellationToken ct = default)
     {
-        return _transformerStack.Peek().WriteAsync(buf, ct);
+        return _writeTransformerStack.Peek().WriteAsync(buf, ct);
     }
 }

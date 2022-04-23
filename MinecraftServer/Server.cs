@@ -128,7 +128,7 @@ public class Server
 
                     if (dataLength != 0)
                     {
-                        conn.AddTransformer((x, ct) => new DecompressionAdapter(x, ct));
+                        conn.AddTransformer((x, ct) => new DecompressionAdapter(x, ct), true);
                         packetDataLength = dataLength;
                     } else
                     {
@@ -142,12 +142,12 @@ public class Server
                     {
                         Console.WriteLine($"Unknown packet detected on state {conn.CurrentState} with id {id}. Skipping gracefully.");
                         await conn.Skip(packetDataLength);
-                        if (dataLength != 0) conn.PopTransformer();
+                        if (dataLength != 0) conn.PopTransformer(true);
                         continue;
                     }
                     conn.PacketDataLength = (uint) packetDataLength;
                     
-                    if (dataLength != 0) conn.PopTransformer();
+                    if (dataLength != 0) conn.PopTransformer(true);
                 }
                 else
                 {
