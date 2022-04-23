@@ -56,34 +56,36 @@ public class Utils
     
     public static int GetVarIntLength(int value)
     {
-        int len = 0;
+        var val = (uint) value;
+        var len = 0;
         while (true)
         {
             len++;
-            if ((value & ~0x7F) == 0)
+            if ((val & ~0x7F) == 0)
             {
                 return len;
             }
 
-            value >>= 7;
+            val >>= 7;
         }
     }
     
     public static int WriteVarInt(int value, ArraySegment<byte> bytes)
     {
+        var val = (uint) value;
         int len = 0;
         while (true)
         {
-            if ((value & ~0x7F) == 0)
+            if ((val & ~0x7F) == 0)
             {
-                bytes[len] = (byte)value;
+                bytes[len] = (byte)val;
                 len++;
                 return len;
             }
 
-            bytes[len] = (byte)((value & 0x7F) | 0x80);
+            bytes[len] = (byte)((val & 0x7F) | 0x80);
             len++;
-            value >>= 7;
+            val >>= 7;
         }
     }
 }

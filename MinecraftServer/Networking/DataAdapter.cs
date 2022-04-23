@@ -256,7 +256,7 @@ public abstract class DataAdapter : Stream
 
     public async ValueTask WriteVarInt(int value)
     {
-        using var buf = WriteAllocator.Allocate(10);
+        using var buf = WriteAllocator.Allocate(5);
         var length = Utils.WriteVarInt(value, buf.Data);
         await WriteBytes(buf.Data.Slice(0, length));
     }
