@@ -37,8 +37,10 @@ public abstract class DataAdapter : Stream
         WriteBytes(new ArraySegment<byte>(buffer, offset, count)).GetAwaiter().GetResult();
     }
 
-    private PooledArray.SingleThreadAllocator _readAllocator = new (1 << 15);
-    private PooledArray.SingleThreadAllocator _writeAllocator = new (1 << 15);
+    private readonly IoBuffer.IAllocator _readAllocator = new IoBuffer.PooledArrayAllocator();
+    private readonly IoBuffer.IAllocator _writeAllocator = new IoBuffer.PooledArrayAllocator();
+    protected virtual IoBuffer.IAllocator ReadAllocator => _readAllocator;
+    protected virtual IoBuffer.IAllocator WriteAllocator => _readAllocator;
     private byte[] _singleByteRead = new byte[1];
     private byte[] _singleByteWrite = new byte[1];
     public abstract override ValueTask WriteAsync(ReadOnlyMemory<byte> buf, CancellationToken ct = default);
@@ -50,7 +52,7 @@ public abstract class DataAdapter : Stream
 
     public ValueTask WriteBool(bool value)
     {
-        using var tbuf = PooledArray.Allocate(1);
+        using var tbuf = IoBuffer.Allocate(1);
         tbuf[0] = (byte)(value ? 1 : 0);
         return WriteBytes(tbuf);
     }
@@ -82,7 +84,7 @@ public abstract class DataAdapter : Stream
 
     public async ValueTask WriteUShort(ushort value)
     {
-        using var tbuf = PooledArray.Allocate(2);
+        using var tbuf = IoBuffer.Allocate(2);
         tbuf[0] = (byte)(value >> 8);
         tbuf[1] = (byte)value;
         await WriteBytes(tbuf);
@@ -96,7 +98,7 @@ public abstract class DataAdapter : Stream
 
     public ValueTask WriteInt(int value)
     {
-        using var tbuf = PooledArray.Allocate(4);
+        using var tbuf = IoBuffer.Allocate(4);
         tbuf[0] = (byte) (value >> 24);
         tbuf[1] = (byte) (value >> 16);
         tbuf[2] = (byte) (value >> 8);
@@ -132,7 +134,7 @@ public abstract class DataAdapter : Stream
 
     public ValueTask WriteUUID(Guid uuid)
     {
-        using var tbuf = PooledArray.Allocate(16);
+        using var tbuf = IoBuffer.Allocate(16);
         uuid.TryWriteBytes(tbuf.Data);
         return WriteBytes(tbuf);
     }
@@ -152,7 +154,7 @@ public abstract class DataAdapter : Stream
 
     public ValueTask WriteULong(ulong value)
     {
-        using var tbuf = PooledArray.Allocate(8);
+        using var tbuf = IoBuffer.Allocate(8);
         tbuf[0] = (byte) (value >> 56);
         tbuf[1] = (byte) (value >> 48);
         tbuf[2] = (byte) (value >> 40);
@@ -179,14 +181,14 @@ public abstract class DataAdapter : Stream
         return Utils.FillBytes(toRead, this, _ct);
     }
     
-    public ValueTask ReadBytes(PooledArray toRead)
+    public ValueTask ReadBytes(IoBuffer toRead)
     {
         return ReadBytes(toRead.Data);
     }
 
-    public async ValueTask<PooledArray> ReadBytes(int toRead)
+    public async ValueTask<IoBuffer> ReadBytes(int toRead)
     {
-        var buf = PooledArray.Allocate(toRead);
+        var buf = IoBuffer.Allocate(toRead);
         await ReadBytes(buf);
         return buf;
     }
@@ -211,7 +213,7 @@ public abstract class DataAdapter : Stream
         }
 
         await WriteVarInt(str.Length);
-        using var buf = _writeAllocator.Allocate(Encoding.UTF8.GetByteCount(str));
+        using var buf = WriteAllocator.Allocate(Encoding.UTF8.GetByteCount(str));
         Encoding.UTF8.GetBytes(str, buf.Data);
         await WriteBytes(buf.Data);
     }
@@ -219,7 +221,7 @@ public abstract class DataAdapter : Stream
     public async ValueTask WriteStringShort(string str)
     { 
         await WriteUShort((ushort)str.Length);
-        using var buf = _writeAllocator.Allocate(Encoding.UTF8.GetByteCount(str));
+        using var buf = WriteAllocator.Allocate(Encoding.UTF8.GetByteCount(str));
         Encoding.UTF8.GetBytes(str, buf.Data);
         await WriteBytes(buf.Data);
     }
@@ -252,11 +254,11 @@ public abstract class DataAdapter : Stream
         return value;
     }
 
-    public ValueTask WriteVarInt(int value)
+    public async ValueTask WriteVarInt(int value)
     {
-        using var buf = _writeAllocator.Allocate(10);
+        using var buf = WriteAllocator.Allocate(10);
         var length = Utils.WriteVarInt(value, buf.Data);
-        return WriteBytes(buf.Data.Slice(0, length));
+        await WriteBytes(buf.Data.Slice(0, length));
     }
 
     public ValueTask WriteBytes(Memory<byte> bytes)
@@ -264,7 +266,7 @@ public abstract class DataAdapter : Stream
         return WriteAsync(bytes, _ct);
     }
     
-    public ValueTask WriteBytes(PooledArray bytes)
+    public ValueTask WriteBytes(IoBuffer bytes)
     {
         return WriteAsync(bytes.Data, _ct);
     }

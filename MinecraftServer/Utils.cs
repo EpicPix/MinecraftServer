@@ -81,9 +81,9 @@ public class Utils
                 return len;
             }
 
-            value >>= 7;
             bytes[len] = (byte)((value & 0x7F) | 0x80);
             len++;
+            value >>= 7;
         }
     }
 }
