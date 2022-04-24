@@ -32,6 +32,7 @@ public class Player : ITickable
     public double Y { get; internal set; }
     public double Z { get; internal set; }
     public bool ChangedPosition { get; internal set; }
+    public bool HasTeleported { get; internal set; }
 
     public float Yaw { get; internal set; }
     public float Pitch { get; internal set; }
@@ -81,10 +82,10 @@ public class Player : ITickable
     public void Tick()
     {
 
-        bool teleport = false;
+        bool teleport = HasTeleported;
         double deltaX = 0, deltaY = 0, deltaZ = 0;
 
-        if (ChangedPosition)
+        if (ChangedPosition && !HasTeleported)
         {
             deltaX = (X * 32 - ClientX * 32) * 128;
             deltaY = (Y * 32 - ClientY * 32) * 128;
@@ -103,6 +104,12 @@ public class Player : ITickable
                 ClientY += deltaY / 4096;
                 ClientZ += deltaZ / 4096;
             }
+        }
+
+        if (HasTeleported)
+        {
+            ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(X, Y, Z, Yaw, Pitch, 0x0, 0, false), Connection);
+            HasTeleported = false;
         }
         
         foreach (var online in Server.Players)
@@ -171,6 +178,27 @@ public class Player : ITickable
         Y = y;
         Z = z;
         ChangedPosition = true;
+    }
+    
+    public void Teleport(double x, double y, double z)
+    {
+        X = x;
+        Y = y;
+        Z = z;
+        ChangedPosition = true;
+        HasTeleported = true;
+    }
+    
+    public void Teleport(double x, double y, double z, float yaw, float pitch)
+    {
+        X = x;
+        Y = y;
+        Z = z;
+        Yaw = yaw;
+        Pitch = pitch;
+        ChangedPosition = true;
+        ChangedRotation = true;
+        HasTeleported = true;
     }
 
     public void SetEntityFlags(byte flags)
