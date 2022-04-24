@@ -47,10 +47,26 @@ public static partial class PacketHandler
                     }
                 }
             }
-        } 
+        }
+
+        var deltaX = (data.X * 32 - player.ClientX * 32) * 128;
+        var deltaY = (data.Y * 32 - player.ClientY * 32) * 128;
+        var deltaZ = (data.Z * 32 - player.ClientZ * 32) * 128;
+
         player.X = data.X;
         player.Y = data.Y;
         player.Z = data.Z;
+
+        player.ClientX += deltaX / 4096;
+        player.ClientY += deltaY / 4096;
+        player.ClientZ += deltaZ / 4096;
+
+        foreach (var online in server.Players)
+        {
+            if (online == connection.Player) continue;
+            
+            ScPlayPlayerPosition.Send(new ScPlayPlayerPositionPacketData((int) connection.Player.EntityId, (short) deltaX, (short) deltaY, (short) deltaZ, false), online.Connection);
+        }
     }
 
     [PacketEvent(typeof(CsPlayPlayerPositionAndRotation), priority: 100)]
@@ -75,8 +91,43 @@ public static partial class PacketHandler
                 }
             }
         } 
+        var deltaX = (data.X * 32 - player.ClientX * 32) * 128;
+        var deltaY = (data.Y * 32 - player.ClientY * 32) * 128;
+        var deltaZ = (data.Z * 32 - player.ClientZ * 32) * 128;
+
         player.X = data.X;
         player.Y = data.Y;
         player.Z = data.Z;
+        player.Yaw = data.Yaw;
+        player.Pitch = data.Pitch;
+
+        player.ClientX += deltaX / 4096;
+        player.ClientY += deltaY / 4096;
+        player.ClientZ += deltaZ / 4096;
+
+        foreach (var online in server.Players)
+        {
+            if (online == connection.Player) continue;
+            
+            ScPlayPlayerPositionAndRotation.Send(new ScPlayPlayerPositionAndRotationPacketData((int) connection.Player.EntityId, (short) deltaX, (short) deltaY, (short) deltaZ, (byte) (data.Yaw / 360 * 255), (byte) (data.Pitch / 360 * 255), false), online.Connection);
+            ScPlayEntityHeadLook.Send(new ScPlayEntityHeadLookPacketData((int) connection.Player.EntityId, (byte) (data.Yaw / 360 * 255)), online.Connection);
+        }
+    }
+
+    [PacketEvent(typeof(CsPlayPlayerRotation), priority: 100)]
+    public static void HandlePosition(CsPlayPlayerRotationPacketData data, NetworkConnection connection, Server server)
+    {
+        var player = connection.Player;
+
+        player.Yaw = data.Yaw;
+        player.Pitch = data.Pitch;
+
+        foreach (var online in server.Players)
+        {
+            if (online == connection.Player) continue;
+            
+            ScPlayPlayerRotation.Send(new ScPlayPlayerRotationPacketData((int) connection.Player.EntityId, (byte) (data.Yaw / 360 * 255), (byte) (data.Pitch / 360 * 255), false), online.Connection);
+            ScPlayEntityHeadLook.Send(new ScPlayEntityHeadLookPacketData((int) connection.Player.EntityId, (byte) (data.Yaw / 360 * 255)), online.Connection);
+        }
     }
 }

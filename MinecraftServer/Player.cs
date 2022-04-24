@@ -25,13 +25,20 @@ public class Player
     public double Y = 0;
     public double Z = 0;
 
+    public float Yaw = 0;
+    public float Pitch = 0;
+    
+
+    public double ClientX = 0;
+    public double ClientY = 0;
+    public double ClientZ = 0;
+
     public Player(NetworkConnection connection, uint entityId)
     {
         Connection = connection;
         Username = connection.Username;
         Uuid = connection.Uuid;
         EntityId = entityId;
-        Console.WriteLine(entityId);
     }
     
 }

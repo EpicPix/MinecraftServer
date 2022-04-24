@@ -22,4 +22,9 @@ public class ScPlaySpawnPlayerPacketData : PacketData
         Pitch = pitch;
     }
 
+    public override string ToString()
+    {
+        return $"ScPlaySpawnPlayerPacketData[EntityId={EntityId},Uuid={Uuid},X={X},Y={Y},Z={Z},Yaw={Yaw},Pitch={Pitch}]";
+    }
+
 }

@@ -158,11 +158,15 @@ public class Server
         
         ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.AddPlayer, actions), player.Connection);
 
-        var spawn = new ScPlaySpawnPlayerPacketData((int) player.EntityId, player.Uuid, player.X, player.Y, player.Z, 0, 0);
+        var spawn = new ScPlaySpawnPlayerPacketData((int) player.EntityId, player.Uuid, player.ClientX, player.ClientY, player.ClientZ, (byte) (player.Yaw / 360 * 256), (byte) (player.Pitch / 360 * 256));
+
         foreach (var eonlinePlayer in Players)
         {
             if (eonlinePlayer == player) continue;
-            ScPlaySpawnPlayer.Send(new ScPlaySpawnPlayerPacketData((int) eonlinePlayer.EntityId, eonlinePlayer.Uuid, eonlinePlayer.X, eonlinePlayer.Y, eonlinePlayer.Z, 0, 0), player.Connection);
+
+            ScPlaySpawnPlayer.Send(
+                new ScPlaySpawnPlayerPacketData((int) eonlinePlayer.EntityId, eonlinePlayer.Uuid, eonlinePlayer.ClientX, eonlinePlayer.ClientY, eonlinePlayer.ClientZ, (byte) (eonlinePlayer.Yaw / 360 * 256), (byte) (eonlinePlayer.Pitch / 360 * 256)),
+                player.Connection);
             ScPlaySpawnPlayer.Send(spawn, eonlinePlayer.Connection);
         }
     }

@@ -89,8 +89,9 @@ public static partial class PacketHandler
         server.Players.Add(connection.Player);
         
         connection.ChangeState(PacketType.Play);
-        ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
+        ScPlayJoinGame.Send(new ScPlayJoinGamePacketData((int) connection.Player.EntityId), connection);
         connection.Player.Y = 80;
+        connection.Player.ClientY = 80;
         ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(connection.Player.X, connection.Player.Y, connection.Player.Z, 0, 0, 0x0, 0, false), connection);
         var b = IoBuffer.Allocate(Encoding.UTF8.GetByteCount(server.Brand));
         Encoding.UTF8.GetBytes(server.Brand, b.Data);

@@ -18,7 +18,9 @@ public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
 
     public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
-        await stream.WriteInt(0);
+        var packet = Of(data);
+        
+        await stream.WriteInt(packet.EntityId);
         await stream.WriteBool(false);
         await stream.WriteUByte(1);
         await stream.WriteUByte(1);

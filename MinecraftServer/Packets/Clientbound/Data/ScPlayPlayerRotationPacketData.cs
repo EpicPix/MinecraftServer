@@ -1,0 +1,26 @@
+using System.Text;
+
+namespace MinecraftServer.Packets.Clientbound.Data;
+
+public class ScPlayPlayerRotationPacketData : PacketData
+{
+
+    public int EntityId { get; }
+    public byte Yaw { get; }
+    public byte Pitch { get; }
+    public bool OnGround { get; }
+
+    public ScPlayPlayerRotationPacketData(int entityId, byte yaw, byte pitch, bool onGround)
+    {
+        EntityId = entityId;
+        Yaw = yaw;
+        Pitch = pitch;
+        OnGround = onGround;
+    }
+
+    public override string ToString()
+    {
+        return $"ScPlayPlayerRotationPacketData[EntityId={EntityId},Yaw={Yaw},Pitch={Pitch},OnGround={OnGround}]";
+    }
+
+}
