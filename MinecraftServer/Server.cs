@@ -157,6 +157,14 @@ public class Server
         }
         
         ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.AddPlayer, actions), player.Connection);
+
+        var spawn = new ScPlaySpawnPlayerPacketData((int) player.EntityId, player.Uuid, player.X, player.Y, player.Z, 0, 0);
+        foreach (var eonlinePlayer in Players)
+        {
+            if (eonlinePlayer == player) continue;
+            ScPlaySpawnPlayer.Send(new ScPlaySpawnPlayerPacketData((int) eonlinePlayer.EntityId, eonlinePlayer.Uuid, eonlinePlayer.X, eonlinePlayer.Y, eonlinePlayer.Z, 0, 0), player.Connection);
+            ScPlaySpawnPlayer.Send(spawn, eonlinePlayer.Connection);
+        }
     }
 
     public void OnPlayerLeave(Player player)
@@ -170,6 +178,7 @@ public class Server
                     Uuid = player.Uuid
                 }
             }), onlinePlayer.Connection);
+            ScPlayDestroyEntities.Send(new ScPlayDestroyEntitiesPacketData(new List<int> { (int) player.EntityId }), onlinePlayer.Connection);
         }
     }
 

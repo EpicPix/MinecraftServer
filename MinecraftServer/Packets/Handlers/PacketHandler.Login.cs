@@ -87,11 +87,11 @@ public static partial class PacketHandler
         
         connection.Player = new Player(connection, server.NextEntityId());
         server.Players.Add(connection.Player);
-        server.OnPlayerJoin(connection.Player);
         
         connection.ChangeState(PacketType.Play);
         ScPlayJoinGame.Send(new ScPlayJoinGamePacketData(), connection);
-        ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(16, 80, 0, 0, 0, 0x0, 0, false), connection);
+        connection.Player.Y = 80;
+        ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(connection.Player.X, connection.Player.Y, connection.Player.Z, 0, 0, 0x0, 0, false), connection);
         var b = IoBuffer.Allocate(Encoding.UTF8.GetByteCount(server.Brand));
         Encoding.UTF8.GetBytes(server.Brand, b.Data);
         ScPlayPluginMessage.Send(new CsPlayPluginMessagePacketData("minecraft:brand", b), connection, _ => {
@@ -99,6 +99,7 @@ public static partial class PacketHandler
             return ValueTask.CompletedTask;
         });
         ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData(0, 0), connection);
+        server.OnPlayerJoin(connection.Player);
         for (var x = -4; x <= 4; x++)
         {
             for (var z = -4; z <= 4; z++)

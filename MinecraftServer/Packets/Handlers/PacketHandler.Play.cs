@@ -13,10 +13,7 @@ public static partial class PacketHandler
     [PacketEvent(typeof(CsPlayChatMessage), priority: 100)]
     public static void HandleChatMessage(CsPlayChatMessagePacketData data, NetworkConnection connection, Server server)
     {
-        foreach (var player in server.ActiveConnections)
-        {
-            ScPlayChatMessage.Send(new ScPlayChatMessagePacketData(new ChatComponent($"<{connection.Username}> {data.Message}"), ScPlayChatMessagePacketData.PositionType.Chat, connection.Uuid), player);
-        }
+        server.BroadcastMessage(new ChatComponent($"<{connection.Username}> {data.Message}"));
     }
 
     [PacketEvent(typeof(CsPlayKeepAlive), priority: 100)]
