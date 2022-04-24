@@ -121,10 +121,9 @@ public class Server
     public void BroadcastMessage(ChatComponent message)
     {
         Console.WriteLine(message.text);
-        var joinPacketData = new ScPlayChatMessagePacketData(message, ScPlayChatMessagePacketData.PositionType.Chat, Guid.Empty);
         foreach (var onlinePlayer in Players)
         {
-            ScPlayChatMessage.Send(joinPacketData, onlinePlayer.Connection);
+            onlinePlayer.SendMessage(message);
         }
     }
 

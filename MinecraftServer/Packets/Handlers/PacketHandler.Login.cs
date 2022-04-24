@@ -85,7 +85,7 @@ public static partial class PacketHandler
 
         ScLoginLoginSuccess.Send(new ScLoginLoginSuccessPacketData(connection.Uuid, connection.Username), connection);
         
-        connection.Player = new Player(connection, server.NextEntityId());
+        connection.Player = new Player(server, connection, server.NextEntityId());
         server.Players.Add(connection.Player);
         
         connection.ChangeState(PacketType.Play);
