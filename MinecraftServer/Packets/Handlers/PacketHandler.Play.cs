@@ -115,7 +115,7 @@ public static partial class PacketHandler
         if (data.Action == CsPlayEntityActionPacketData.ActionType.StartSneaking)
         {
             player.Sneaking = true;
-            player.SetPose(7);
+            player.SetPose(5);
         }
         else if (data.Action == CsPlayEntityActionPacketData.ActionType.StopSneaking)
         {
