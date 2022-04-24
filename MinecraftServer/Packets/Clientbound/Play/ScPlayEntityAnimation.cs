@@ -3,7 +3,7 @@ using MinecraftServer.Packets.Clientbound.Data;
 
 namespace MinecraftServer.Packets.Clientbound.Play;
 
-public class ScPlayerEntityAnimation : Packet<ScPlayerEntityAnimation, ScPlayerEntityAnimationPacketData>
+public class ScPlayEntityAnimation : Packet<ScPlayEntityAnimation, ScPlayerEntityAnimationPacketData>
 {
 
     public override PacketType Type => PacketType.Play;

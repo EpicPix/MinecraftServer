@@ -95,10 +95,32 @@ public static partial class PacketHandler
         {
             if (online == connection.Player) continue;
             
-            ScPlayerEntityAnimation.Send(new ScPlayerEntityAnimationPacketData((int) connection.Player.EntityId, 
+            ScPlayEntityAnimation.Send(new ScPlayerEntityAnimationPacketData((int) connection.Player.EntityId, 
                 data.Hand == CsPlayAnimationPacketData.UsedHand.MainHand ? 
-                ScPlayerEntityAnimationPacketData.AnimationType.SwingMainArm : 
-                ScPlayerEntityAnimationPacketData.AnimationType.SwingOffhand), online.Connection);
+                    ScPlayerEntityAnimationPacketData.AnimationType.SwingMainArm : 
+                    ScPlayerEntityAnimationPacketData.AnimationType.SwingOffhand), online.Connection);
+        }
+    }
+
+    [PacketEvent(typeof(CsPlayEntityAction), priority: 100)]
+    public static void HandleEntityAction(CsPlayEntityActionPacketData data, NetworkConnection connection, Server server, ref PacketEventHandlerStatus status)
+    {
+        var player = connection.Player;
+        if (data.EntityId != player.EntityId)
+        {
+            status = PacketEventHandlerStatus.Stop;
+            return;
+        }
+
+        if (data.Action == CsPlayEntityActionPacketData.ActionType.StartSneaking)
+        {
+            player.Sneaking = true;
+            player.SetPose(7);
+        }
+        else if (data.Action == CsPlayEntityActionPacketData.ActionType.StopSneaking)
+        {
+            player.Sneaking = false;
+            player.SetPose(0);
         }
     }
 }

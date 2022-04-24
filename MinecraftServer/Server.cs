@@ -2,6 +2,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Security.Cryptography;
 using Microsoft.IO;
+using MinecraftServer.EntityMetadata;
 using MinecraftServer.Events;
 using MinecraftServer.Networking;
 using MinecraftServer.Packets;
@@ -166,6 +167,10 @@ public class Server
             ScPlaySpawnPlayer.Send(
                 new ScPlaySpawnPlayerPacketData((int) eonlinePlayer.EntityId, eonlinePlayer.Uuid, eonlinePlayer.ClientX, eonlinePlayer.ClientY, eonlinePlayer.ClientZ, (byte) (eonlinePlayer.Yaw / 360 * 256), (byte) (eonlinePlayer.Pitch / 360 * 256)),
                 player.Connection);
+            if (eonlinePlayer.EntityFlags != 0)
+            {
+                ScPlayEntityMetadata.Send(new ScPlayEntityMetadataPacketData((int) eonlinePlayer.EntityId, new Tuple<byte, IMetadataValue>(0, new MetadataByte(eonlinePlayer.EntityFlags))), player.Connection);
+            }
             ScPlaySpawnPlayer.Send(spawn, eonlinePlayer.Connection);
         }
     }
@@ -228,7 +233,7 @@ public class Server
                     packetDataLength -= Utils.GetVarIntLength(id);
                     if(!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out packet))
                     {
-                        Console.WriteLine($"Unknown packet detected on state {conn.CurrentState} with id {id}. Skipping gracefully.");
+                        Console.WriteLine($"Unknown packet detected on state {conn.CurrentState} with id 0x{id:x}. Skipping gracefully.");
                         goto ProcessCorruption;
                     }
 
@@ -242,7 +247,7 @@ public class Server
                     var packetDataLength = expectedLength - Utils.GetVarIntLength(id);
                     if (!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out packet))
                     {
-                        Console.WriteLine($"Unknown packet detected on state {conn.CurrentState} with id {id}. Skipping gracefully.");
+                        Console.WriteLine($"Unknown packet detected on state {conn.CurrentState} with id 0x{id:x}. Skipping gracefully.");
                         goto ProcessCorruption;
                     }
                     readableUncompressedLength = packetDataLength;

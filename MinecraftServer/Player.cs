@@ -1,3 +1,4 @@
+using MinecraftServer.EntityMetadata;
 using MinecraftServer.Networking;
 using MinecraftServer.Packets.Clientbound.Data;
 using MinecraftServer.Packets.Clientbound.Play;
@@ -37,6 +38,21 @@ public class Player
     public double ClientX;
     public double ClientY;
     public double ClientZ;
+
+    public byte EntityFlags { get; internal set; }
+
+    public bool Sneaking {
+        get => (EntityFlags & 0x02) == 0x02;
+        set {
+            if (value)
+            {
+                SetEntityFlags((byte) (EntityFlags | 0x02));
+            } else
+            {
+                SetEntityFlags((byte) (EntityFlags & ~0x02));
+            }
+        }
+    }
 
     public Player(Server server, NetworkConnection connection, uint entityId)
     {
@@ -116,6 +132,24 @@ public class Player
                     ScPlayPlayerPosition.Send(new ScPlayPlayerPositionPacketData((int) EntityId, (short) deltaX, (short) deltaY, (short) deltaZ, false), online.Connection);
                 }
             }
+        }
+    }
+
+    public void SetEntityFlags(byte flags)
+    {
+        EntityFlags = flags;
+
+        foreach (var online in Server.Players)
+        {
+            ScPlayEntityMetadata.Send(new ScPlayEntityMetadataPacketData((int) EntityId, new Tuple<byte, IMetadataValue>(0, new MetadataByte(EntityFlags)) ), online.Connection);
+        }
+    }
+    
+    public void SetPose(int pose) // add enums later and store the pose somewhere
+    {
+        foreach (var online in Server.Players)
+        {
+            ScPlayEntityMetadata.Send(new ScPlayEntityMetadataPacketData((int) EntityId, new Tuple<byte, IMetadataValue>(6, new MetadataPose(pose)) ), online.Connection);
         }
     }
 
