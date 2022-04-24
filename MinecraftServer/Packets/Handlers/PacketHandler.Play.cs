@@ -130,4 +130,20 @@ public static partial class PacketHandler
             ScPlayEntityHeadLook.Send(new ScPlayEntityHeadLookPacketData((int) connection.Player.EntityId, (byte) (data.Yaw / 360 * 255)), online.Connection);
         }
     }
+
+    [PacketEvent(typeof(CsPlayAnimation), priority: 100)]
+    public static void HandleAnimation(CsPlayAnimationPacketData data, NetworkConnection connection, Server server)
+    {
+        var player = connection.Player;
+
+        foreach (var online in server.Players)
+        {
+            if (online == connection.Player) continue;
+            
+            ScPlayerEntityAnimation.Send(new ScPlayerEntityAnimationPacketData((int) connection.Player.EntityId, 
+                data.Hand == CsPlayAnimationPacketData.UsedHand.MainHand ? 
+                ScPlayerEntityAnimationPacketData.AnimationType.SwingMainArm : 
+                ScPlayerEntityAnimationPacketData.AnimationType.SwingOffhand), online.Connection);
+        }
+    }
 }
