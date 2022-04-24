@@ -293,7 +293,7 @@ public class Server
         }
         catch(Exception e)
         {
-            if (e is not SocketException)
+            if (e is not SocketException && e is not IOException)
             {
                 Console.WriteLine(e);
             }
@@ -303,15 +303,12 @@ public class Server
                 await conn.Disconnect("", true);
             }
         }
-        finally
+        conn.PacketQueue.Stop();
+        ActiveConnections.Remove(conn);
+        if (conn.Player != null)
         {
-            conn.PacketQueue.Stop();
-            ActiveConnections.Remove(conn);
-            if (conn.Player != null)
-            {
-                Players.Remove(conn.Player);
-                OnPlayerLeave(conn.Player);
-            }
+            Players.Remove(conn.Player);
+            OnPlayerLeave(conn.Player);
         }
     }
 }
