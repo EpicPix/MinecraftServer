@@ -9,10 +9,9 @@ public class CsStatusPing : Packet<CsStatusPing, CsStatusPingPacketData>
     public override PacketBound Bound => PacketBound.Server;
     public override uint Id => 1;
 
-    public override ValueTask<PacketData> ReadPacket(DataAdapter stream)
+    public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
-        // this does not follow the described packet on wiki.vg
-        return ValueTask.FromResult<PacketData>(new CsStatusPingPacketData(0ul));
+        return new CsStatusPingPacketData(await stream.ReadULong());
     }
 
     public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
