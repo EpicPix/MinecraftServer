@@ -6,7 +6,7 @@ using MinecraftServer.Packets.Serverbound.Data;
 
 namespace MinecraftServer;
 
-public class Player
+public class Player : ITickable
 {
 
     public Server Server { get; }
@@ -153,4 +153,8 @@ public class Player
         }
     }
 
+    public void Tick()
+    {
+        
+    }
 }
