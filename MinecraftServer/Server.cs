@@ -274,7 +274,9 @@ public class Server
                         }
                     }
                 }
-                
+
+                conn.Player?.Tick(); // TODO Remove this when there is actual server ticking
+
                 ProcessCorruption:
                 if(requirePopTransform) conn.PopTransformer(true);
                 long readLength = conn.RawBytesRead - curPos;

@@ -75,7 +75,8 @@ public static partial class PacketHandler
             }
         }
         
-        player.Move(data.X, data.Y, data.Z, data.Yaw, data.Pitch);
+        player.Move(data.X, data.Y, data.Z);
+        player.Rotate(data.Yaw, data.Pitch);
     }
 
     [PacketEvent(typeof(CsPlayPlayerRotation), priority: 100)]
