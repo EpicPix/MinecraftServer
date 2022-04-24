@@ -100,11 +100,18 @@ public static partial class PacketHandler
         });
         ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData(0, 0), connection);
         server.OnPlayerJoin(connection.Player);
-        for (var x = -4; x <= 4; x++)
+        for (var x = -8; x <= 8; x++)
         {
-            for (var z = -4; z <= 4; z++)
+            for (var z = -8; z <= 8; z++)
             {
-                ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x, z), connection);
+                if (x * x + z * z < 8 * 8)
+                {
+                    if (!connection.SentChunks.ContainsKey((x, z)))
+                    {
+                        connection.SentChunks[(x, z)] = true;
+                        ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x, z), connection);
+                    }
+                }
             }
         }
     }

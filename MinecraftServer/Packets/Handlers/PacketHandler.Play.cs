@@ -35,15 +35,17 @@ public static partial class PacketHandler
         {
             ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData((int) data.X / 16, (int) data.Z / 16), connection);
             
-            // very inefficient
-            for (var x = -2; x <= 2; x++)
+            for (var x = -3; x <= 3; x++)
             {
-                for (var z = -1; z <= 1; z++)
+                for (var z = -3; z <= 3; z++)
                 {
-                    if(!connection.SentChunks.ContainsKey((x + (int)data.X / 16, x + (int)data.Z / 16)))
+                    if (x * x + z * z < 3 * 3)
                     {
-                        connection.SentChunks[(x + (int)data.X / 16, x + (int)data.Z / 16)] = true;
-                        ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x + (int)data.X / 16, z + (int)data.Z / 16), connection);
+                        if (!connection.SentChunks.ContainsKey((x + (int) data.X / 16, z + (int) data.Z / 16)))
+                        {
+                            connection.SentChunks[(x + (int) data.X / 16, z + (int) data.Z / 16)] = true;
+                            ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x + (int) data.X / 16, z + (int) data.Z / 16), connection);
+                        }
                     }
                 }
             }
@@ -61,15 +63,17 @@ public static partial class PacketHandler
         {
             ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData((int) data.X / 16, (int) data.Z / 16), connection);
             
-            // very inefficient
-            for (var x = -2; x <= 2; x++)
+            for (var x = -3; x <= 3; x++)
             {
-                for (var z = -1; z <= 1; z++)
+                for (var z = -3; z <= 3; z++)
                 {
-                    if(!connection.SentChunks.ContainsKey((x + (int)data.X / 16, x + (int)data.Z / 16)))
+                    if (x * x + z * z < 3 * 3)
                     {
-                        connection.SentChunks[(x + (int)data.X / 16, x + (int)data.Z / 16)] = true;
-                        ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x + (int)data.X / 16, z + (int)data.Z / 16), connection);
+                        if (!connection.SentChunks.ContainsKey((x + (int) data.X / 16, z + (int) data.Z / 16)))
+                        {
+                            connection.SentChunks[(x + (int) data.X / 16, z + (int) data.Z / 16)] = true;
+                            ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x + (int) data.X / 16, z + (int) data.Z / 16), connection);
+                        }
                     }
                 }
             }
