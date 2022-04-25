@@ -11,10 +11,10 @@ namespace MinecraftServer.Networking;
 public class NetworkConnection : DataAdapter
 {
     public PacketType CurrentState { get; private set; } = PacketType.Handshake;
-    public string? Username = null;
+    public string Username = null!;
     public Guid Uuid;
-    public byte[] VerifyToken;
-    public byte[] EncryptionKey;
+    public byte[] VerifyToken = null!;
+    public byte[] EncryptionKey = null!;
     public bool IsCompressed = false;
     public GameProfile? Profile { get; internal set; }
     private Stack<DataAdapter> _readTransformerStack = new();
@@ -35,7 +35,7 @@ public class NetworkConnection : DataAdapter
     public bool Connected => !ConnectionState.IsCancellationRequested;
     private CancellationTokenSource _stateSource;
 
-    public Player Player;
+    public Player Player = null!;
     public ConcurrentDictionary<(int, int), bool> SentChunks = new ();
 
     public NetworkConnection(Server server, Stream client, CancellationToken shutdownToken = default) : base(shutdownToken)
@@ -51,7 +51,7 @@ public class NetworkConnection : DataAdapter
     {
         if (remote)
         {
-            CloseConnection(this);
+            await CloseConnection(this);
         }
         else
         {
@@ -63,15 +63,15 @@ public class NetworkConnection : DataAdapter
             {
                 await ScPlayDisconnect.SendAsync(new ScDisconnectPacketData(new ChatComponent(reason)), this, CloseConnection, true);
             }
-            Task.Run(async () =>
+            await Task.Run(async () =>
             {
-                await Task.Delay(5000);
+                await Task.Delay(5000, ConnectionState);
                 // make sure to close the connection after 5 second timeout
                 if (Connected)
                 {
-                    CloseConnection(this);
+                    await CloseConnection(this);
                 }
-            });
+            }, ConnectionState);
         }
     }
 

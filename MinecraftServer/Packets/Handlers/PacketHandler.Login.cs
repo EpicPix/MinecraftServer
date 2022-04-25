@@ -20,7 +20,7 @@ public static partial class PacketHandler
     public static async ValueTask HandleEncryptionResponse(CsLoginEncryptionResponsePacketData data, NetworkConnection connection, Server server)
     {
         Debug.Assert(server.OnlineMode);
-        var decryptedToken = server.RsaServer.Decrypt(data.VerifyToken, RSAEncryptionPadding.Pkcs1);
+        var decryptedToken = server.RsaServer!.Decrypt(data.VerifyToken, RSAEncryptionPadding.Pkcs1);
         Debug.Assert(decryptedToken.SequenceEqual(connection.VerifyToken));
         
         connection.EncryptionKey = server.RsaServer.Decrypt(data.SharedSecret, RSAEncryptionPadding.Pkcs1);
@@ -45,7 +45,7 @@ public static partial class PacketHandler
         }
         
         connection.Profile = JsonSerializer.Deserialize(await result.Content.ReadAsStringAsync(), SerializationContext.Default.GameProfile!);
-        connection.Username = connection.Profile.name;
+        connection.Username = connection.Profile!.name;
         connection.Uuid = connection.Profile.Uuid;
         Console.WriteLine($"Player has connected with info: {JsonSerializer.Serialize(connection.Profile, SerializationContext.Default.GameProfile)}");
         connection.Encrypt();
@@ -68,7 +68,7 @@ public static partial class PacketHandler
         }
 
         connection.VerifyToken = RandomNumberGenerator.GetBytes(4);
-        var encryptionReq = new ScLoginEncryptionRequestPacketData("", server.ServerPublicKey, connection.VerifyToken);
+        var encryptionReq = new ScLoginEncryptionRequestPacketData("", server.ServerPublicKey!, connection.VerifyToken);
         ScLoginEncryptionRequest.Send(encryptionReq, connection);
     }
 

@@ -59,7 +59,7 @@ public readonly struct IoBuffer : IDisposable
 
         public void Return(IoBuffer buffer)
         {
-            ArrayPool<byte>.Shared.Return(buffer.Data.Array);
+            ArrayPool<byte>.Shared.Return(buffer.Data.Array!);
         }
     }
     

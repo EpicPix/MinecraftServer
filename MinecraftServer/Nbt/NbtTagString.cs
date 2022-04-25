@@ -11,8 +11,6 @@ public class NbtTagString : NbtTag
 
     public string String => _string;
 
-    public NbtTagString() { }
-
     public NbtTagString(string str)
     {
         _string = str;

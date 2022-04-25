@@ -24,8 +24,8 @@ public abstract class PacketEventHandler
 public class PacketEventHandler<T> : PacketEventHandler where T : PacketData
 {
 
-    private PacketEventHandlerFuncStatus _func;
-    private PacketEventHandlerFuncStatusAsync _asyncFunc;
+    private PacketEventHandlerFuncStatus _func = null!;
+    private PacketEventHandlerFuncStatusAsync _asyncFunc = null!;
     
     public delegate void PacketEventHandlerFunc(T packetData, NetworkConnection connection, Server server);
     public delegate void PacketEventHandlerFuncStatus(T packetData, NetworkConnection connection, Server server, ref PacketEventHandlerStatus status);
@@ -42,7 +42,7 @@ public class PacketEventHandler<T> : PacketEventHandler where T : PacketData
     }
     
     public PacketEventHandler(Packet packet, long priority, PacketEventHandlerFuncAsync func)
-        : this(packet, priority, (T packetData, NetworkConnection connection, Server server, PacketEventHandlerStatusRef status) => func.Invoke(packetData, connection, server))
+        : this(packet, priority, (packetData, connection, server, status) => func.Invoke(packetData, connection, server))
     { }
     
     public PacketEventHandler(Packet packet, long priority, PacketEventHandlerFuncStatusAsync func) : base(packet, priority, true)

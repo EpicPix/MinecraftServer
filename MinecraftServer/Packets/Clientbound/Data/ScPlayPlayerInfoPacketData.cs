@@ -19,7 +19,7 @@ public class ScPlayPlayerInfoPacketData : PacketData
     public class AddPlayerAction : IAction
     {
         public Guid Uuid { get; set; }
-        public string Username;
+        public string Username = null!;
         public GameProfile? Profile;
         public int Gamemode;
         public int Ping;

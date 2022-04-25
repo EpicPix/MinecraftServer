@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
@@ -26,8 +27,7 @@ public abstract class Packet
             }
         }
     }
-
-    public static bool TryGetPacket(PacketType type, PacketBound bound, uint id, out Packet? result)
+    public static bool TryGetPacket(PacketType type, PacketBound bound, uint id, [NotNullWhen(true)] out Packet? result)
     {
         foreach (var packet in _packets)
         {
