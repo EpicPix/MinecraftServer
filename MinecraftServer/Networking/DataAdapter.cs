@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using System.Text;
 using MinecraftServer.Data;
+using MinecraftServer.Types;
 
 namespace MinecraftServer.Networking;
 

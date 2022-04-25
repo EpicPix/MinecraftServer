@@ -1,4 +1,4 @@
-namespace MinecraftServer.Data;
+namespace MinecraftServer.Types;
 
 public readonly struct Angle
 {
