@@ -117,21 +117,21 @@ public class Player : ITickable
             if (online == this) continue;
             
             if(teleport) {
-                ScPlayEntityTeleport.Send(new ScPlayEntityTeleportPacketData((int) EntityId, X, Y, Z, (byte) (Yaw / 360 * 256), (byte) (Pitch / 360 * 256), false), online.Connection);
+                ScPlayEntityTeleport.Send(new ScPlayEntityTeleportPacketData((int) EntityId, X, Y, Z, Yaw, Pitch, false), online.Connection);
             }else if (ChangedPosition && ChangedRotation)
             {
-                ScPlayPlayerPositionAndRotation.Send(new ScPlayPlayerPositionAndRotationPacketData((int) EntityId, (short) deltaX, (short) deltaY, (short) deltaZ, (byte) (Yaw / 360 * 255), (byte) (Pitch / 360 * 255), false), online.Connection);
+                ScPlayPlayerPositionAndRotation.Send(new ScPlayPlayerPositionAndRotationPacketData((int) EntityId, (short) deltaX, (short) deltaY, (short) deltaZ, Yaw, Pitch, false), online.Connection);
             }else if (ChangedPosition && !ChangedRotation)
             {
                 ScPlayPlayerPosition.Send(new ScPlayPlayerPositionPacketData((int) EntityId, (short) deltaX, (short) deltaY, (short) deltaZ, false), online.Connection);
             } else
             {
-                ScPlayPlayerRotation.Send(new ScPlayPlayerRotationPacketData((int) EntityId, (byte) (Yaw / 360 * 255), (byte) (Pitch / 360 * 255), false), online.Connection);
+                ScPlayPlayerRotation.Send(new ScPlayPlayerRotationPacketData((int) EntityId, Yaw, Pitch, false), online.Connection);
             }
 
             if (ChangedRotation)
             {
-                ScPlayEntityHeadLook.Send(new ScPlayEntityHeadLookPacketData((int) EntityId, (byte) (Yaw / 360 * 255)), online.Connection);
+                ScPlayEntityHeadLook.Send(new ScPlayEntityHeadLookPacketData((int) EntityId, Yaw), online.Connection);
             }
         }
 

@@ -1,3 +1,5 @@
+using MinecraftServer.Data;
+
 namespace MinecraftServer.Packets.Clientbound.Data;
 
 public class ScPlayEntityTeleportPacketData : PacketData
@@ -7,11 +9,11 @@ public class ScPlayEntityTeleportPacketData : PacketData
     public double X { get; }
     public double Y { get; }
     public double Z { get; }
-    public byte Yaw { get; }
-    public byte Pitch { get; }
+    public Angle Yaw { get; }
+    public Angle Pitch { get; }
     public bool OnGround { get; }
 
-    public ScPlayEntityTeleportPacketData(int entityId, double x, double y, double z, byte yaw, byte pitch, bool onGround)
+    public ScPlayEntityTeleportPacketData(int entityId, double x, double y, double z, Angle yaw, Angle pitch, bool onGround)
     {
         EntityId = entityId;
         X = x;

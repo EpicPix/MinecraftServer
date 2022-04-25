@@ -1,4 +1,5 @@
 using System.Text;
+using MinecraftServer.Data;
 
 namespace MinecraftServer.Packets.Clientbound.Data;
 
@@ -6,11 +7,11 @@ public class ScPlayPlayerRotationPacketData : PacketData
 {
 
     public int EntityId { get; }
-    public byte Yaw { get; }
-    public byte Pitch { get; }
+    public Angle Yaw { get; }
+    public Angle Pitch { get; }
     public bool OnGround { get; }
 
-    public ScPlayPlayerRotationPacketData(int entityId, byte yaw, byte pitch, bool onGround)
+    public ScPlayPlayerRotationPacketData(int entityId, Angle yaw, Angle pitch, bool onGround)
     {
         EntityId = entityId;
         Yaw = yaw;

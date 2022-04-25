@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Text;
+using MinecraftServer.Data;
 
 namespace MinecraftServer.Networking;
 
@@ -77,6 +78,21 @@ public abstract class DataAdapter : Stream
             Console.WriteLine("Read byte did read all bytes");
         }
         return _singleByteRead[0];
+    }
+
+    public ValueTask WriteAngleAsync(Angle angle)
+    {
+        _singleByteWrite[0] = angle.Value;
+        return WriteBytesAsync(_singleByteWrite);
+    }
+
+    public async ValueTask<Angle> ReadAngleAsync()
+    {
+        if (await ReadAsync(_singleByteRead, _ct) != 0)
+        {
+            Console.WriteLine("Read angle did read all bytes");
+        }
+        return new Angle(_singleByteRead[0]);
     }
 
     public async ValueTask<ushort> ReadUnsignedShortAsync()

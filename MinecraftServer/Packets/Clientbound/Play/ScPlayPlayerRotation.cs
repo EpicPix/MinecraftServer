@@ -22,8 +22,8 @@ public class ScPlayPlayerRotation : Packet<ScPlayPlayerRotation, ScPlayPlayerRot
         var packet = Of(data);
 
         await stream.WriteVarIntAsync(packet.EntityId);
-        await stream.WriteByteAsync(packet.Yaw);
-        await stream.WriteByteAsync(packet.Pitch);
+        await stream.WriteAngleAsync(packet.Yaw);
+        await stream.WriteAngleAsync(packet.Pitch);
         await stream.WriteBoolAsync(packet.OnGround);
     }
 }

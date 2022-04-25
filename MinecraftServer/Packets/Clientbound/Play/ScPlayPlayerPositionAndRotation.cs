@@ -25,8 +25,8 @@ public class ScPlayPlayerPositionAndRotation : Packet<ScPlayPlayerPositionAndRot
         await stream.WriteUnsignedShortAsync((ushort) packet.DeltaX);
         await stream.WriteUnsignedShortAsync((ushort) packet.DeltaY);
         await stream.WriteUnsignedShortAsync((ushort) packet.DeltaZ);
-        await stream.WriteByteAsync(packet.Yaw);
-        await stream.WriteByteAsync(packet.Pitch);
+        await stream.WriteAngleAsync(packet.Yaw);
+        await stream.WriteAngleAsync(packet.Pitch);
         await stream.WriteBoolAsync(packet.OnGround);
     }
 }

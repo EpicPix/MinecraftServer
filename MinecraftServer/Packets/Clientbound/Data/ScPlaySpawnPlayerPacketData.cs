@@ -1,3 +1,5 @@
+using MinecraftServer.Data;
+
 namespace MinecraftServer.Packets.Clientbound.Data;
 
 public class ScPlaySpawnPlayerPacketData : PacketData
@@ -8,10 +10,10 @@ public class ScPlaySpawnPlayerPacketData : PacketData
     public double X { get; }
     public double Y { get; }
     public double Z { get; }
-    public byte Yaw { get; }
-    public byte Pitch { get; }
+    public Angle Yaw { get; }
+    public Angle Pitch { get; }
 
-    public ScPlaySpawnPlayerPacketData(int entityId, Guid uuid, double x, double y, double z, byte yaw, byte pitch)
+    public ScPlaySpawnPlayerPacketData(int entityId, Guid uuid, double x, double y, double z, Angle yaw, Angle pitch)
     {
         EntityId = entityId;
         Uuid = uuid;

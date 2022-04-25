@@ -24,7 +24,7 @@ public class ScPlaySpawnPlayer : Packet<ScPlaySpawnPlayer, ScPlaySpawnPlayerPack
         await stream.WriteDoubleAsync(packet.X);
         await stream.WriteDoubleAsync(packet.Y);
         await stream.WriteDoubleAsync(packet.Z);
-        await stream.WriteByteAsync(packet.Yaw);
-        await stream.WriteByteAsync(packet.Pitch);
+        await stream.WriteAngleAsync(packet.Yaw);
+        await stream.WriteAngleAsync(packet.Pitch);
     }
 }

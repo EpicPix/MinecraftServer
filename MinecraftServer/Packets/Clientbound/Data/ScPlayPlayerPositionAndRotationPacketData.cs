@@ -1,4 +1,5 @@
 using System.Text;
+using MinecraftServer.Data;
 
 namespace MinecraftServer.Packets.Clientbound.Data;
 
@@ -9,11 +10,11 @@ public class ScPlayPlayerPositionAndRotationPacketData : PacketData
     public short DeltaX { get; }
     public short DeltaY { get; }
     public short DeltaZ { get; }
-    public byte Yaw { get; }
-    public byte Pitch { get; }
+    public Angle Yaw { get; }
+    public Angle Pitch { get; }
     public bool OnGround { get; }
 
-    public ScPlayPlayerPositionAndRotationPacketData(int entityId, short deltaX, short deltaY, short deltaZ, byte yaw, byte pitch, bool onGround)
+    public ScPlayPlayerPositionAndRotationPacketData(int entityId, short deltaX, short deltaY, short deltaZ, Angle yaw, Angle pitch, bool onGround)
     {
         EntityId = entityId;
         DeltaX = deltaX;
