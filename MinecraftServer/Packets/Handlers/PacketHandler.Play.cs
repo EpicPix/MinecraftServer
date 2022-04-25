@@ -143,12 +143,12 @@ public static partial class PacketHandler
         if (data.Action == CsPlayEntityActionPacketData.ActionType.StartSneaking)
         {
             player.Sneaking = true;
-            player.SetPose(5);
+            player.SetPose(Player.EntityPose.Sneaking);
         }
         else if (data.Action == CsPlayEntityActionPacketData.ActionType.StopSneaking)
         {
             player.Sneaking = false;
-            player.SetPose(0);
+            player.SetPose(Player.EntityPose.Standing);
         }
     }
 }

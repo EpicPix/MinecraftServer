@@ -7,15 +7,15 @@ public class MetadataPose : IMetadataValue
 
     public int Type => 0x12;
 
-    public int Pose { get; }
+    public Player.EntityPose Pose { get; }
 
-    public MetadataPose(int pose)
+    public MetadataPose(Player.EntityPose pose)
     {
         Pose = pose;
     }
 
     public async ValueTask Write(DataAdapter writer)
     {
-        await writer.WriteVarInt(Pose);
+        await writer.WriteVarInt((int) Pose);
     }
 }

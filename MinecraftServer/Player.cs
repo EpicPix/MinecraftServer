@@ -45,7 +45,7 @@ public class Player : ITickable
     public byte EntityFlags { get; internal set; }
     public bool ChangedFlags { get; internal set; }
 
-    public int Pose { get; internal set; }
+    public EntityPose Pose { get; internal set; }
     public bool ChangedPose { get; internal set; }
 
     public bool Sneaking {
@@ -207,9 +207,22 @@ public class Player : ITickable
         ChangedFlags = true;
     }
     
-    public void SetPose(int pose) // add enums later
+    public void SetPose(EntityPose pose)
     {
         Pose = pose;
         ChangedPose = true;
+    }
+
+
+    public enum EntityPose
+    {
+        Standing = 0,
+        FallFlying = 1,
+        Sleeping = 2,
+        Swimming = 3,
+        SpinAttack = 4,
+        Sneaking = 5,
+        LongJumping = 6,
+        Dying = 7
     }
 }
