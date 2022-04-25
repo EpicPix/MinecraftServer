@@ -131,7 +131,9 @@ public class Server
     public void OnPlayerJoin(Player player)
     {
         BroadcastMessage(new ChatComponent($"{player.Username} joined"));
-
+        
+        
+        // TODO Move this to the first tick of the player joining
         var actions = new List<ScPlayPlayerInfoPacketData.IAction>();
         foreach (var onlinePlayer in Players)
         {
@@ -155,11 +157,8 @@ public class Server
             }
             ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.AddPlayer, new List<ScPlayPlayerInfoPacketData.IAction> { action }), onlinePlayer.Connection);
         }
-        
         ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.AddPlayer, actions), player.Connection);
-
         var spawn = new ScPlaySpawnPlayerPacketData((int) player.EntityId, player.Uuid, player.ClientX, player.ClientY, player.ClientZ, (byte) (player.Yaw / 360 * 256), (byte) (player.Pitch / 360 * 256));
-
         foreach (var eonlinePlayer in Players)
         {
             if (eonlinePlayer == player) continue;
@@ -234,7 +233,7 @@ public class Server
                     if(!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out packet))
                     {
                         Console.WriteLine($"Unknown packet detected on state {conn.CurrentState} with id 0x{id:x}. Skipping gracefully.");
-                        goto ProcessCorruption;
+                        goto PacketCorruption;
                     }
 
                     readableUncompressedLength = packetDataLength;
@@ -248,7 +247,7 @@ public class Server
                     if (!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out packet))
                     {
                         Console.WriteLine($"Unknown packet detected on state {conn.CurrentState} with id 0x{id:x}. Skipping gracefully.");
-                        goto ProcessCorruption;
+                        goto PacketCorruption;
                     }
                     readableUncompressedLength = packetDataLength;
                 }
@@ -277,7 +276,7 @@ public class Server
 
                 conn.Player?.Tick(); // TODO Remove this when there is actual server ticking
 
-                ProcessCorruption:
+                PacketCorruption:
                 if(requirePopTransform) conn.PopTransformer(true);
                 long readLength = conn.RawBytesRead - curPos;
                 if (readLength != expectedLength)

@@ -13,7 +13,30 @@ public static partial class PacketHandler
     [PacketEvent(typeof(CsPlayChatMessage), priority: 100)]
     public static void HandleChatMessage(CsPlayChatMessagePacketData data, NetworkConnection connection, Server server)
     {
-        server.BroadcastMessage(new ChatComponent($"<{connection.Username}> {data.Message}"));
+        if (data.Message.StartsWith("/"))
+        {
+            var msg = data.Message.Split(" ");
+            if (msg[0].Equals("/tp"))
+            {
+                try
+                {
+                    var x = int.Parse(msg[1]);
+                    var y = int.Parse(msg[2]);
+                    var z = int.Parse(msg[3]);
+                    connection.Player.Teleport(x, y, z);
+                    connection.Player.SendMessage("Done");
+                } catch (Exception e)
+                {
+                    connection.Player.SendMessage($"An exception occurred: {e.Message}");
+                }
+            } else
+            {
+                connection.Player.SendMessage("Unknown command");
+            }
+        } else
+        {
+            server.BroadcastMessage(new ChatComponent($"<{connection.Username}> {data.Message}"));
+        }
     }
 
     [PacketEvent(typeof(CsPlayKeepAlive), priority: 100)]
