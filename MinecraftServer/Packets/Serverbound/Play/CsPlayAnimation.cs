@@ -12,7 +12,7 @@ public class CsPlayAnimation : Packet<CsPlayAnimation, CsPlayAnimationPacketData
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
-        return new CsPlayAnimationPacketData((CsPlayAnimationPacketData.UsedHand) await stream.ReadVarInt());
+        return new CsPlayAnimationPacketData((CsPlayAnimationPacketData.UsedHand) await stream.ReadVarIntAsync());
     }
 
     public override ValueTask WritePacket(DataAdapter stream, PacketData data)

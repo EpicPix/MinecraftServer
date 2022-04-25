@@ -18,11 +18,11 @@ public class NbtTagCompound : NbtTag
         foreach (var (key, value) in tags)
         {
             if (value == null) throw new NullReferenceException("Unexpected null");
-            await writer.WriteUByte(value.Id);
-            await writer.WriteStringShort(key);
+            await writer.WriteByteAsync(value.Id);
+            await writer.WriteStringShortAsync(key);
             await value.Write(writer);
         }
-        await writer.WriteUByte(0);
+        await writer.WriteByteAsync(0);
     }
 
     public virtual NbtTagCompound Set(string key, NbtTag? value)

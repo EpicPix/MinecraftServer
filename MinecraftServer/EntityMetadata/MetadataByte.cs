@@ -16,6 +16,6 @@ public class MetadataByte : IMetadataValue
 
     public async ValueTask Write(DataAdapter writer)
     {
-        await writer.WriteUByte(Value);
+        await writer.WriteByteAsync(Value);
     }
 }

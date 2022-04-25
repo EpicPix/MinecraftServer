@@ -12,11 +12,11 @@ public class ScLoginSetCompression : Packet<ScLoginSetCompression, ScLoginSetCom
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
-        return new ScLoginSetCompressionPacketData(await stream.ReadVarInt());
+        return new ScLoginSetCompressionPacketData(await stream.ReadVarIntAsync());
     }
 
     public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
-        await stream.WriteVarInt(Of(data).CompressionThreshold);
+        await stream.WriteVarIntAsync(Of(data).CompressionThreshold);
     }
 }

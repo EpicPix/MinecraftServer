@@ -25,6 +25,6 @@ public class NbtTagString : NbtTag
 
     public ValueTask Write(DataAdapter writer)
     {
-        return writer.WriteStringShort(_string);
+        return writer.WriteStringShortAsync(_string);
     }
 }

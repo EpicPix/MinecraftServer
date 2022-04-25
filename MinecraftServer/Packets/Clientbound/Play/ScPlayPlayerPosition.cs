@@ -21,10 +21,10 @@ public class ScPlayPlayerPosition : Packet<ScPlayPlayerPosition, ScPlayPlayerPos
     {
         var packet = Of(data);
 
-        await stream.WriteVarInt(packet.EntityId);
-        await stream.WriteUShort((ushort) packet.DeltaX);
-        await stream.WriteUShort((ushort) packet.DeltaY);
-        await stream.WriteUShort((ushort) packet.DeltaZ);
-        await stream.WriteBool(packet.OnGround);
+        await stream.WriteVarIntAsync(packet.EntityId);
+        await stream.WriteUnsignedShortAsync((ushort) packet.DeltaX);
+        await stream.WriteUnsignedShortAsync((ushort) packet.DeltaY);
+        await stream.WriteUnsignedShortAsync((ushort) packet.DeltaZ);
+        await stream.WriteBoolAsync(packet.OnGround);
     }
 }

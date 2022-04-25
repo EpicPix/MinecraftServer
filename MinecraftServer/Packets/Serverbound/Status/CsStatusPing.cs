@@ -11,11 +11,11 @@ public class CsStatusPing : Packet<CsStatusPing, CsStatusPingPacketData>
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
-        return new CsStatusPingPacketData(await stream.ReadULong());
+        return new CsStatusPingPacketData(await stream.ReadUnsignedLongAsync());
     }
 
     public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
-        await stream.WriteULong(Of(data).Payload);
+        await stream.WriteUnsignedLongAsync(Of(data).Payload);
     }
 }

@@ -46,7 +46,7 @@ public interface NbtTag
 
     public static async ValueTask<NbtTag> ReadTag(DataAdapter reader)
     {
-        byte tag = await reader.ReadUByte();
+        byte tag = await reader.ReadByteAsync();
 
         throw new NotSupportedException($"Nbt Tag {tag} is not supported");
     }

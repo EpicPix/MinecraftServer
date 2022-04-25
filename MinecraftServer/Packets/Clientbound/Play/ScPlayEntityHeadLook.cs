@@ -21,7 +21,7 @@ public class ScPlayEntityHeadLook : Packet<ScPlayEntityHeadLook, ScPlayEntityHea
     {
         var packet = Of(data);
 
-        await stream.WriteVarInt(packet.EntityId);
-        await stream.WriteUByte(packet.HeadYaw);
+        await stream.WriteVarIntAsync(packet.EntityId);
+        await stream.WriteByteAsync(packet.HeadYaw);
     }
 }

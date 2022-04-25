@@ -11,20 +11,20 @@ public class CsHandshake : Packet<CsHandshake, CsHandshakePacketData>
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter connection)
     {
-        var protocolVersion = await connection.ReadVarInt();
-        var serverIp = await connection.ReadString(255);
-        var serverPort = await connection.ReadUShort();
-        var nextState = await connection.ReadVarInt();
+        var protocolVersion = await connection.ReadVarIntAsync();
+        var serverIp = await connection.ReadStringAsync(255);
+        var serverPort = await connection.ReadUnsignedShortAsync();
+        var nextState = await connection.ReadVarIntAsync();
         return new CsHandshakePacketData(protocolVersion, serverIp, serverPort, nextState);
     }
 
     public override async ValueTask WritePacket(DataAdapter connection, PacketData input)
     {
         var data = Of(input);
-        await connection.WriteVarInt(data.ProtocolVersion);
-        await connection.WriteString(data.ServerIp, 255);
-        await connection.WriteUShort(data.ServerPort);
-        await connection.WriteVarInt(data.NextState);
+        await connection.WriteVarIntAsync(data.ProtocolVersion);
+        await connection.WriteStringAsync(data.ServerIp, 255);
+        await connection.WriteUnsignedShortAsync(data.ServerPort);
+        await connection.WriteVarIntAsync(data.NextState);
     }
     
 }

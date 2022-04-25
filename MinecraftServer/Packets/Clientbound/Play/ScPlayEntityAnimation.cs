@@ -19,7 +19,7 @@ public class ScPlayEntityAnimation : Packet<ScPlayEntityAnimation, ScPlayerEntit
     {
         var packet = Of(data);
 
-        await stream.WriteVarInt(packet.EntityId);
-        await stream.WriteUByte((byte) packet.Animation);
+        await stream.WriteVarIntAsync(packet.EntityId);
+        await stream.WriteByteAsync((byte) packet.Animation);
     }
 }

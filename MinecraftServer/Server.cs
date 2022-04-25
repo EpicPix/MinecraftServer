@@ -207,9 +207,9 @@ public class Server
                 bool requirePopTransform = false;
                 if (conn.IsCompressed)
                 {
-                    expectedLength = await conn.ReadVarInt();
+                    expectedLength = await conn.ReadVarIntAsync();
                     curPos = conn.RawBytesRead;
-                    var dataLength = await conn.ReadVarInt();
+                    var dataLength = await conn.ReadVarIntAsync();
                     var packetDataLength = expectedLength;
 
                     var decompAllowedLength = packetDataLength - Utils.GetVarIntLength(dataLength);
@@ -227,7 +227,7 @@ public class Server
                         packetDataLength -= Utils.GetVarIntLength(dataLength); // dataLength is 0, but i dont care
                     }
                     
-                    var id = await conn.ReadVarInt();
+                    var id = await conn.ReadVarIntAsync();
 
                     packetDataLength -= Utils.GetVarIntLength(id);
                     if(!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out packet))
@@ -240,9 +240,9 @@ public class Server
                 }
                 else
                 {
-                    expectedLength = await conn.ReadVarInt();
+                    expectedLength = await conn.ReadVarIntAsync();
                     curPos = conn.RawBytesRead;
-                    var id = await conn.ReadVarInt();
+                    var id = await conn.ReadVarIntAsync();
                     var packetDataLength = expectedLength - Utils.GetVarIntLength(id);
                     if (!Packet.TryGetPacket(conn.CurrentState, PacketBound.Server, (uint)id, out packet))
                     {
@@ -284,7 +284,7 @@ public class Server
                     if (readLength < expectedLength)
                     {
                         Console.WriteLine($"Packet reading corruption detected for {packet}: Expected Length {expectedLength} bytes. Read {readLength} bytes. {expectedLength - readLength} bytes will be skipped.");
-                        await conn.Skip((int)(expectedLength - readLength));
+                        await conn.SkipAsync((int)(expectedLength - readLength));
                     }
                     else
                     {

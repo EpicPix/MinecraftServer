@@ -20,7 +20,7 @@ public class ScPlayUpdateViewPosition : Packet<ScPlayUpdateViewPosition, ScPlayU
     {
         var packet = Of(data);
         
-        await stream.WriteVarInt(packet.X);
-        await stream.WriteVarInt(packet.Z);
+        await stream.WriteVarIntAsync(packet.X);
+        await stream.WriteVarIntAsync(packet.Z);
     }
 }

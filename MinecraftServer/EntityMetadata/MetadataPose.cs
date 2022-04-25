@@ -16,6 +16,6 @@ public class MetadataPose : IMetadataValue
 
     public async ValueTask Write(DataAdapter writer)
     {
-        await writer.WriteVarInt((int) Pose);
+        await writer.WriteVarIntAsync((int) Pose);
     }
 }

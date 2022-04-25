@@ -12,14 +12,14 @@ public class CsPlayClientSettings : Packet<CsPlayClientSettings, CsPlayClientSet
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
-        var locale = await stream.ReadString(16);
-        var viewDistance = await stream.ReadUByte();
-        var chatMode = (CsPlayClientSettingsPacketData.ChatModeEnum) await stream.ReadUByte();
-        var chatColors = await stream.ReadBool();
-        var displayedSkinParts = (CsPlayClientSettingsPacketData.SkinPartsFlags) await stream.ReadUByte();
-        var mainHand = (CsPlayClientSettingsPacketData.MainHandEnum) await stream.ReadUByte();
-        var enableTextFiltering = await stream.ReadBool();
-        var allowServerListings = await stream.ReadBool();
+        var locale = await stream.ReadStringAsync(16);
+        var viewDistance = await stream.ReadByteAsync();
+        var chatMode = (CsPlayClientSettingsPacketData.ChatModeEnum) await stream.ReadByteAsync();
+        var chatColors = await stream.ReadBoolAsync();
+        var displayedSkinParts = (CsPlayClientSettingsPacketData.SkinPartsFlags) await stream.ReadByteAsync();
+        var mainHand = (CsPlayClientSettingsPacketData.MainHandEnum) await stream.ReadByteAsync();
+        var enableTextFiltering = await stream.ReadBoolAsync();
+        var allowServerListings = await stream.ReadBoolAsync();
         
         return new CsPlayClientSettingsPacketData(locale, viewDistance, chatMode, chatColors, displayedSkinParts, mainHand, enableTextFiltering, allowServerListings);
     }

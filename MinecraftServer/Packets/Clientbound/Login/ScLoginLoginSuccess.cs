@@ -12,15 +12,15 @@ public class ScLoginLoginSuccess : Packet<ScLoginLoginSuccess, ScLoginLoginSucce
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
-        var uuid = await stream.ReadUUID();
-        var username = await stream.ReadString(16);
+        var uuid = await stream.ReadUuidAsync();
+        var username = await stream.ReadStringAsync(16);
         return new ScLoginLoginSuccessPacketData(uuid, username);
     }
 
     public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
         var packet = Of(data);
-        await stream.WriteUUID(packet.Uuid);
-        await stream.WriteString(packet.Username, 16);
+        await stream.WriteUuidAsync(packet.Uuid);
+        await stream.WriteStringAsync(packet.Username, 16);
     }
 }

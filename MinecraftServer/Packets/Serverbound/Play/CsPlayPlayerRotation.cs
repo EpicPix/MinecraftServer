@@ -12,9 +12,9 @@ public class CsPlayPlayerRotation : Packet<CsPlayPlayerRotation, CsPlayPlayerRot
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
-        var yaw = await stream.ReadFloat();
-        var pitch = await stream.ReadFloat();
-        var onGround = await stream.ReadBool();
+        var yaw = await stream.ReadFloatAsync();
+        var pitch = await stream.ReadFloatAsync();
+        var onGround = await stream.ReadBoolAsync();
         
         return new CsPlayPlayerRotationPacketData(yaw, pitch, onGround);
     }

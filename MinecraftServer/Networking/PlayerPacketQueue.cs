@@ -50,10 +50,10 @@ public class PlayerPacketQueue
                         var idLength = Utils.GetVarIntLength((int)id);
                         if (packetData.Count + idLength + Utils.GetVarIntLength(0) < Server.NetworkCompressionThreshold)
                         {
-                            await connection.WriteVarInt(packetData.Count + idLength + Utils.GetVarIntLength(0));
-                            await connection.WriteVarInt(0);
-                            await connection.WriteVarInt((int)id);
-                            await connection.WriteBytes(packetData);
+                            await connection.WriteVarIntAsync(packetData.Count + idLength + Utils.GetVarIntLength(0));
+                            await connection.WriteVarIntAsync(0);
+                            await connection.WriteVarIntAsync((int)id);
+                            await connection.WriteBytesAsync(packetData);
                         }
                         else
                         {
@@ -63,9 +63,9 @@ public class PlayerPacketQueue
                                 connection.ConnectionState);
 
                             // write id
-                            await comprAdapter.WriteVarInt((int)id);
+                            await comprAdapter.WriteVarIntAsync((int)id);
                             // write data
-                            await comprAdapter.WriteBytes(packetData);
+                            await comprAdapter.WriteBytesAsync(packetData);
 
                             comprAdapter.Flush();
 
@@ -75,16 +75,16 @@ public class PlayerPacketQueue
                             var compressedPacketSize =
                                 compressedPacketData.Count + Utils.GetVarIntLength(uncompressedPacketSize);
 
-                            await connection.WriteVarInt(compressedPacketSize);
-                            await connection.WriteVarInt(uncompressedPacketSize);
-                            await connection.WriteBytes(compressedPacketData);
+                            await connection.WriteVarIntAsync(compressedPacketSize);
+                            await connection.WriteVarIntAsync(uncompressedPacketSize);
+                            await connection.WriteBytesAsync(compressedPacketData);
                         }
                     }
                     else
                     {
-                        await connection.WriteVarInt((int)stream.Length + Utils.GetVarIntLength((int)id));
-                        await connection.WriteVarInt((int)id);
-                        await connection.WriteBytes(packetData);
+                        await connection.WriteVarIntAsync((int)stream.Length + Utils.GetVarIntLength((int)id));
+                        await connection.WriteVarIntAsync((int)id);
+                        await connection.WriteBytesAsync(packetData);
                     }
                 }
                 catch (IOException)

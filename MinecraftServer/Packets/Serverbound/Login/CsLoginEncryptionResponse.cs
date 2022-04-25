@@ -10,19 +10,19 @@ public class CsLoginEncryptionResponse : Packet<CsLoginEncryptionResponse, CsLog
     public override uint Id => 0x01;
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
-        int sslen = await stream.ReadVarInt();
+        int sslen = await stream.ReadVarIntAsync();
         var ssbytes = new byte[sslen];
-        await stream.ReadBytes(ssbytes);
-        int vtlen = await stream.ReadVarInt();
+        await stream.ReadBytesAsync(ssbytes);
+        int vtlen = await stream.ReadVarIntAsync();
         var vtbytes = new byte[vtlen];
-        await stream.ReadBytes(vtbytes);
+        await stream.ReadBytesAsync(vtbytes);
         return new CsLoginEncryptionResponsePacketData(ssbytes, vtbytes);
     }
 
     public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
         var pkt = Of(data);
-        await stream.WriteBytesLen(pkt.SharedSecret, 128);
-        await stream.WriteBytesLen(pkt.VerifyToken, 128);
+        await stream.WriteBytesLenAsync(pkt.SharedSecret, 128);
+        await stream.WriteBytesLenAsync(pkt.VerifyToken, 128);
     }
 }

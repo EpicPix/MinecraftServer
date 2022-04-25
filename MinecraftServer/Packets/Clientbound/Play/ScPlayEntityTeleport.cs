@@ -21,12 +21,12 @@ public class ScPlayEntityTeleport : Packet<ScPlayEntityTeleport, ScPlayEntityTel
     {
         var packet = Of(data);
 
-        await stream.WriteVarInt(packet.EntityId);
-        await stream.WriteDouble(packet.X);
-        await stream.WriteDouble(packet.Y);
-        await stream.WriteDouble(packet.Z);
-        await stream.WriteUByte(packet.Yaw);
-        await stream.WriteUByte(packet.Pitch);
-        await stream.WriteBool(packet.OnGround);
+        await stream.WriteVarIntAsync(packet.EntityId);
+        await stream.WriteDoubleAsync(packet.X);
+        await stream.WriteDoubleAsync(packet.Y);
+        await stream.WriteDoubleAsync(packet.Z);
+        await stream.WriteByteAsync(packet.Yaw);
+        await stream.WriteByteAsync(packet.Pitch);
+        await stream.WriteBoolAsync(packet.OnGround);
     }
 }

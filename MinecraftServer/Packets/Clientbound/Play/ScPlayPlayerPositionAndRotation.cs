@@ -21,12 +21,12 @@ public class ScPlayPlayerPositionAndRotation : Packet<ScPlayPlayerPositionAndRot
     {
         var packet = Of(data);
 
-        await stream.WriteVarInt(packet.EntityId);
-        await stream.WriteUShort((ushort) packet.DeltaX);
-        await stream.WriteUShort((ushort) packet.DeltaY);
-        await stream.WriteUShort((ushort) packet.DeltaZ);
-        await stream.WriteUByte(packet.Yaw);
-        await stream.WriteUByte(packet.Pitch);
-        await stream.WriteBool(packet.OnGround);
+        await stream.WriteVarIntAsync(packet.EntityId);
+        await stream.WriteUnsignedShortAsync((ushort) packet.DeltaX);
+        await stream.WriteUnsignedShortAsync((ushort) packet.DeltaY);
+        await stream.WriteUnsignedShortAsync((ushort) packet.DeltaZ);
+        await stream.WriteByteAsync(packet.Yaw);
+        await stream.WriteByteAsync(packet.Pitch);
+        await stream.WriteBoolAsync(packet.OnGround);
     }
 }

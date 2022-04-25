@@ -20,6 +20,6 @@ public class NbtTagByte : NbtTag
 
     public ValueTask Write(DataAdapter writer)
     {
-        return writer.WriteUByte((byte) Byte);
+        return writer.WriteByteAsync((byte) Byte);
     }
 }

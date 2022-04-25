@@ -11,11 +11,11 @@ public class Metadata
         {
             var (index, value) = update;
 
-            await writer.WriteUByte(index);
-            await writer.WriteVarInt(value.Type);
+            await writer.WriteByteAsync(index);
+            await writer.WriteVarIntAsync(value.Type);
             await value.Write(writer);
         }
-        await writer.WriteUByte(0xff);
+        await writer.WriteByteAsync(0xff);
     }
     
 }

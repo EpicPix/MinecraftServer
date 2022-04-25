@@ -20,12 +20,12 @@ public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
     {
         var packet = Of(data);
         
-        await stream.WriteInt(packet.EntityId);
-        await stream.WriteBool(false);
-        await stream.WriteUByte(1);
-        await stream.WriteUByte(1);
-        await stream.WriteVarInt(1);
-        await stream.WriteString("minecraft:overworld", ushort.MaxValue); // identifier
+        await stream.WriteIntAsync(packet.EntityId);
+        await stream.WriteBoolAsync(false);
+        await stream.WriteByteAsync(1);
+        await stream.WriteByteAsync(1);
+        await stream.WriteVarIntAsync(1);
+        await stream.WriteStringAsync("minecraft:overworld", ushort.MaxValue); // identifier
 
         await new NbtTagRoot()
             .Set("minecraft:dimension_type", 
@@ -121,14 +121,14 @@ public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
             .SetByte("has_ceiling", 0)
             .Write(stream);
         
-        await stream.WriteString("minecraft:overworld", ushort.MaxValue); // identifier
-        await stream.WriteULong(0);
-        await stream.WriteVarInt(80);
-        await stream.WriteVarInt(16);
-        await stream.WriteVarInt(16);
-        await stream.WriteBool(false);
-        await stream.WriteBool(true);
-        await stream.WriteBool(false);
-        await stream.WriteBool(false);
+        await stream.WriteStringAsync("minecraft:overworld", ushort.MaxValue); // identifier
+        await stream.WriteUnsignedLongAsync(0);
+        await stream.WriteVarIntAsync(80);
+        await stream.WriteVarIntAsync(16);
+        await stream.WriteVarIntAsync(16);
+        await stream.WriteBoolAsync(false);
+        await stream.WriteBoolAsync(true);
+        await stream.WriteBoolAsync(false);
+        await stream.WriteBoolAsync(false);
     }
 }

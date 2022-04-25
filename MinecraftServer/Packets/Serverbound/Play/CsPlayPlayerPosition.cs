@@ -12,10 +12,10 @@ public class CsPlayPlayerPosition : Packet<CsPlayPlayerPosition, CsPlayPlayerPos
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
-        var x = await stream.ReadDouble();
-        var y = await stream.ReadDouble();
-        var z = await stream.ReadDouble();
-        var onGround = await stream.ReadBool();
+        var x = await stream.ReadDoubleAsync();
+        var y = await stream.ReadDoubleAsync();
+        var z = await stream.ReadDoubleAsync();
+        var onGround = await stream.ReadBoolAsync();
         
         return new CsPlayPlayerPositionPacketData(x, y, z, onGround);
     }

@@ -20,6 +20,6 @@ public class NbtTagDouble : NbtTag
 
     public ValueTask Write(DataAdapter writer)
     {
-        return writer.WriteDouble(Double);
+        return writer.WriteDoubleAsync(Double);
     }
 }

@@ -19,13 +19,13 @@ public class ScPlayPlayerPositionAndLook : Packet<ScPlayPlayerPositionAndLook, S
     {
         var packet = Of(data);
         
-        await stream.WriteDouble(packet.X);
-        await stream.WriteDouble(packet.Y);
-        await stream.WriteDouble(packet.Z);
-        await stream.WriteFloat(packet.Yaw);
-        await stream.WriteFloat(packet.Pitch);
-        await stream.WriteUByte((byte) packet.Flags);
-        await stream.WriteVarInt(packet.TeleportId);
-        await stream.WriteBool(packet.DismountVehicle);
+        await stream.WriteDoubleAsync(packet.X);
+        await stream.WriteDoubleAsync(packet.Y);
+        await stream.WriteDoubleAsync(packet.Z);
+        await stream.WriteFloatAsync(packet.Yaw);
+        await stream.WriteFloatAsync(packet.Pitch);
+        await stream.WriteByteAsync((byte) packet.Flags);
+        await stream.WriteVarIntAsync(packet.TeleportId);
+        await stream.WriteBoolAsync(packet.DismountVehicle);
     }
 }

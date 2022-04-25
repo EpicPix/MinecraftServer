@@ -13,7 +13,7 @@ public class ScPlayDisconnect : Packet<ScPlayDisconnect, ScDisconnectPacketData>
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
-        var chatComponent = JsonSerializer.Deserialize(await stream.ReadString(ushort.MaxValue), SerializationContext.Default.ChatComponent);
+        var chatComponent = JsonSerializer.Deserialize(await stream.ReadStringAsync(ushort.MaxValue), SerializationContext.Default.ChatComponent);
         if (chatComponent == null)
         {
             throw new NullReferenceException("Deserializing returned null");
@@ -25,6 +25,6 @@ public class ScPlayDisconnect : Packet<ScPlayDisconnect, ScDisconnectPacketData>
     {
         await using var mem = new MemoryStream();
         await JsonSerializer.SerializeAsync(mem, Of(data).Reason, SerializationContext.Default.ChatComponent);
-        await stream.WriteBytesLen(mem.ToArray(), ushort.MaxValue);
+        await stream.WriteBytesLenAsync(mem.ToArray(), ushort.MaxValue);
     }
 }

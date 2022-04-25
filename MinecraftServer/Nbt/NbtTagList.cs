@@ -15,8 +15,8 @@ public class NbtTagList<T> : NbtTag where T : NbtTag
 
     public async ValueTask Write(DataAdapter writer)
     {
-        await writer.WriteUByte(NbtTag.GetTag<T>());
-        await writer.WriteInt(tags.Count);
+        await writer.WriteByteAsync(NbtTag.GetTag<T>());
+        await writer.WriteIntAsync(tags.Count);
         foreach (var value in tags)
         {
             await value.Write(writer);

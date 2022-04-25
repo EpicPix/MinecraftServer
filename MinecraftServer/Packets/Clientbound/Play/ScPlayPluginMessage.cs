@@ -19,8 +19,8 @@ public class ScPlayPluginMessage : Packet<ScPlayPluginMessage, CsPlayPluginMessa
     public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
         var p = Of(data);
-        await stream.WriteString(p.Channel, ushort.MaxValue);
-        await stream.WriteVarInt(p.Data.Data.Count);
-        await stream.WriteBytes(p.Data);
+        await stream.WriteStringAsync(p.Channel, ushort.MaxValue);
+        await stream.WriteVarIntAsync(p.Data.Data.Count);
+        await stream.WriteBytesAsync(p.Data);
     }
 }

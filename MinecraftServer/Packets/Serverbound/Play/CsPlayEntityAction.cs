@@ -12,9 +12,9 @@ public class CsPlayEntityAction : Packet<CsPlayEntityAction, CsPlayEntityActionP
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
-        var entityId = await stream.ReadVarInt();
-        var action = (CsPlayEntityActionPacketData.ActionType) await stream.ReadVarInt();
-        var jumpBoost = await stream.ReadVarInt();
+        var entityId = await stream.ReadVarIntAsync();
+        var action = (CsPlayEntityActionPacketData.ActionType) await stream.ReadVarIntAsync();
+        var jumpBoost = await stream.ReadVarIntAsync();
         return new CsPlayEntityActionPacketData(entityId, action, jumpBoost);
     }
 

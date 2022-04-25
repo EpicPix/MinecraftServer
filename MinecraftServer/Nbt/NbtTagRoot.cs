@@ -7,8 +7,8 @@ public class NbtTagRoot : NbtTagCompound
 {
     public override async ValueTask Write(DataAdapter writer)
     {
-        await writer.WriteUByte(Id);
-        await writer.WriteStringShort("");
+        await writer.WriteByteAsync(Id);
+        await writer.WriteStringShortAsync("");
         await base.Write(writer);
     }
 

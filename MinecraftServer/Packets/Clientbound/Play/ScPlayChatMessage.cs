@@ -13,13 +13,13 @@ public class ScPlayChatMessage : Packet<ScPlayChatMessage, ScPlayChatMessagePack
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
-        var chatComponent = JsonSerializer.Deserialize(await stream.ReadString(ushort.MaxValue), SerializationContext.Default.ChatComponent);
+        var chatComponent = JsonSerializer.Deserialize(await stream.ReadStringAsync(ushort.MaxValue), SerializationContext.Default.ChatComponent);
         if (chatComponent == null)
         {
             throw new NullReferenceException("Deserializing returned null");
         }
-        var position = (ScPlayChatMessagePacketData.PositionType) await stream.ReadUByte();
-        var sender = await stream.ReadUUID();
+        var position = (ScPlayChatMessagePacketData.PositionType) await stream.ReadByteAsync();
+        var sender = await stream.ReadUuidAsync();
         return new ScPlayChatMessagePacketData(chatComponent, position, sender);
     }
 
@@ -29,9 +29,9 @@ public class ScPlayChatMessage : Packet<ScPlayChatMessage, ScPlayChatMessagePack
         
         await using var mem = new MemoryStream();
         await JsonSerializer.SerializeAsync(mem, packet.Data, SerializationContext.Default.ChatComponent);
-        await stream.WriteBytesLen(mem.ToArray(), ushort.MaxValue);
+        await stream.WriteBytesLenAsync(mem.ToArray(), ushort.MaxValue);
 
-        await stream.WriteUByte((byte) packet.Position);
-        await stream.WriteUUID(packet.Sender);
+        await stream.WriteByteAsync((byte) packet.Position);
+        await stream.WriteUuidAsync(packet.Sender);
     }
 }

@@ -16,6 +16,6 @@ public class MetadataFloat : IMetadataValue
 
     public async ValueTask Write(DataAdapter writer)
     {
-        await writer.WriteFloat(Value);
+        await writer.WriteFloatAsync(Value);
     }
 }

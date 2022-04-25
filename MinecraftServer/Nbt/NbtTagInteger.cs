@@ -20,6 +20,6 @@ public class NbtTagInteger : NbtTag
 
     public ValueTask Write(DataAdapter writer)
     {
-        return writer.WriteInt(Integer);
+        return writer.WriteIntAsync(Integer);
     }
 }

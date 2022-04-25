@@ -19,10 +19,10 @@ public class ScPlayDestroyEntities : Packet<ScPlayDestroyEntities, ScPlayDestroy
     {
         var packet = Of(data);
 
-        await stream.WriteVarInt(packet.Entities.Count);
+        await stream.WriteVarIntAsync(packet.Entities.Count);
         foreach (var entity in packet.Entities)
         {
-            await stream.WriteVarInt(entity);
+            await stream.WriteVarIntAsync(entity);
         }
     }
 }

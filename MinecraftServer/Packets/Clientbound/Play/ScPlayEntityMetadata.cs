@@ -20,7 +20,7 @@ public class ScPlayEntityMetadata : Packet<ScPlayEntityMetadata, ScPlayEntityMet
     {
         var packet = Of(data);
 
-        await stream.WriteVarInt(packet.EntityId);
+        await stream.WriteVarIntAsync(packet.EntityId);
         await Metadata.WriteUpdate(stream, packet.Metadata);
     }
 }

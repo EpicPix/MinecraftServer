@@ -20,6 +20,6 @@ public class NbtTagFloat : NbtTag
 
     public ValueTask Write(DataAdapter writer)
     {
-        return writer.WriteFloat(Float);
+        return writer.WriteFloatAsync(Float);
     }
 }

@@ -12,11 +12,11 @@ public class CsLoginLoginStart : Packet<CsLoginLoginStart, CsLoginLoginStartPack
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
-        return new CsLoginLoginStartPacketData(await stream.ReadString(16));
+        return new CsLoginLoginStartPacketData(await stream.ReadStringAsync(16));
     }
 
     public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
-        await stream.WriteString(Of(data).Name, 16);
+        await stream.WriteStringAsync(Of(data).Name, 16);
     }
 }

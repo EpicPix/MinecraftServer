@@ -10,12 +10,12 @@ public class ScPlayKeepAlive : Packet<ScPlayKeepAlive, ScPlayKeepAlivePacketData
     public override uint Id => 0x21;
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
-        var keepAliveId = (long)await stream.ReadULong();
+        var keepAliveId = (long)await stream.ReadUnsignedLongAsync();
         return new ScPlayKeepAlivePacketData(keepAliveId);
     }
 
     public override ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
-        return stream.WriteULong((ulong)Of(data).KeepAliveId);
+        return stream.WriteUnsignedLongAsync((ulong)Of(data).KeepAliveId);
     }
 }

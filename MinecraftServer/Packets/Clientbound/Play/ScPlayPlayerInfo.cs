@@ -20,62 +20,62 @@ public class ScPlayPlayerInfo : Packet<ScPlayPlayerInfo, ScPlayPlayerInfoPacketD
     {
         var data = Of(pData);
 
-        await stream.WriteVarInt((int) data.Action);
-        await stream.WriteVarInt(data.Actions.Count);
+        await stream.WriteVarIntAsync((int) data.Action);
+        await stream.WriteVarIntAsync(data.Actions.Count);
         foreach (var action in data.Actions)
         {
-            await stream.WriteUUID(action.Uuid);
+            await stream.WriteUuidAsync(action.Uuid);
             if (data.Action == ScPlayPlayerInfoPacketData.UpdateAction.AddPlayer)
             {
                 var a = (ScPlayPlayerInfoPacketData.AddPlayerAction) action;
 
-                await stream.WriteString(a.Username, 16);
+                await stream.WriteStringAsync(a.Username, 16);
                 if (a.Profile != null)
                 {
-                    await stream.WriteVarInt(a.Profile.properties.Count);
+                    await stream.WriteVarIntAsync(a.Profile.properties.Count);
                     foreach (var property in a.Profile.properties)
                     {
-                        await stream.WriteString(property.name, 32767);
-                        await stream.WriteString(property.value, 32767);
-                        await stream.WriteBool(property.signature != null); // is the property signed
+                        await stream.WriteStringAsync(property.name, 32767);
+                        await stream.WriteStringAsync(property.value, 32767);
+                        await stream.WriteBoolAsync(property.signature != null); // is the property signed
                         if (property.signature != null)
                         {
-                            await stream.WriteString(property.signature, 32767);
+                            await stream.WriteStringAsync(property.signature, 32767);
                         }
                     }
                 } else
                 {
-                    await stream.WriteVarInt(0);
+                    await stream.WriteVarIntAsync(0);
                 }
 
-                await stream.WriteVarInt(a.Gamemode);
-                await stream.WriteVarInt(a.Ping);
-                await stream.WriteBool(a.DisplayName != null);
+                await stream.WriteVarIntAsync(a.Gamemode);
+                await stream.WriteVarIntAsync(a.Ping);
+                await stream.WriteBoolAsync(a.DisplayName != null);
                 if (a.DisplayName != null)
                 {
                     await using var mem = new MemoryStream();
                     await JsonSerializer.SerializeAsync(mem, a.DisplayName, SerializationContext.Default.ChatComponent);
-                    await stream.WriteBytesLen(mem.ToArray(), ushort.MaxValue);
+                    await stream.WriteBytesLenAsync(mem.ToArray(), ushort.MaxValue);
                 }
             }
             else if (data.Action == ScPlayPlayerInfoPacketData.UpdateAction.UpdateGamemode)
             {
-                await stream.WriteVarInt(((ScPlayPlayerInfoPacketData.UpdateGamemodeAction) action).Gamemode);
+                await stream.WriteVarIntAsync(((ScPlayPlayerInfoPacketData.UpdateGamemodeAction) action).Gamemode);
             }
             else if (data.Action == ScPlayPlayerInfoPacketData.UpdateAction.UpdateLatency)
             {
-                await stream.WriteVarInt(((ScPlayPlayerInfoPacketData.UpdateLatencyAction) action).Ping);
+                await stream.WriteVarIntAsync(((ScPlayPlayerInfoPacketData.UpdateLatencyAction) action).Ping);
             }
             else if (data.Action == ScPlayPlayerInfoPacketData.UpdateAction.UpdateDisplayName)
             {
                 var a = (ScPlayPlayerInfoPacketData.UpdateDisplayNameAction) action;
                 
-                await stream.WriteBool(a.DisplayName != null);
+                await stream.WriteBoolAsync(a.DisplayName != null);
                 if (a.DisplayName != null)
                 {
                     await using var mem = new MemoryStream();
                     await JsonSerializer.SerializeAsync(mem, a.DisplayName, SerializationContext.Default.ChatComponent);
-                    await stream.WriteBytesLen(mem.ToArray(), ushort.MaxValue);
+                    await stream.WriteBytesLenAsync(mem.ToArray(), ushort.MaxValue);
                 }
             }
         }

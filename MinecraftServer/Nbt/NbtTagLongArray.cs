@@ -15,10 +15,10 @@ public class NbtTagLongArray : NbtTag
 
     public async ValueTask Write(DataAdapter writer)
     {
-        await writer.WriteInt(longs.Count);
+        await writer.WriteIntAsync(longs.Count);
         foreach (var value in longs)
         {
-            await writer.WriteULong((ulong) value);
+            await writer.WriteUnsignedLongAsync((ulong) value);
         }
     }
 

@@ -12,9 +12,9 @@ public class CsPlayPluginMessage : Packet<CsPlayPluginMessage, CsPlayPluginMessa
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
-        var identifier = await stream.ReadString(ushort.MaxValue);
+        var identifier = await stream.ReadStringAsync(ushort.MaxValue);
         var bytes = IoBuffer.Allocate((int)stream.Length);
-        await stream.ReadBytes(bytes);
+        await stream.ReadBytesAsync(bytes);
         return new CsPlayPluginMessagePacketData(identifier, bytes);
     }
 
