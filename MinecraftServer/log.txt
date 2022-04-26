@@ -1,0 +1,8 @@
+MinecraftServer.SourceGeneration.Events.EventBusAttribute
+System.AttributeUsageAttribute
+System.Text.Json.Serialization.JsonSerializableAttribute
+System.Text.Json.Serialization.JsonSerializableAttribute
+System.Text.Json.Serialization.JsonSerializableAttribute
+System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute
+1
+100 1 MinecraftServer.Packets.Serverbound.Handshake.CsHandshake MinecraftServer.DataBus.thing
