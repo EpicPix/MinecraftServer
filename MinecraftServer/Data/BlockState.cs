@@ -3,9 +3,9 @@ namespace MinecraftServer.Data;
 public readonly partial struct BlockState
 {
     
-    public readonly uint Id;
+    public readonly ushort Id;
     
-    public BlockState(uint id)
+    public BlockState(ushort id)
     {
         Id = id;
     }
