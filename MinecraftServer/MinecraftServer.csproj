@@ -14,7 +14,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="test.nbt" />
+        <AdditionalFiles Include="Assets\*.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\MinecraftServer.SourceGenerators\MinecraftServer.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
 </Project>

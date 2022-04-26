@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinecraftServer", "Minecraf
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinecraftServer.Benchmarks", "MinecraftServer.Benchmarks\MinecraftServer.Benchmarks.csproj", "{E727B80D-C774-46AC-A9BA-E29A09903EA6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinecraftServer.SourceGenerators", "MinecraftServer.SourceGenerators\MinecraftServer.SourceGenerators.csproj", "{58D4DF24-FFEC-4948-B8E6-74295CD904CA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
