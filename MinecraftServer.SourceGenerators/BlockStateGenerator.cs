@@ -38,7 +38,7 @@ public class BlockStateGenerator : ISourceGenerator
         source.AppendLine();
         source.AppendLine("namespace MinecraftServer.Data");
         source.AppendLine("{");
-        source.AppendLine("    public partial class BlockState {");
+        source.AppendLine("    public readonly partial struct BlockState {");
         source.AppendLine("        public static readonly IList<BlockState> States;");
         source.AppendLine("        public static readonly BlockState Air;");
         source.AppendLine("        public static BlockState GetBlockState(string id) {");
@@ -47,7 +47,6 @@ public class BlockStateGenerator : ISourceGenerator
         uint iid = 0;
         foreach (var c in json.EnumerateObject())
         {
-            // var alone = c.Value.GetProperty("states").GetArrayLength() == 1;
             foreach (var state in c.Value.GetProperty("states").EnumerateArray())
             {
                 

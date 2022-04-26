@@ -1,6 +1,6 @@
 namespace MinecraftServer.Data;
 
-public partial class BlockState
+public readonly partial struct BlockState
 {
     
     public readonly uint Id;
