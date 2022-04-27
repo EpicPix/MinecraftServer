@@ -1,4 +1,4 @@
-﻿namespace MinecraftServer.SourceGeneration.Events;
+﻿namespace MinecraftServer.SourceGenerators.Events;
 
 public class EventBus
 {

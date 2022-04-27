@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MinecraftServer.SourceGeneration.Events
+namespace MinecraftServer.SourceGenerators.Events
 {
     /// <summary>
     /// Attribute used to define an Event Bus
