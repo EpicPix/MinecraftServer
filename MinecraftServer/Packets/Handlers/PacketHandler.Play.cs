@@ -69,7 +69,7 @@ public static partial class PacketHandler
                         if (!connection.SentChunks.ContainsKey((x + (int) data.X / 16, z + (int) data.Z / 16)))
                         {
                             connection.SentChunks[(x + (int) data.X / 16, z + (int) data.Z / 16)] = true;
-                            ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x + (int) data.X / 16, z + (int) data.Z / 16), connection);
+                            ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x + (int) data.X / 16, z + (int) data.Z / 16, server.GetChunk(x + (int) data.X / 16, z + (int) data.Z / 16)), connection);
                         }
                     }
                 }
@@ -98,7 +98,7 @@ public static partial class PacketHandler
                         if (!connection.SentChunks.ContainsKey((x + (int) data.X / 16, z + (int) data.Z / 16)))
                         {
                             connection.SentChunks[(x + (int) data.X / 16, z + (int) data.Z / 16)] = true;
-                            ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x + (int) data.X / 16, z + (int) data.Z / 16), connection);
+                            ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x + (int) data.X / 16, z + (int) data.Z / 16, server.GetChunk(x + (int) data.X / 16, z + (int) data.Z / 16)), connection);
                         }
                     }
                 }

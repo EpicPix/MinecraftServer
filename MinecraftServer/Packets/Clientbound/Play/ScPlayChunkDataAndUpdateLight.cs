@@ -36,51 +36,43 @@ public class ScPlayChunkDataAndUpdateLight : Packet<ScPlayChunkDataAndUpdateLigh
 
         await using var ms = new MemoryStream();
         await using var s = new StreamAdapter(ms);
-        for (uint i = 0; i < 16; i++)
+        for (var i = 0; i < data.Chunk.SectionsLength; i++)
         {
-            await s.WriteUnsignedShortAsync(16 * 16 * 8); // block count
+            var section = data.Chunk[i];
+            await s.WriteUnsignedShortAsync(16 * 16 * 16); // block count, a lot and i don't feel like adding a counter for checking amount of blocks in a ChunkSection
 
-            if (i <= 3) // (16 * 3)   48 up to 63
+            var palette = section.GetPalette();
+            if (palette.Length == 0)
             {
-                await s.WriteByteAsync(8); // palette bits
-                await s.WriteVarIntAsync(4); // palette length
-                await s.WriteVarIntAsync(9); // element[0], grass block
-                await s.WriteVarIntAsync(10); // element[1], dirt
-                await s.WriteVarIntAsync(1); // element[2], stone
-                await s.WriteVarIntAsync(33); // element[3], bedrock
-
-                await s.WriteVarIntAsync(16 * 16 * 2); // block data length (in longs)
-                for (var y = 0; y < 16; y++)
+                await s.WriteByteAsync(0);
+                await s.WriteByteAsync(0);
+                await s.WriteByteAsync(0);
+            } else
+            {
+                await s.WriteByteAsync(8);
+                var paletteLength = 0;
+                foreach (var id in palette)
                 {
-                    var actualY = i * 16 + y;
-                    
-                    for (var z = 0; z < 16; z++)
+                    paletteLength += Utils.GetVarIntLength(id);
+                }
+                await s.WriteVarIntAsync(paletteLength);
+                foreach (var id in palette)
+                {
+                    await s.WriteVarIntAsync(id);
+                }
+                await s.WriteVarIntAsync(16 * 16 * 2); // block data length (in longs)
+                for (byte y = 0; y <= 15; y++)
+                {
+                    for (byte z = 0; z <= 15; z++)
                     {
-                        for (var x = 0; x < 16; x++)
+                        for (byte x = 0; x <= 15; x++)
                         {
-                            if (actualY == 63)
-                            {
-                                await s.WriteByteAsync(0);
-                            }else if (actualY > 60)
-                            {
-                                await s.WriteByteAsync(1);
-                            }else if (actualY == 0)
-                            {
-                                await s.WriteByteAsync(3);
-                            } else
-                            {
-                                await s.WriteByteAsync(2);
-                            }
+                            await s.WriteByteAsync(section.GetBlockIdToPalette(section.GetBlockId(x, y, z)));
                         }
                     }
                 }
-            } else
-            {
-                await s.WriteByteAsync(0); // palette bits
-                await s.WriteVarIntAsync(0); // block
-                await s.WriteVarIntAsync(0); // block data length
             }
-            
+
             await s.WriteByteAsync(0);
             await s.WriteVarIntAsync(1);
             await s.WriteVarIntAsync(0);

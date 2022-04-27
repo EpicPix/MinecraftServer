@@ -2,6 +2,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Security.Cryptography;
 using Microsoft.IO;
+using MinecraftServer.Data;
 using MinecraftServer.EntityMetadata;
 using MinecraftServer.Events;
 using MinecraftServer.Networking;
@@ -117,6 +118,19 @@ public class Server
             }), onlinePlayer.Connection);
             ScPlayDestroyEntities.Send(new ScPlayDestroyEntitiesPacketData(new List<int> { (int) player.EntityId }), onlinePlayer.Connection);
         }
+    }
+
+    public Chunk GetChunk(int x, int z)
+    {
+        var c = new Chunk(256);
+        for (byte cx = 0; cx <= 15; cx++)
+        {
+            for (byte cz = 0; cz <= 15; cz++)
+            {
+                c[(cx, 63, cz)] = BlockState.GrassBlock;
+            }
+        }
+        return c;
     }
 
     public void AddConnection(NetworkConnection connection)

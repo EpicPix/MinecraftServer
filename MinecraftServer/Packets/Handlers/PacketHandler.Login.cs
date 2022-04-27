@@ -112,7 +112,7 @@ public static partial class PacketHandler
                     if (!connection.SentChunks.ContainsKey((x, z)))
                     {
                         connection.SentChunks[(x, z)] = true;
-                        ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x, z), connection);
+                        ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x, z, server.GetChunk(x, z)), connection);
                     }
                 }
             }
