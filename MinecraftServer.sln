@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinecraftServer.Benchmarks"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinecraftServer.SourceGeneration", "MinecraftServer.SourceGeneration\MinecraftServer.SourceGeneration.csproj", "{9A42B07B-76DE-46FC-974E-9889E259A8EB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinecraftServer.SourceGenerators", "MinecraftServer.SourceGenerators\MinecraftServer.SourceGenerators.csproj", "{58D4DF24-FFEC-4948-B8E6-74295CD904CA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{9A42B07B-76DE-46FC-974E-9889E259A8EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A42B07B-76DE-46FC-974E-9889E259A8EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A42B07B-76DE-46FC-974E-9889E259A8EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58D4DF24-FFEC-4948-B8E6-74295CD904CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58D4DF24-FFEC-4948-B8E6-74295CD904CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58D4DF24-FFEC-4948-B8E6-74295CD904CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58D4DF24-FFEC-4948-B8E6-74295CD904CA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
