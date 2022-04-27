@@ -8,82 +8,12 @@ using MinecraftServer.Networking;
 using MinecraftServer.Packets;
 using MinecraftServer.Packets.Clientbound.Data;
 using MinecraftServer.Packets.Clientbound.Play;
-using MinecraftServer.Packets.Handlers;
 
 namespace MinecraftServer;
 
 public class Server
 {
 
-    // public static readonly IReadOnlyList<PacketEventHandler> PacketHandlers;
-    //
-    // internal static void GeneratePacketHandler<T>(MethodInfo method, PacketEventAttribute attr, List<PacketEventHandler> handlers) where T : PacketData
-    // {
-    //     if (method.GetParameters().Length == 3)
-    //     {
-    //         if (method.ReturnType == typeof(ValueTask))
-    //         {
-    //             var delg = Delegate.CreateDelegate(typeof(PacketEventHandler<T>.PacketEventHandlerFuncAsync), method);
-    //             var handler = new PacketEventHandler<T>(attr.Packet, attr.Priority, (PacketEventHandler<T>.PacketEventHandlerFuncAsync) delg);
-    //             handlers.Add(handler);
-    //         } else
-    //         {
-    //             var delg = Delegate.CreateDelegate(typeof(PacketEventHandler<T>.PacketEventHandlerFunc), method);
-    //             var handler = new PacketEventHandler<T>(attr.Packet, attr.Priority, (PacketEventHandler<T>.PacketEventHandlerFunc) delg);
-    //             handlers.Add(handler);
-    //         }
-    //     } else
-    //     {
-    //         if (method.ReturnType == typeof(ValueTask))
-    //         {
-    //             var delg = Delegate.CreateDelegate(typeof(PacketEventHandler<T>.PacketEventHandlerFuncStatusAsync), method);
-    //             var handler = new PacketEventHandler<T>(attr.Packet, attr.Priority, (PacketEventHandler<T>.PacketEventHandlerFuncStatusAsync) delg);
-    //             handlers.Add(handler);
-    //         } else
-    //         {
-    //             var delg = Delegate.CreateDelegate(typeof(PacketEventHandler<T>.PacketEventHandlerFuncStatus), method);
-    //             var handler = new PacketEventHandler<T>(attr.Packet, attr.Priority, (PacketEventHandler<T>.PacketEventHandlerFuncStatus) delg);
-    //             handlers.Add(handler);
-    //         }
-    //     }
-    // }
-    //
-    // static Server()
-    // {
-    //     var handlers = new List<PacketEventHandler>();
-    //     
-    //     foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
-    //     {
-    //         foreach(var method in type.GetMethods())
-    //         {
-    //             var attr = (PacketEventAttribute?) method.GetCustomAttribute(typeof(PacketEventAttribute));
-    //             if (attr != null)
-    //             {
-    //                 if (!method.IsStatic) throw new InvalidOperationException("Event Handler method must be static");
-    //
-    //                 var ps = method.GetParameters();
-    //                 if (ps.Length != 3 && ps.Length != 4) throw new InvalidOperationException("Event Handler method must have 3 or 4 parameters");
-    //
-    //                 var packetDataType = attr.Packet.GetType().BaseType!.GenericTypeArguments[1];
-    //                 
-    //                 if(ps[0].ParameterType != packetDataType) throw new InvalidOperationException($"{ps[0].ParameterType} != {packetDataType}");
-    //                 if(ps[1].ParameterType != typeof(NetworkConnection)) throw new InvalidOperationException($"{ps[1].ParameterType} != {typeof(NetworkConnection)}");
-    //                 if(ps[2].ParameterType != typeof(Server)) throw new InvalidOperationException($"{ps[2].ParameterType} != {typeof(Server)}");
-    //
-    //                 if (ps.Length == 4)
-    //                 {
-    //                     if(ps[3].ParameterType != typeof(PacketEventHandlerStatus).MakeByRefType()) throw new InvalidOperationException($"{ps[2].ParameterType} != {typeof(PacketEventHandlerStatus).MakeByRefType()}");
-    //                 }
-    //
-    //                 var handlerAdder = typeof(Server).GetMethod("GeneratePacketHandler", BindingFlags.NonPublic | BindingFlags.Static)!.MakeGenericMethod(packetDataType);
-    //                 handlerAdder.Invoke(null, BindingFlags.NonPublic | BindingFlags.Static, null, new object[]{ method, attr, handlers }, null);
-    //             }
-    //         }
-    //     }
-    //     handlers.Sort((a, b) => -a.Priority.CompareTo(b.Priority));
-    //     PacketHandlers = handlers.AsReadOnly();
-    // }
-    
     public static readonly RecyclableMemoryStreamManager MS_MANAGER = new();
     public ServerInfo ServerInfo { get; }
     public volatile List<NetworkConnection> ActiveConnections;
@@ -254,27 +184,6 @@ public class Server
                 var data = await packet.ReadPacket(new StreamAdapter(conn, readableUncompressedLength, conn.ConnectionState));
 
                 await PacketEventBus.PostEventAsync(data, conn.EventBus);
-                
-                // foreach (var packetHandler in PacketHandlers)
-                // {
-                //     if (packetHandler.Packet == packet)
-                //     {
-                //         var status = PacketEventHandlerStatus.Continue;
-                //         if (packetHandler.Async)
-                //         {
-                //             var reference = new PacketEventHandlerStatusRef(status);
-                //             await packetHandler.RunAsync(data, conn, this, reference);
-                //             status = reference.HandlerStatus;
-                //         } else
-                //         {
-                //             packetHandler.Run(data, conn, this, ref status);
-                //         }
-                //         if ((status & PacketEventHandlerStatus.Stop) == PacketEventHandlerStatus.Stop)
-                //         {
-                //             break;
-                //         }
-                //     }
-                // }
 
                 conn.Player?.Tick(); // TODO Remove this when there is actual server ticking
 

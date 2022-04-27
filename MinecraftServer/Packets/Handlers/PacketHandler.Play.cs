@@ -1,9 +1,7 @@
 ﻿using MinecraftServer.Events;
-using MinecraftServer.Networking;
 using MinecraftServer.Packets.Clientbound.Data;
 using MinecraftServer.Packets.Clientbound.Play;
 using MinecraftServer.Packets.Serverbound.Data;
-using MinecraftServer.Packets.Serverbound.Play;
 using MinecraftServer.SourceGenerators.Events;
 
 namespace MinecraftServer.Packets.Handlers;
@@ -11,8 +9,7 @@ namespace MinecraftServer.Packets.Handlers;
 public static partial class PacketHandler
 {
 
-    // [PacketEvent(typeof(CsPlayChatMessage), priority: 100)]
-    [EventHandler(1, typeof(CsPlayChatMessagePacketData), 100)]
+    [EventHandler(EventBuses.Packet, typeof(CsPlayChatMessagePacketData), priority: 100)]
     public static void HandleChatMessage(CsPlayChatMessagePacketData data, PacketEventBus bus)
     {
         var (server, connection) = (bus.Server, bus.Connection);
@@ -42,8 +39,7 @@ public static partial class PacketHandler
         }
     }
 
-    // [PacketEvent(typeof(CsPlayKeepAlive), priority: 100)]
-    [EventHandler(1, typeof(CsPlayKeepAlivePacketData), 100)]
+    [EventHandler(EventBuses.Packet, typeof(CsPlayKeepAlivePacketData), priority: 100)]
     public static void HandleKeepAlive(CsPlayKeepAlivePacketData data, PacketEventBus bus)
     {
         var (server, connection) = (bus.Server, bus.Connection);
@@ -54,8 +50,7 @@ public static partial class PacketHandler
         }
     }
 
-    // [PacketEvent(typeof(CsPlayPlayerPosition), priority: 100)]
-    [EventHandler(1, typeof(CsPlayPlayerPositionPacketData), 100)]
+    [EventHandler(EventBuses.Packet, typeof(CsPlayPlayerPositionPacketData), priority: 100)]
     public static void HandlePosition(CsPlayPlayerPositionPacketData data, PacketEventBus bus)
     {
         var (server, connection) = (bus.Server, bus.Connection);
@@ -84,8 +79,7 @@ public static partial class PacketHandler
         player.Move(data.X, data.Y, data.Z);
     }
 
-    // [PacketEvent(typeof(CsPlayPlayerPositionAndRotation), priority: 100)]
-    [EventHandler(1, typeof(CsPlayPlayerPositionAndRotationPacketData), 100)]
+    [EventHandler(EventBuses.Packet, typeof(CsPlayPlayerPositionAndRotationPacketData), priority: 100)]
     public static void HandlePosition(CsPlayPlayerPositionAndRotationPacketData data, PacketEventBus bus)
     {
         var (server, connection) = (bus.Server, bus.Connection);
@@ -115,8 +109,7 @@ public static partial class PacketHandler
         player.Rotate(data.Yaw, data.Pitch);
     }
 
-    // [PacketEvent(typeof(CsPlayPlayerRotation), priority: 100)]
-    [EventHandler(1, typeof(CsPlayPlayerRotationPacketData), 100)]
+    [EventHandler(EventBuses.Packet, typeof(CsPlayPlayerRotationPacketData), priority: 100)]
     public static void HandlePosition(CsPlayPlayerRotationPacketData data, PacketEventBus bus)
     {
         var (server, connection) = (bus.Server, bus.Connection);
@@ -125,8 +118,7 @@ public static partial class PacketHandler
         player.Rotate(data.Yaw, data.Pitch);
     }
 
-    // [PacketEvent(typeof(CsPlayAnimation), priority: 100)]
-    [EventHandler(1, typeof(CsPlayAnimationPacketData), 100)]
+    [EventHandler(EventBuses.Packet, typeof(CsPlayAnimationPacketData), priority: 100)]
     public static void HandleAnimation(CsPlayAnimationPacketData data, PacketEventBus bus)
     {
         var (server, connection) = (bus.Server, bus.Connection);
@@ -143,8 +135,7 @@ public static partial class PacketHandler
         }
     }
 
-    // [PacketEvent(typeof(CsPlayEntityAction), priority: 100)]
-    [EventHandler(1, typeof(CsPlayEntityActionPacketData), 100)]
+    [EventHandler(EventBuses.Packet, typeof(CsPlayEntityActionPacketData), priority: 100)]
     public static void HandleEntityAction(CsPlayEntityActionPacketData data, PacketEventBus bus)
     {
         var (server, connection) = (bus.Server, bus.Connection);

@@ -7,3 +7,8 @@ public class EventBus
         return true;
     }
 }
+
+public enum EventBuses
+{
+    Packet = 0
+}

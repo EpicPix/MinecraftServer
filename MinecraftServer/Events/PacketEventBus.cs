@@ -3,7 +3,7 @@ using MinecraftServer.SourceGenerators.Events;
 
 namespace MinecraftServer.Events;
 
-[EventBus(1)]
+[EventBus(EventBuses.Packet)]
 public partial class PacketEventBus : CancellableEventBus
 {
     public NetworkConnection Connection { get; }

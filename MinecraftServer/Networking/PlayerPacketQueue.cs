@@ -110,26 +110,6 @@ public class PlayerPacketQueue
                 if (Server != null) // might be null, the only place it is are the benchmarks
                 {
                     await PacketEventBus.PostEventAsync(packet.PacketData, _bus);
-                    // foreach (var packetHandler in Server.PacketHandlers)
-                    // {
-                    //     if (packetHandler.Packet == packet.PacketDefinition)
-                    //     {
-                    //         var status = PacketEventHandlerStatus.Continue;
-                    //         if (packetHandler.Async)
-                    //         {
-                    //             var reference = new PacketEventHandlerStatusRef(status);
-                    //             await packetHandler.RunAsync(packet.PacketData, connection, Server, reference);
-                    //             status = reference.HandlerStatus;
-                    //         } else
-                    //         {
-                    //             packetHandler.Run(packet.PacketData, connection, Server, ref status);
-                    //         }
-                    //         if ((status & PacketEventHandlerStatus.Stop) == PacketEventHandlerStatus.Stop)
-                    //         {
-                    //             break;
-                    //         }
-                    //     }
-                    // }
                 }
             }
         }

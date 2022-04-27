@@ -17,8 +17,7 @@ namespace MinecraftServer.Packets.Handlers;
 
 public static partial class PacketHandler
 {
-    // [PacketEvent(typeof(CsLoginEncryptionResponse), priority: 100)]
-    [EventHandler(1, typeof(CsLoginEncryptionResponsePacketData), 100, true)]
+    [EventHandler(EventBuses.Packet, typeof(CsLoginEncryptionResponsePacketData), priority: 100, true)]
     public static async ValueTask HandleEncryptionResponse(CsLoginEncryptionResponsePacketData data, PacketEventBus bus)
     {
         var (server, connection) = (bus.Server, bus.Connection);
@@ -57,8 +56,7 @@ public static partial class PacketHandler
         FinishLogin(connection, server);
     }
 
-    // [PacketEvent(typeof(CsLoginLoginStart), priority: 100)]
-    [EventHandler(1, typeof(CsLoginLoginStartPacketData), 100)]
+    [EventHandler(EventBuses.Packet, typeof(CsLoginLoginStartPacketData), priority: 100)]
     public static void HandleLoginStart(CsLoginLoginStartPacketData data, PacketEventBus bus)
     {
         var (server, connection) = (bus.Server, bus.Connection);

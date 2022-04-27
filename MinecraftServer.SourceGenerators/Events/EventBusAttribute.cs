@@ -8,11 +8,11 @@ namespace MinecraftServer.SourceGenerators.Events
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, Inherited = false)]
     public class EventBusAttribute : Attribute
     {
-        public int BusId { get; }
+        public EventBuses Bus { get; }
 
-        public EventBusAttribute(int busId)
+        public EventBusAttribute(EventBuses bus)
         {
-            BusId = busId;
+            Bus = bus;
         }
     }
 }

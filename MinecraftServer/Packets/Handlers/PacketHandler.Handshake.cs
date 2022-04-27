@@ -1,7 +1,5 @@
 using MinecraftServer.Events;
-using MinecraftServer.Networking;
 using MinecraftServer.Packets.Serverbound.Data;
-using MinecraftServer.Packets.Serverbound.Handshake;
 using MinecraftServer.SourceGenerators.Events;
 
 namespace MinecraftServer.Packets.Handlers;
@@ -9,8 +7,7 @@ namespace MinecraftServer.Packets.Handlers;
 public static partial class PacketHandler
 {
 
-    // [PacketEvent(typeof(CsHandshake), priority: 100)]
-    [EventHandler(1, typeof(CsHandshakePacketData), 100)]
+    [EventHandler(EventBuses.Packet, typeof(CsHandshakePacketData), priority: 100)]
     public static void HandleHandshake(CsHandshakePacketData data, PacketEventBus bus)
     {
         Console.WriteLine($"Protocol version: {data.ProtocolVersion} / Server IP: {data.ServerIp} / Server Port: {data.ServerPort} / Next State: {(PacketType) data.NextState}");

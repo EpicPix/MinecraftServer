@@ -14,60 +14,44 @@ namespace MinecraftServer.SourceGenerators.Events
     [Generator]
     public class EventBusSourceGenerator : ISourceGenerator
     {
-        // private int _busId;
-        // public EventBusSourceGenerator(int busId)
-        // {
-        //     _busId = busId;
-        // }
-        private static StringBuilder sb = new();
         private static GeneratorExecutionContext Context;
         private static Compilation Compile;
-        private static Dictionary<int, (EventBusAttribute, TypeDeclarationSyntax)> _busses = new();
+        private static Dictionary<EventBuses, (EventBusAttribute, TypeDeclarationSyntax)> _buses = new();
 
         public void Execute(GeneratorExecutionContext context)
         {
-            _busses.Clear();
-            sb.Clear();
+            _buses.Clear();
             Context = context;
             Compile = context.Compilation;
-            try
+            
+            var busses = GetEventBusses(context.Compilation);
+            foreach (var bus in busses)
             {
-                var busses = GetEventBusses(context.Compilation);
-                foreach (var bus in busses)
+                var busAttribute = bus.Item1;
+                if (_buses.ContainsKey(busAttribute.Bus))
                 {
-                    sb.AppendLine(bus.Item1.BusId + "");
-                    var busAttribute = bus.Item1;
-                    sb.AppendLine("Adding bus " + busAttribute.BusId);
-                    if (_busses.ContainsKey(busAttribute.BusId))
-                    {
-                        WriteError(Location.None, $"Duplicate event bus found.",
-                            $"There cannot be two of the same event busses of id {busAttribute.BusId}.");
-                    }
-                    else
-                    {
-                        _busses[busAttribute.BusId] = bus;
-                    }
+                    WriteError(Location.None, $"Duplicate event bus found.",
+                        $"There cannot be two of the same event buses of {busAttribute.Bus}.");
                 }
-
-                var handlers = GetEventHandlers(context.Compilation);
-
-                var groupedHandlers = handlers.GroupBy(x => x.Item1.BusId);
-
-                foreach (var groupedHandler in groupedHandlers)
+                else
                 {
-                    if (_busses.ContainsKey(groupedHandler.Key))
-                    {
-                        var bus = _busses[groupedHandler.Key];
-                        WriteEventBus(context, bus, groupedHandler);
-                    }
+                    _buses[busAttribute.Bus] = bus;
                 }
             }
-            catch (Exception e)
+
+            var handlers = GetEventHandlers(context.Compilation);
+
+            var groupedHandlers = handlers.GroupBy(x => x.Item1.Bus);
+
+            foreach (var groupedHandler in groupedHandlers)
             {
-                sb.AppendLine(e.Message + " " + e.StackTrace);
+                if (_buses.ContainsKey(groupedHandler.Key))
+                {
+                    var bus = _buses[groupedHandler.Key];
+                    WriteEventBus(context, bus, groupedHandler);
+                }
             }
 
-            // File.WriteAllText(@"D:\encodeous\MinecraftServer\MinecraftServer\log.txt", sb.ToString());
         }
 
         public void WriteEventBus(GeneratorExecutionContext context, (EventBusAttribute, TypeDeclarationSyntax) bus, IEnumerable<(EventHandlerAttribute, string)> handlers)
@@ -116,8 +100,6 @@ using System.Threading.Tasks;");
             {
                 builder.AppendLine("}");
             }
-
-            sb.AppendLine(builder.ToString());
             
             context.AddSource("EventBus_" + name + ".g", SourceText.From(builder.ToString(), Encoding.UTF8));
         }
@@ -139,7 +121,6 @@ using System.Threading.Tasks;");
                 }
             }
             builder.AppendLine($"                    break;");
-            sb.AppendLine(builder.ToString());
             return builder.ToString();
         }
 
@@ -180,11 +161,11 @@ using System.Threading.Tasks;");
                 .ToImmutableArray();
         }
 
-        private static string GetBusType(int busId)
+        private static string GetBusType(EventBuses bus)
         {
-            if (!_busses.ContainsKey(busId)) return null;
-            var model = Compile.GetSemanticModel(_busses[busId].Item2.SyntaxTree);
-            var symbol = model.GetDeclaredSymbol(_busses[busId].Item2);
+            if (!_buses.ContainsKey(bus)) return null;
+            var model = Compile.GetSemanticModel(_buses[bus].Item2.SyntaxTree);
+            var symbol = model.GetDeclaredSymbol(_buses[bus].Item2);
             return symbol.ToDisplayString();
         }
 
@@ -194,14 +175,10 @@ using System.Threading.Tasks;");
             var semanticModel = compilation.GetSemanticModel(component.SyntaxTree);
             var attribute = component.AttributeLists
                 .SelectMany(x => x.Attributes)
-                .Where(attr =>
-                {
-                    sb.AppendLine(GetName(attr, semanticModel));
-                    return GetName(attr, semanticModel) == typeof(EventBusAttribute).FullName;
-                }).ToList();
+                .Where(attr => GetName(attr, semanticModel) == typeof(EventBusAttribute).FullName).ToList();
             if (!attribute.Any()) return (null, null);
             var args = attribute[0].ArgumentList.Arguments;
-            return (new EventBusAttribute(int.Parse(GetConstantValue(semanticModel, args[0].Expression))), component);
+            return (new EventBusAttribute(Enum.Parse<EventBuses>(GetConstantValue(semanticModel, args[0].Expression))), component);
         }
         
         private static (EventHandlerAttribute, string) GetEventHandlerAttribute(Compilation compilation,
@@ -229,13 +206,13 @@ using System.Threading.Tasks;");
             EventHandlerAttribute data;
             if (args.Count == 3)
             {
-                data = new EventHandlerAttribute(int.Parse(GetConstantValue(semanticModel, args[0].Expression)),
+                data = new EventHandlerAttribute(Enum.Parse<EventBuses>(GetConstantValue(semanticModel, args[0].Expression)),
                     GetName(args[1].Expression, semanticModel),
                     int.Parse(GetConstantValue(semanticModel, args[2].Expression)));
             }
             else if (args.Count == 4)
             {
-                data = new EventHandlerAttribute(int.Parse(GetConstantValue(semanticModel, args[0].Expression)),
+                data = new EventHandlerAttribute(Enum.Parse<EventBuses>(GetConstantValue(semanticModel, args[0].Expression)),
                     GetName(args[1].Expression, semanticModel),
                     int.Parse(GetConstantValue(semanticModel, args[2].Expression)),
                     bool.Parse(GetConstantValue(semanticModel, args[3].Expression)));
@@ -256,11 +233,11 @@ using System.Threading.Tasks;");
             }
             
             var calledType = semanticModel.GetSymbolInfo(param[1].Type).Symbol.ToString();
-            var reqType = GetBusType(data.BusId);
+            var reqType = GetBusType(data.Bus);
             if (reqType == null)
             {
                 WriteError(component.GetLocation(), $"EventBus cannot be found.", 
-                    $"Method {component.Identifier.ToFullString()} is registered to the bus id {data.BusId} which cannot be found.");
+                    $"Method {component.Identifier.ToFullString()} is registered to the bus id {data.Bus} which cannot be found.");
                 return (null, "");
             }
             if (calledType != reqType)
@@ -272,7 +249,6 @@ using System.Threading.Tasks;");
             
             if (data.IsAsync)
             {
-                sb.AppendLine("Async Method");
                 if (component.ReturnType.ToString() != "ValueTask")
                 {
                     WriteError(component.GetLocation(), $"EventHandler cannot be applied the specified method signature.", 
