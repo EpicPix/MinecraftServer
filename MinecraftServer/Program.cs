@@ -2,7 +2,6 @@
 using System.Net.Sockets;
 using MinecraftServer;
 using MinecraftServer.Networking;
-using MinecraftServer.SourceGeneration.Events;
 
 Thread.CurrentThread.Name = "Socket Listener Thread";
 

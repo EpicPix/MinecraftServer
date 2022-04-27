@@ -11,19 +11,22 @@ namespace MinecraftServer.SourceGenerators.Events
         public int BusId { get; }
         public string HandledData { get; }
         public int Priority { get; }
+        public bool IsAsync { get; }
 
-        public EventHandlerAttribute(int busId, Type handledData, int priority)
+        public EventHandlerAttribute(int busId, Type handledData, int priority, bool isAsync = false)
         {
             BusId = busId;
             HandledData = handledData.FullName;
             Priority = priority;
+            IsAsync = isAsync;
         }
 
-        internal EventHandlerAttribute(int busId, string handledData, int priority)
+        internal EventHandlerAttribute(int busId, string handledData, int priority, bool isAsync = false)
         {
             BusId = busId;
             HandledData = handledData;
             Priority = priority;
+            IsAsync = isAsync;
         }
     }
 }

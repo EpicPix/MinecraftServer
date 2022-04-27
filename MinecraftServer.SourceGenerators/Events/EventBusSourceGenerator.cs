@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -66,7 +67,7 @@ namespace MinecraftServer.SourceGenerators.Events
                 sb.AppendLine(e.Message + " " + e.StackTrace);
             }
 
-            // File.WriteAllText(@"D:\encodeous\MinecraftServer\MinecraftServer\log.txt", sb.ToString());
+            File.WriteAllText(@"D:\encodeous\MinecraftServer\MinecraftServer\log.txt", sb.ToString());
         }
 
         public void WriteEventBus(GeneratorExecutionContext context, (EventBusAttribute, TypeDeclarationSyntax) bus, IEnumerable<(EventHandlerAttribute, string)> handlers)
@@ -87,7 +88,7 @@ using System.Threading.Tasks;");
             }
 
             builder.Append($@"    partial {busType} {name} {{
-        public static async ValueTask PostEventAsync<T>(T data, DataBus instance)
+        public static async ValueTask PostEventAsync<T>(T data, {name} instance)
         {{
             switch (data)
             {{
@@ -128,7 +129,14 @@ using System.Threading.Tasks;");
             builder.AppendLine($"                case {handlerType} ___hid{handlerId}:");
             foreach(var handler in handlers)
             {
-                builder.AppendLine($"                    if(instance.ShouldContinue()) await {handler.Item2}(___hid{handlerId}, instance);");
+                if (handler.Item1.IsAsync)
+                {
+                    builder.AppendLine($"                    if(instance.ShouldContinue()) await {handler.Item2}(___hid{handlerId}, instance);");
+                }
+                else
+                {
+                    builder.AppendLine($"                    if(instance.ShouldContinue()) {handler.Item2}(___hid{handlerId}, instance);");
+                }
             }
             builder.AppendLine($"                    break;");
             sb.AppendLine(builder.ToString());
@@ -218,10 +226,27 @@ using System.Threading.Tasks;");
             }
 
             var args = attribute[0].ArgumentList.Arguments;
-            var data = new EventHandlerAttribute(int.Parse(GetConstantValue(semanticModel, args[0].Expression)),
-                GetName(args[1].Expression, semanticModel),
-                int.Parse(GetConstantValue(semanticModel, args[2].Expression)));
-
+            EventHandlerAttribute data;
+            if (args.Count == 3)
+            {
+                data = new EventHandlerAttribute(int.Parse(GetConstantValue(semanticModel, args[0].Expression)),
+                    GetName(args[1].Expression, semanticModel),
+                    int.Parse(GetConstantValue(semanticModel, args[2].Expression)));
+            }
+            else if (args.Count == 4)
+            {
+                data = new EventHandlerAttribute(int.Parse(GetConstantValue(semanticModel, args[0].Expression)),
+                    GetName(args[1].Expression, semanticModel),
+                    int.Parse(GetConstantValue(semanticModel, args[2].Expression)),
+                    bool.Parse(GetConstantValue(semanticModel, args[3].Expression)));
+            }
+            else
+            {
+                WriteError(component.GetLocation(), $"EventHandler cannot be applied the specified method signature.", 
+                    $"The attribute can have at most 4 arguments!");
+                return (null, "");
+            }
+            
             var eventType = semanticModel.GetSymbolInfo(param[0].Type).Symbol.ToString();
             if (eventType != data.HandledData)
             {
@@ -243,6 +268,17 @@ using System.Threading.Tasks;");
                 WriteError(component.GetLocation(), $"EventHandler cannot be applied the specified method signature.", 
                     $"Method {component.Identifier.ToFullString()} accepts the bus type {calledType} in the second parameter that does not match the type of {reqType}.");
                 return (null, "");
+            }
+            
+            if (data.IsAsync)
+            {
+                sb.AppendLine("Async Method");
+                if (component.ReturnType.ToString() != "ValueTask")
+                {
+                    WriteError(component.GetLocation(), $"EventHandler cannot be applied the specified method signature.", 
+                        $"Method {component.Identifier.ToFullString()} is declared to be asynchronous. The method must return a ValueTask!");
+                    return (null, "");
+                }
             }
 
             return (data, GetName(component, semanticModel) + "." + component.Identifier.Text);
