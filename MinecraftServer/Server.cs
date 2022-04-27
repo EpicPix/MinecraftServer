@@ -120,16 +120,25 @@ public class Server
         }
     }
 
+    private Dictionary<(int, int), Chunk> _chunks = new();
+
     public Chunk GetChunk(int x, int z)
     {
+        if (_chunks.ContainsKey((x, z)))
+        {
+            return _chunks[(x, z)];
+        }
+        
         var c = new Chunk(256);
+        var yLevel = 63;
         for (byte cx = 0; cx <= 15; cx++)
         {
             for (byte cz = 0; cz <= 15; cz++)
             {
-                c[(cx, 63, cz)] = BlockState.GrassBlock;
+                c[yLevel / 16][(cx, (byte) (yLevel % 16), cz)] = BlockState.GrassBlock;
             }
         }
+        _chunks[(x, z)] = c;
         return c;
     }
 

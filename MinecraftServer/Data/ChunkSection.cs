@@ -6,7 +6,7 @@ namespace MinecraftServer.Data;
 public class ChunkSection
 {
 
-    private ushort[] _blocks = new ushort[16 * 16 * 16];
+    private ushort[]? _blocks;
 
     public BlockState this[(byte x, byte y, byte z) sectionLocation] {
         get => BlockState.States[GetBlockId(sectionLocation.x, sectionLocation.y, sectionLocation.z)];
@@ -23,6 +23,8 @@ public class ChunkSection
             {
                 throw new ArgumentOutOfRangeException(nameof(sectionLocation), "z should be in range from 0 to 15");
             }
+            _blocks ??= new ushort[16 * 16 * 16];
+            
             var index = GetChunkSectionIndex(sectionLocation.x, sectionLocation.y, sectionLocation.z);
             if (_blocks[index] == value.Id) return;
             _blocks[index] = value.Id;
@@ -53,12 +55,13 @@ public class ChunkSection
         {
             throw new ArgumentOutOfRangeException(nameof(z), "z should be in range from 0 to 15");
         }
+        if (_blocks == null) return 0;
         return _blocks[GetChunkSectionIndex(x, y, z)];
     }
 
     private bool _generatedPalette;
     private ushort[] _palette = null!;
-    private ImmutableDictionary<ushort, byte> _paletteMapping = null!;
+    private IDictionary<ushort, byte> _paletteMapping = null!;
 
     public ushort[] GetPalette()
     {
@@ -69,6 +72,14 @@ public class ChunkSection
 
         var palette = new List<ushort>();
         var paletteMapping = new Dictionary<ushort, byte>();
+
+        if (_blocks == null)
+        {
+            _palette = palette.ToArray();
+            _paletteMapping = paletteMapping;
+            _generatedPalette = true;
+            return _palette;
+        }
 
         foreach (var block in _blocks)
         {
