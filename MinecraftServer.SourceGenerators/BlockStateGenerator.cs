@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
@@ -26,6 +25,26 @@ public class BlockStateGenerator : ISourceGenerator
         
     }
 
+    private StringBuilder runner = new();
+    
+    public string ToUpperCamelCase(string str)
+    {
+        runner.Clear();
+        var up = true;
+        foreach (var character in str)
+        {
+            if (character == '_')
+            {
+                up = true;
+            } else
+            {
+                runner.Append(up ? char.ToUpper(character) : character);
+                up = false;
+            }
+        }
+        return runner.ToString();
+    }
+
 
     public String GenerateBlockStates(string rawJson)
     {
@@ -40,10 +59,8 @@ public class BlockStateGenerator : ISourceGenerator
         source.AppendLine("{");
         source.AppendLine("    public readonly partial struct BlockState {");
         source.AppendLine("        public static readonly IList<BlockState> States;");
-        source.AppendLine("        public static readonly BlockState Air;");
-        source.AppendLine("        public static BlockState GetBlockState(string id) {");
-        source.AppendLine("            switch(id)");
-        source.AppendLine("            {");
+        var switchSource = new StringBuilder();
+        var initSource = new StringBuilder();
         uint iid = 0;
         foreach (var c in json.EnumerateObject())
         {
@@ -52,16 +69,19 @@ public class BlockStateGenerator : ISourceGenerator
                 
                 if (state.TryGetProperty("default", out var prop) && prop.GetBoolean())
                 {
-                    source.AppendLine($"                case \"{c.Name}\": return States[{iid}];");
+                    switchSource.AppendLine($"                case \"{c.Name}\": return States[{iid}];");
+                    var v = ToUpperCamelCase(c.Name.Replace("minecraft:", ""));
+                    source.AppendLine($"        public static readonly BlockState {v};");
+                    initSource.AppendLine($"            {v} = States[{iid}];");
                 }
-                // else
-                // {
-                //     source.AppendLine($"                case \"{c.Name},{state.GetProperty("id")}\": return States[{iid}];");
-                // }
                 iid++;
             }
         }
-        source.AppendLine("                default: return Air;");
+        source.AppendLine("        public static BlockState GetBlockState(string id) {");
+        source.AppendLine("            switch(id)");
+        source.AppendLine("            {");
+        source.AppendLine(switchSource.ToString());
+        source.AppendLine("                default: return States[0];");
         source.AppendLine("            }");
         source.AppendLine("        }");
         source.AppendLine("        static BlockState() {");
@@ -78,7 +98,7 @@ public class BlockStateGenerator : ISourceGenerator
             }
         }
         source.AppendLine("            States = Array.AsReadOnly<BlockState>(states);");
-        source.AppendLine("            Air = GetBlockState(\"minecraft:air\");");
+        source.AppendLine(initSource.ToString());
         source.AppendLine("        }");
         source.AppendLine("    }");
         source.AppendLine("}");
