@@ -74,10 +74,7 @@ public abstract class DataAdapter : Stream
 
     public async ValueTask<byte> ReadByteAsync()
     {
-        if (await ReadAsync(_singleByteRead, _ct) != 0)
-        {
-            Console.WriteLine("Read byte did read all bytes");
-        }
+        await ReadAsync(_singleByteRead, _ct);
         return _singleByteRead[0];
     }
 
@@ -89,10 +86,7 @@ public abstract class DataAdapter : Stream
 
     public async ValueTask<Angle> ReadAngleAsync()
     {
-        if (await ReadAsync(_singleByteRead, _ct) != 0)
-        {
-            Console.WriteLine("Read angle did read all bytes");
-        }
+        await ReadAsync(_singleByteRead, _ct);
         return new Angle(_singleByteRead[0]);
     }
 

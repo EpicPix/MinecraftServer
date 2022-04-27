@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Security.Cryptography;
+using MinecraftServer.Events;
 using MinecraftServer.Packets;
 using MinecraftServer.Packets.Clientbound.Data;
 using MinecraftServer.Packets.Clientbound.Login;
@@ -37,12 +38,14 @@ public class NetworkConnection : DataAdapter
 
     public Player Player = null!;
     public ConcurrentDictionary<(int, int), bool> SentChunks = new ();
+    public PacketEventBus EventBus;
 
     public NetworkConnection(Server server, Stream client, CancellationToken shutdownToken = default) : base(shutdownToken)
     {
+        EventBus = new PacketEventBus(this, server);
         _readTransformerStack.Push(new StreamAdapter(client));
         _writeTransformerStack.Push(new StreamAdapter(client));
-        PacketQueue = new PlayerPacketQueue(server);
+        PacketQueue = new PlayerPacketQueue(server, EventBus);
         _stateSource = CancellationTokenSource.CreateLinkedTokenSource(shutdownToken);
         ConnectionState = _stateSource.Token;
     }

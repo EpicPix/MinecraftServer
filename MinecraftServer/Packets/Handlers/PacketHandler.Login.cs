@@ -11,14 +11,17 @@ using MinecraftServer.Packets.Clientbound.Login;
 using MinecraftServer.Packets.Clientbound.Play;
 using MinecraftServer.Packets.Serverbound.Data;
 using MinecraftServer.Packets.Serverbound.Login;
+using MinecraftServer.SourceGenerators.Events;
 
 namespace MinecraftServer.Packets.Handlers;
 
 public static partial class PacketHandler
 {
-    [PacketEvent(typeof(CsLoginEncryptionResponse), priority: 100)]
-    public static async ValueTask HandleEncryptionResponse(CsLoginEncryptionResponsePacketData data, NetworkConnection connection, Server server)
+    // [PacketEvent(typeof(CsLoginEncryptionResponse), priority: 100)]
+    [EventHandler(1, typeof(CsLoginEncryptionResponsePacketData), 100, true)]
+    public static async ValueTask HandleEncryptionResponse(CsLoginEncryptionResponsePacketData data, PacketEventBus bus)
     {
+        var (server, connection) = (bus.Server, bus.Connection);
         Debug.Assert(server.OnlineMode);
         var decryptedToken = server.RsaServer!.Decrypt(data.VerifyToken, RSAEncryptionPadding.Pkcs1);
         Debug.Assert(decryptedToken.SequenceEqual(connection.VerifyToken));
@@ -54,9 +57,11 @@ public static partial class PacketHandler
         FinishLogin(connection, server);
     }
 
-    [PacketEvent(typeof(CsLoginLoginStart), priority: 100)]
-    public static void HandleLoginStart(CsLoginLoginStartPacketData data, NetworkConnection connection, Server server)
+    // [PacketEvent(typeof(CsLoginLoginStart), priority: 100)]
+    [EventHandler(1, typeof(CsLoginLoginStartPacketData), 100)]
+    public static void HandleLoginStart(CsLoginLoginStartPacketData data, PacketEventBus bus)
     {
+        var (server, connection) = (bus.Server, bus.Connection);
         connection.Username = data.Name;
         if (!server.OnlineMode)
         {

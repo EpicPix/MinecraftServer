@@ -67,7 +67,7 @@ namespace MinecraftServer.SourceGenerators.Events
                 sb.AppendLine(e.Message + " " + e.StackTrace);
             }
 
-            File.WriteAllText(@"D:\encodeous\MinecraftServer\MinecraftServer\log.txt", sb.ToString());
+            // File.WriteAllText(@"D:\encodeous\MinecraftServer\MinecraftServer\log.txt", sb.ToString());
         }
 
         public void WriteEventBus(GeneratorExecutionContext context, (EventBusAttribute, TypeDeclarationSyntax) bus, IEnumerable<(EventHandlerAttribute, string)> handlers)
@@ -107,7 +107,7 @@ using System.Threading.Tasks;");
                 builder.Append(AddCase(groupedHandlers.Key, id++, sortedHandlers));
             }
             builder.Append(@"                default:
-                    throw new InvalidOperationException(" + "\"The specified data cannot be posted. No registered event handler is able to handle that type of data!\");" + @"
+                    break;
             }
         }
     }

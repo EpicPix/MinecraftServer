@@ -9,6 +9,6 @@ public class CancellableEventBus : EventBus
     }
     public new bool ShouldContinue()
     {
-        return _isCancelled;
+        return !_isCancelled;
     }
 }

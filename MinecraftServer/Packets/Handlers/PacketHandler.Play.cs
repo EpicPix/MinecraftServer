@@ -4,15 +4,18 @@ using MinecraftServer.Packets.Clientbound.Data;
 using MinecraftServer.Packets.Clientbound.Play;
 using MinecraftServer.Packets.Serverbound.Data;
 using MinecraftServer.Packets.Serverbound.Play;
+using MinecraftServer.SourceGenerators.Events;
 
 namespace MinecraftServer.Packets.Handlers;
 
 public static partial class PacketHandler
 {
 
-    [PacketEvent(typeof(CsPlayChatMessage), priority: 100)]
-    public static void HandleChatMessage(CsPlayChatMessagePacketData data, NetworkConnection connection, Server server)
+    // [PacketEvent(typeof(CsPlayChatMessage), priority: 100)]
+    [EventHandler(1, typeof(CsPlayChatMessagePacketData), 100)]
+    public static void HandleChatMessage(CsPlayChatMessagePacketData data, PacketEventBus bus)
     {
+        var (server, connection) = (bus.Server, bus.Connection);
         if (data.Message.StartsWith("/"))
         {
             var msg = data.Message.Split(" ");
@@ -39,9 +42,11 @@ public static partial class PacketHandler
         }
     }
 
-    [PacketEvent(typeof(CsPlayKeepAlive), priority: 100)]
-    public static void HandleKeepAlive(ScPlayKeepAlivePacketData data, NetworkConnection connection, Server server)
+    // [PacketEvent(typeof(CsPlayKeepAlive), priority: 100)]
+    [EventHandler(1, typeof(CsPlayKeepAlivePacketData), 100)]
+    public static void HandleKeepAlive(CsPlayKeepAlivePacketData data, PacketEventBus bus)
     {
+        var (server, connection) = (bus.Server, bus.Connection);
         if (data.KeepAliveId == connection.LastKeepAliveValue)
         {
             connection.LastKeepAlive = DateTime.UtcNow;
@@ -49,9 +54,11 @@ public static partial class PacketHandler
         }
     }
 
-    [PacketEvent(typeof(CsPlayPlayerPosition), priority: 100)]
-    public static void HandlePosition(CsPlayPlayerPositionPacketData data, NetworkConnection connection, Server server)
+    // [PacketEvent(typeof(CsPlayPlayerPosition), priority: 100)]
+    [EventHandler(1, typeof(CsPlayPlayerPositionPacketData), 100)]
+    public static void HandlePosition(CsPlayPlayerPositionPacketData data, PacketEventBus bus)
     {
+        var (server, connection) = (bus.Server, bus.Connection);
         var player = connection.Player;
         
         if ((long) player.X / 16 != (long) data.X / 16 || (long) player.Z / 16 != (long) data.Z / 16)
@@ -77,9 +84,11 @@ public static partial class PacketHandler
         player.Move(data.X, data.Y, data.Z);
     }
 
-    [PacketEvent(typeof(CsPlayPlayerPositionAndRotation), priority: 100)]
-    public static void HandlePosition(CsPlayPlayerPositionAndRotationPacketData data, NetworkConnection connection, Server server)
+    // [PacketEvent(typeof(CsPlayPlayerPositionAndRotation), priority: 100)]
+    [EventHandler(1, typeof(CsPlayPlayerPositionAndRotationPacketData), 100)]
+    public static void HandlePosition(CsPlayPlayerPositionAndRotationPacketData data, PacketEventBus bus)
     {
+        var (server, connection) = (bus.Server, bus.Connection);
         var player = connection.Player;
         
         if ((long) player.X / 16 != (long) data.X / 16 || (long) player.Z / 16 != (long) data.Z / 16)
@@ -106,17 +115,21 @@ public static partial class PacketHandler
         player.Rotate(data.Yaw, data.Pitch);
     }
 
-    [PacketEvent(typeof(CsPlayPlayerRotation), priority: 100)]
-    public static void HandlePosition(CsPlayPlayerRotationPacketData data, NetworkConnection connection, Server server)
+    // [PacketEvent(typeof(CsPlayPlayerRotation), priority: 100)]
+    [EventHandler(1, typeof(CsPlayPlayerRotationPacketData), 100)]
+    public static void HandlePosition(CsPlayPlayerRotationPacketData data, PacketEventBus bus)
     {
+        var (server, connection) = (bus.Server, bus.Connection);
         var player = connection.Player;
 
         player.Rotate(data.Yaw, data.Pitch);
     }
 
-    [PacketEvent(typeof(CsPlayAnimation), priority: 100)]
-    public static void HandleAnimation(CsPlayAnimationPacketData data, NetworkConnection connection, Server server)
+    // [PacketEvent(typeof(CsPlayAnimation), priority: 100)]
+    [EventHandler(1, typeof(CsPlayAnimationPacketData), 100)]
+    public static void HandleAnimation(CsPlayAnimationPacketData data, PacketEventBus bus)
     {
+        var (server, connection) = (bus.Server, bus.Connection);
         var player = connection.Player;
 
         foreach (var online in server.Players)
@@ -130,13 +143,15 @@ public static partial class PacketHandler
         }
     }
 
-    [PacketEvent(typeof(CsPlayEntityAction), priority: 100)]
-    public static void HandleEntityAction(CsPlayEntityActionPacketData data, NetworkConnection connection, Server server, ref PacketEventHandlerStatus status)
+    // [PacketEvent(typeof(CsPlayEntityAction), priority: 100)]
+    [EventHandler(1, typeof(CsPlayEntityActionPacketData), 100)]
+    public static void HandleEntityAction(CsPlayEntityActionPacketData data, PacketEventBus bus)
     {
+        var (server, connection) = (bus.Server, bus.Connection);
         var player = connection.Player;
         if (data.EntityId != player.EntityId)
         {
-            status = PacketEventHandlerStatus.Stop;
+            bus.Cancel();
             return;
         }
 
