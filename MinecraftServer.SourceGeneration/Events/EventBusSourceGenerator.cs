@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace MinecraftServer.SourceGeneration.Events
 {
@@ -29,29 +30,40 @@ namespace MinecraftServer.SourceGeneration.Events
 
         public void Execute(GeneratorExecutionContext context)
         {
+            _busses.Clear();
+            sb.Clear();
             Context = context;
             Compile = context.Compilation;
-            var busses = GetEventBusses(context.Compilation);
-            foreach (var bus in busses)
-            {
-                sb.AppendLine(bus.Item1.BusId + "");
-                var busAttribute = bus.Item1;
-                if (_busses.ContainsKey(busAttribute.BusId))
-                {
-                    WriteError(Location.None, $"Duplicate event bus found.",
-                        $"There cannot be two of the same event busses of id {busAttribute.BusId}.");
-                }
-                else
-                {
-                    _busses[busAttribute.BusId] = bus;
-                }
-            }
-
             try
             {
-                foreach (var data in GetEventHandlers(context.Compilation))
+                var busses = GetEventBusses(context.Compilation);
+                foreach (var bus in busses)
                 {
-                    sb.AppendLine($"{data.Item1.Priority} {data.Item1.BusId} {data.Item1.HandledData} {data.Item2}");
+                    sb.AppendLine(bus.Item1.BusId + "");
+                    var busAttribute = bus.Item1;
+                    sb.AppendLine("Adding bus " + busAttribute.BusId);
+                    if (_busses.ContainsKey(busAttribute.BusId))
+                    {
+                        WriteError(Location.None, $"Duplicate event bus found.",
+                            $"There cannot be two of the same event busses of id {busAttribute.BusId}.");
+                    }
+                    else
+                    {
+                        _busses[busAttribute.BusId] = bus;
+                    }
+                }
+
+                var handlers = GetEventHandlers(context.Compilation);
+
+                var groupedHandlers = handlers.GroupBy(x => x.Item1.BusId);
+
+                foreach (var groupedHandler in groupedHandlers)
+                {
+                    if (_busses.ContainsKey(groupedHandler.Key))
+                    {
+                        var bus = _busses[groupedHandler.Key];
+                        WriteEventBus(context, bus, groupedHandler);
+                    }
                 }
             }
             catch (Exception e)
@@ -59,18 +71,17 @@ namespace MinecraftServer.SourceGeneration.Events
                 sb.AppendLine(e.Message + " " + e.StackTrace);
             }
 
-
-            File.WriteAllText(@"D:\encodeous\MinecraftServer\MinecraftServer\log.txt", sb.ToString());
+            // File.WriteAllText(@"D:\encodeous\MinecraftServer\MinecraftServer\log.txt", sb.ToString());
         }
 
-        public void WriteEventBus(GeneratorExecutionContext context, TypeDeclarationSyntax decl, (EventBusAttribute, TypeDeclarationSyntax) bus, ImmutableArray<(EventHandlerAttribute, string)> handlers)
+        public void WriteEventBus(GeneratorExecutionContext context, (EventBusAttribute, TypeDeclarationSyntax) bus, IEnumerable<(EventHandlerAttribute, string)> handlers)
         {
-            var model = Compile.GetSemanticModel(decl.SyntaxTree);
-            var classSymbol = model.GetDeclaredSymbol(decl);
+            var model = Compile.GetSemanticModel(bus.Item2.SyntaxTree);
+            var classSymbol = model.GetDeclaredSymbol(bus.Item2);
             var ns = classSymbol.ContainingNamespace;
             var name = classSymbol.Name;
 
-            var busType = decl is ClassDeclarationSyntax ? "class" : "struct";
+            var busType = bus.Item2 is ClassDeclarationSyntax ? "class" : "struct";
 
             var builder = new StringBuilder();
             builder.AppendLine(@"// Auto Generated Code
@@ -80,27 +91,53 @@ using System.Threading.Tasks;");
                 builder.AppendLine($"namespace {ns} {{");
             }
 
-            builder.Append($@"partial {busType} {name} {{
-public static ValueTask PostEventAsync<T>(T data, DataBus instance)
-    {{
-        return data switch
-        {{");
+            builder.Append($@"    partial {busType} {name} {{
+        public static async ValueTask PostEventAsync<T>(T data, DataBus instance)
+        {{
+            switch (data)
+            {{
+");
+
+            var handlerTypes = handlers.GroupBy(x => x.Item1.HandledData);
+
+            int id = 0;
             
-            CsHandshake c => MinecraftServer.DataBus.thing(c, instance),
-            int d => MinecraftServer.DataBus.thing(d, instance),
-            
-            builder.Append(@"
-            _ => throw new InvalidOperationException(" + "\"The specified data cannot be posted. No registered event handler is able to handle that type of data!\""+ @")
+            foreach (var groupedHandlers in handlerTypes)
+            {
+                var sortedHandlers =
+                    from x in groupedHandlers
+                    orderby x.Item1.Priority descending
+                    select x;
+                builder.Append(AddCase(groupedHandlers.Key, id++, sortedHandlers));
+            }
+            builder.Append(@"                default:
+                    throw new InvalidOperationException(" + "\"The specified data cannot be posted. No registered event handler is able to handle that type of data!\");" + @"
+            }
         }
     }
-};
-}
-    
 ");
             if (ns != null)
             {
-                builder.AppendLine($"}}");
+                builder.AppendLine("}");
             }
+
+            sb.AppendLine(builder.ToString());
+            
+            context.AddSource("EventBus_" + name + ".g", SourceText.From(builder.ToString(), Encoding.UTF8));
+        }
+
+        private string AddCase(string handlerType, int handlerId, IEnumerable<(EventHandlerAttribute, string)> handlers)
+        {
+            if (!handlers.Any()) return "";
+            var builder = new StringBuilder();
+            builder.AppendLine($"                case {handlerType} ___hid{handlerId}:");
+            foreach(var handler in handlers)
+            {
+                builder.AppendLine($"                    if(instance.ShouldContinue()) await {handler.Item2}(___hid{handlerId}, instance);");
+            }
+            builder.AppendLine($"                    break;");
+            sb.AppendLine(builder.ToString());
+            return builder.ToString();
         }
 
         public void Initialize(GeneratorInitializationContext context)
