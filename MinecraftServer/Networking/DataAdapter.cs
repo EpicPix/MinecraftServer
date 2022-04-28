@@ -179,6 +179,11 @@ public abstract class DataAdapter : Stream
         tbuf[7] = (byte) value;
         return WriteBytesAsync(tbuf);
     }
+
+    public ValueTask WritePositionAsync(Position position)
+    {
+        return WriteUnsignedLongAsync((ulong) position.ToLong());
+    }
     
     public async ValueTask WriteBytesLenAsync(Memory<byte> bytes, uint max)
     {
