@@ -1,8 +1,10 @@
-﻿using MinecraftServer.Events;
+﻿using MinecraftServer.Data;
+using MinecraftServer.Events;
 using MinecraftServer.Packets.Clientbound.Data;
 using MinecraftServer.Packets.Clientbound.Play;
 using MinecraftServer.Packets.Serverbound.Data;
 using MinecraftServer.SourceGenerators.Events;
+using MinecraftServer.Types;
 
 namespace MinecraftServer.Packets.Handlers;
 
@@ -155,6 +157,27 @@ public static partial class PacketHandler
         {
             player.Sneaking = false;
             player.SetPose(Player.EntityPose.Standing);
+        }
+    }
+
+    [EventHandler(EventBuses.Packet, typeof(CsPlayPlayerDiggingPacketData), priority: 100)]
+    public static void HandleDigging(CsPlayPlayerDiggingPacketData data, PacketEventBus bus)
+    {
+        if (data.Status == CsPlayPlayerDiggingPacketData.DiggingStatus.StartedDigging)
+        {
+            // Means broke block in creative
+            var pos = data.Position;
+            var chunk = bus.Server.GetChunk(pos.X / 16, pos.Z / 16);
+            chunk[((byte) (pos.X % 16), (byte) pos.Y, (byte) (pos.Z % 16))] = BlockState.Air;
+            foreach (var update in chunk.ChunkUpdates)
+            {
+                var loc = Chunk.GetChunkIndex(update);
+                foreach (var player in bus.Server.Players)
+                {
+                    ScPlayBlockChange.Send(new ScPlayBlockChangePacketData(new Position(loc.x + pos.X / 16, loc.y, loc.z + pos.Z / 16), chunk[((byte) (pos.X % 16), (byte) pos.Y, (byte) (pos.Z % 16))]), player.Connection);
+                }
+            }
+            chunk.ChunkUpdates.Clear();
         }
     }
 }

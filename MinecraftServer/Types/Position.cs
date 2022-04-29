@@ -23,4 +23,16 @@ public readonly struct Position
                (((long) Y & 0x0000FFF) << 0);
     }
 
+    public static Position FromLong(long v)
+    {
+        return new Position(
+            (int) (v >> 38),
+            (int) ((v & 0xFFF) << 52 >> 52),
+            (int) ((v >> 12) & 0x3FFFFFF) << 26 >> 26);
+    }
+
+    public override string ToString()
+    {
+        return $"Position[X={X},Y={Y},Z={Z}]";
+    }
 }

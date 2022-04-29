@@ -180,6 +180,11 @@ public abstract class DataAdapter : Stream
         return WriteBytesAsync(tbuf);
     }
 
+    public async ValueTask<Position> ReadPositionAsync()
+    {
+        return MinecraftServer.Types.Position.FromLong((long) await ReadUnsignedLongAsync());
+    }
+
     public ValueTask WritePositionAsync(Position position)
     {
         return WriteUnsignedLongAsync((ulong) position.ToLong());
