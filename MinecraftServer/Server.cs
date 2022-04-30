@@ -120,13 +120,14 @@ public class Server
         }
     }
 
-    private Dictionary<(int, int), Chunk> _chunks = new();
+    private Dictionary<ulong, Chunk> _chunks = new();
 
     public Chunk GetChunk(int x, int z)
     {
-        if (_chunks.ContainsKey((x, z)))
+        var v = (uint) x | ((ulong) z << 32);
+        if (_chunks.ContainsKey(v))
         {
-            return _chunks[(x, z)];
+            return _chunks[v];
         }
         
         var c = new Chunk(256);
@@ -138,7 +139,7 @@ public class Server
                 c[yLevel / 16][(cx, (byte) (yLevel % 16), cz)] = BlockState.GrassBlock;
             }
         }
-        _chunks[(x, z)] = c;
+        _chunks[v] = c;
         return c;
     }
 

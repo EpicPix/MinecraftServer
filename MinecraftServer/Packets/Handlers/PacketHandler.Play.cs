@@ -168,16 +168,34 @@ public static partial class PacketHandler
             // Means broke block in creative
             var pos = data.Position;
             var chunk = bus.Server.GetChunk(pos.X / 16, pos.Z / 16);
-            chunk[((byte) (pos.X % 16), (byte) pos.Y, (byte) (pos.Z % 16))] = BlockState.Air;
+            chunk[(BlockSignedToUnsigned(pos.X), (byte) pos.Y, BlockSignedToUnsigned(pos.Z))] = BlockState.Air;
             foreach (var update in chunk.ChunkUpdates)
             {
                 var loc = Chunk.GetChunkIndex(update);
                 foreach (var player in bus.Server.Players)
                 {
-                    ScPlayBlockChange.Send(new ScPlayBlockChangePacketData(new Position(loc.x + pos.X / 16, loc.y, loc.z + pos.Z / 16), chunk[((byte) (pos.X % 16), (byte) pos.Y, (byte) (pos.Z % 16))]), player.Connection);
+                    ScPlayBlockChange.Send(new ScPlayBlockChangePacketData(
+                        (loc.x + pos.X / 16 * 16, loc.y, loc.z + pos.Z / 16 * 16),
+                        chunk[(BlockSignedToUnsigned(pos.X), (byte) pos.Y, BlockSignedToUnsigned(pos.Z))]
+                        ), player.Connection);
                 }
             }
             chunk.ChunkUpdates.Clear();
         }
+    }
+    
+    private static byte BlockSignedToUnsigned(int loc)
+    {
+        var x = (uint) loc;
+        // if (loc < 0)
+        // {
+        //     // return (byte) (loc % 16 + 16);
+        //     return (byte) (-loc % 16);
+        // }
+        if (loc < 0)
+        {
+            x -= 16;
+        }
+        return (byte) (x % 16);
     }
 }
