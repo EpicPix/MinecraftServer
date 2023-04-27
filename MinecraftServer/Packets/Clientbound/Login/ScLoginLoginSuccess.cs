@@ -22,5 +22,6 @@ public class ScLoginLoginSuccess : Packet<ScLoginLoginSuccess, ScLoginLoginSucce
         var packet = Of(data);
         await stream.WriteUuidAsync(packet.Uuid);
         await stream.WriteStringAsync(packet.Username, 16);
+        await stream.WriteVarIntAsync(0); // game profile properties count
     }
 }
