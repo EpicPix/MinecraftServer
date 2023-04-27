@@ -12,6 +12,7 @@ using MinecraftServer.Packets.Clientbound.Play;
 using MinecraftServer.Packets.Serverbound.Data;
 using MinecraftServer.Packets.Serverbound.Login;
 using MinecraftServer.SourceGenerators.Events;
+using MinecraftServer.Types;
 
 namespace MinecraftServer.Packets.Handlers;
 
@@ -101,6 +102,7 @@ public static partial class PacketHandler
             b.Dispose();
             return ValueTask.CompletedTask;
         });
+        ScPlaySpawnPosition.Send(new ScPlaySpawnPositionPacketData(new Position(0, 80, 0), 0), connection);
         server.OnPlayerJoin(connection.Player);
         for (var x = -8; x <= 8; x++)
         {
