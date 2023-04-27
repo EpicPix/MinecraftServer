@@ -104,11 +104,11 @@ public static partial class PacketHandler
         });
         ScPlaySpawnPosition.Send(new ScPlaySpawnPositionPacketData(new Position(0, 80, 0), 0), connection);
         server.OnPlayerJoin(connection.Player);
-        for (var x = -8; x <= 8; x++)
+        for (var x = -4; x <= 4; x++)
         {
-            for (var z = -8; z <= 8; z++)
+            for (var z = -4; z <= 4; z++)
             {
-                if (x * x + z * z < 8 * 8)
+                if (x * x + z * z < 4 * 4)
                 {
                     if (!connection.SentChunks.ContainsKey((x, z)))
                     {
