@@ -66,15 +66,6 @@ public class NetworkConnection : DataAdapter
             {
                 await ScPlayDisconnect.SendAsync(new ScDisconnectPacketData(new ChatComponent(reason)), this, CloseConnection, true);
             }
-            await Task.Run(async () =>
-            {
-                await Task.Delay(5000, ConnectionState);
-                // make sure to close the connection after 5 second timeout
-                if (Connected)
-                {
-                    await CloseConnection(this);
-                }
-            }, ConnectionState);
         }
     }
 

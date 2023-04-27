@@ -16,12 +16,11 @@ public static partial class PacketHandler
             bus.Connection.ChangeState(PacketType.Status);
         }else if (data.NextState == (int) PacketType.Login)
         {
-            if(data.ProtocolVersion != 462)
-            {
-                await bus.Connection.Disconnect($"Invalid protocol version. Expected 462, got {data.ProtocolVersion}");
-                return;
-            }
             bus.Connection.ChangeState(PacketType.Login);
+            if(data.ProtocolVersion != bus.Server.ServerInfo.version.protocol)
+            {
+                await bus.Connection.Disconnect($"Invalid protocol version. Expected {bus.Server.ServerInfo.version.protocol}, got {data.ProtocolVersion}");
+            }
         } else
         {
             throw new NotSupportedException($"Unsupported next state {data.NextState}");
