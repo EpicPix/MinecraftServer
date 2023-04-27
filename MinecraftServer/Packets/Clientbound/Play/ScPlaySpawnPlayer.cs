@@ -8,7 +8,7 @@ public class ScPlaySpawnPlayer : Packet<ScPlaySpawnPlayer, ScPlaySpawnPlayerPack
 
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Client;
-    public override uint Id => 0x04;
+    public override uint Id => 0x03;
 
     public override ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {

@@ -24,9 +24,7 @@ public class ScPlayPlayerPositionAndLookPacketData : PacketData
 
     public int TeleportId { get; }
 
-    public bool DismountVehicle { get; }
-
-    public ScPlayPlayerPositionAndLookPacketData(double x, double y, double z, float yaw, float pitch, RelativeFlags flags, int teleportId, bool dismountVehicle)
+    public ScPlayPlayerPositionAndLookPacketData(double x, double y, double z, float yaw, float pitch, RelativeFlags flags, int teleportId)
     {
         X = x;
         Y = y;
@@ -35,7 +33,6 @@ public class ScPlayPlayerPositionAndLookPacketData : PacketData
         Pitch = pitch;
         Flags = flags;
         TeleportId = teleportId;
-        DismountVehicle = dismountVehicle;
     }
 
 }

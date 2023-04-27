@@ -9,7 +9,7 @@ public class ScPlayPluginMessage : Packet<ScPlayPluginMessage, CsPlayPluginMessa
 
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Client;
-    public override uint Id => 0x18;
+    public override uint Id => 0x17;
 
     public override ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {

@@ -108,7 +108,7 @@ public class Player : ITickable
 
         if (HasTeleported)
         {
-            ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(X, Y, Z, Yaw, Pitch, 0x0, 0, false), Connection);
+            ScPlayPlayerPositionAndLook.Send(new ScPlayPlayerPositionAndLookPacketData(X, Y, Z, Yaw, Pitch, 0x0, 0), Connection);
             HasTeleported = false;
         }
         

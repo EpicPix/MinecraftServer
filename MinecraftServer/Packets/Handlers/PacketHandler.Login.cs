@@ -101,7 +101,6 @@ public static partial class PacketHandler
             b.Dispose();
             return ValueTask.CompletedTask;
         });
-        ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData(0, 0), connection);
         server.OnPlayerJoin(connection.Player);
         for (var x = -8; x <= 8; x++)
         {

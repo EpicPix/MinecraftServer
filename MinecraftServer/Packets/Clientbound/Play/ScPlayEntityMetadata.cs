@@ -9,7 +9,7 @@ public class ScPlayEntityMetadata : Packet<ScPlayEntityMetadata, ScPlayEntityMet
 
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Client;
-    public override uint Id => 0x4D;
+    public override uint Id => 0x52;
 
     public override ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {

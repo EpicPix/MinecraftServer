@@ -4,11 +4,12 @@ public class ScPlayPlayerInfoPacketData : PacketData
 {
     public enum UpdateAction
     {
-        AddPlayer = 0,
-        UpdateGamemode = 1,
-        UpdateLatency = 2,
-        UpdateDisplayName = 3,
-        RemovePlayer = 4
+        AddPlayer = 0x01,
+        InitializeChat = 0x02,
+        UpdateGamemode = 0x04,
+        UpdateListed = 0x08,
+        UpdateLatency = 0x10,
+        UpdateDisplayName = 0x20
     }
 
     public interface IAction
@@ -42,11 +43,6 @@ public class ScPlayPlayerInfoPacketData : PacketData
     {
         public Guid Uuid { get; set; }
         public ChatComponent? DisplayName;
-    }
-
-    public class RemovePlayerAction : IAction
-    {
-        public Guid Uuid { get; set; }
     }
 
     public UpdateAction Action;

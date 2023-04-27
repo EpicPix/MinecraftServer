@@ -7,7 +7,7 @@ public class ScPlayKeepAlive : Packet<ScPlayKeepAlive, ScPlayKeepAlivePacketData
 {
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Client;
-    public override uint Id => 0x21;
+    public override uint Id => 0x23;
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
         var keepAliveId = (long)await stream.ReadUnsignedLongAsync();

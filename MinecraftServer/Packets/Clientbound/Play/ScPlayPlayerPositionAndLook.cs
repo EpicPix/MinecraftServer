@@ -8,7 +8,7 @@ public class ScPlayPlayerPositionAndLook : Packet<ScPlayPlayerPositionAndLook, S
 
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Client;
-    public override uint Id => 0x38;
+    public override uint Id => 0x3C;
 
     public override ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
@@ -26,6 +26,5 @@ public class ScPlayPlayerPositionAndLook : Packet<ScPlayPlayerPositionAndLook, S
         await stream.WriteFloatAsync(packet.Pitch);
         await stream.WriteByteAsync((byte) packet.Flags);
         await stream.WriteVarIntAsync(packet.TeleportId);
-        await stream.WriteBoolAsync(packet.DismountVehicle);
     }
 }

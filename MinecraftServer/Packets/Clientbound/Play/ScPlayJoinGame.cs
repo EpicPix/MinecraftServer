@@ -16,6 +16,19 @@ public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
         throw new NotImplementedException();
     }
 
+    private static NbtTagCompound CreateDamageType(string type)
+    {
+        return new NbtTagCompound()
+            .SetInteger("id", 0)
+            .SetString("name", type)
+            .Set("element",
+                new NbtTagCompound()
+                    .SetString("message_id", type)
+                    .SetFloat("exhaustion", 0)
+                    .SetString("scaling", "never")
+            );
+    }
+
     public override async ValueTask WritePacket(DataAdapter stream, PacketData data)
     {
         var packet = Of(data);
@@ -63,12 +76,12 @@ public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
             .Set("minecraft:worldgen/biome", 
                 new NbtTagCompound()
                     .SetString("type", "minecraft:worldgen/biome")
-                    .Set("value", 
+                    .Set("value",
                         new NbtTagList<NbtTagCompound>()
                             .Add(new NbtTagCompound()
                                 .SetString("name", "minecraft:the_void")
                                 .SetInteger("id", 0)
-                                .Set("element", 
+                                .Set("element",
                                     new NbtTagCompound()
                                         .SetInteger("has_precipitation", 0)
                                         .SetFloat("temperature", 0)
@@ -86,7 +99,7 @@ public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
                             .Add(new NbtTagCompound()
                                 .SetString("name", "minecraft:plains")
                                 .SetInteger("id", 1)
-                                .Set("element", 
+                                .Set("element",
                                     new NbtTagCompound()
                                         .SetInteger("has_precipitation", 0)
                                         .SetFloat("temperature", 0)
@@ -101,6 +114,33 @@ public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
                                         )
                                 )
                             )
+                    )
+            )
+            .Set("minecraft:damage_type",
+                new NbtTagCompound()
+                    .SetString("type", "minecraft:damage_type")
+                    .Set("value", new NbtTagList<NbtTagCompound>()
+                        .Add(CreateDamageType("minecraft:in_fire"))
+                        .Add(CreateDamageType("minecraft:lightning_bolt"))
+                        .Add(CreateDamageType("minecraft:on_fire"))
+                        .Add(CreateDamageType("minecraft:lava"))
+                        .Add(CreateDamageType("minecraft:hot_floor"))
+                        .Add(CreateDamageType("minecraft:in_wall"))
+                        .Add(CreateDamageType("minecraft:cramming"))
+                        .Add(CreateDamageType("minecraft:drown"))
+                        .Add(CreateDamageType("minecraft:starve"))
+                        .Add(CreateDamageType("minecraft:cactus"))
+                        .Add(CreateDamageType("minecraft:fall"))
+                        .Add(CreateDamageType("minecraft:fly_into_wall"))
+                        .Add(CreateDamageType("minecraft:out_of_world"))
+                        .Add(CreateDamageType("minecraft:generic"))
+                        .Add(CreateDamageType("minecraft:magic"))
+                        .Add(CreateDamageType("minecraft:wither"))
+                        .Add(CreateDamageType("minecraft:dragon_breath"))
+                        .Add(CreateDamageType("minecraft:dry_out"))
+                        .Add(CreateDamageType("minecraft:sweet_berry_bush"))
+                        .Add(CreateDamageType("minecraft:freeze"))
+                        .Add(CreateDamageType("minecraft:stalagmite"))
                     )
             )
             .Write(stream);

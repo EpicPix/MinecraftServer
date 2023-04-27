@@ -60,8 +60,6 @@ public static partial class PacketHandler
         
         if ((long) player.X / 16 != (long) data.X / 16 || (long) player.Z / 16 != (long) data.Z / 16)
         {
-            ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData((int) data.X / 16, (int) data.Z / 16), connection);
-            
             for (var x = -3; x <= 3; x++)
             {
                 for (var z = -3; z <= 3; z++)
@@ -89,8 +87,6 @@ public static partial class PacketHandler
         
         if ((long) player.X / 16 != (long) data.X / 16 || (long) player.Z / 16 != (long) data.Z / 16)
         {
-            ScPlayUpdateViewPosition.Send(new ScPlayUpdateViewPositionPacketData((int) data.X / 16, (int) data.Z / 16), connection);
-            
             for (var x = -3; x <= 3; x++)
             {
                 for (var z = -3; z <= 3; z++)

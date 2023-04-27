@@ -9,7 +9,7 @@ public class ScPlayChatMessage : Packet<ScPlayChatMessage, ScPlayChatMessagePack
 
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Client;
-    public override uint Id => 0x0F;
+    public override uint Id => 0x1B;
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
@@ -30,8 +30,8 @@ public class ScPlayChatMessage : Packet<ScPlayChatMessage, ScPlayChatMessagePack
         await using var mem = new MemoryStream();
         await JsonSerializer.SerializeAsync(mem, packet.Data, SerializationContext.Default.ChatComponent);
         await stream.WriteBytesLenAsync(mem.ToArray(), ushort.MaxValue);
-
-        await stream.WriteByteAsync((byte) packet.Position);
-        await stream.WriteUuidAsync(packet.Sender);
+        await stream.WriteVarIntAsync(0);
+        await stream.WriteStringAsync("{\"text\":\"the component\"}}", ushort.MaxValue);
+        await stream.WriteBoolAsync(false);
     }
 }

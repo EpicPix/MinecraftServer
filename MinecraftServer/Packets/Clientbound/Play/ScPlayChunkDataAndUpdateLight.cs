@@ -9,7 +9,7 @@ public class ScPlayChunkDataAndUpdateLight : Packet<ScPlayChunkDataAndUpdateLigh
 
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Client;
-    public override uint Id => 0x22;
+    public override uint Id => 0x24;
 
     public override ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
@@ -20,6 +20,7 @@ public class ScPlayChunkDataAndUpdateLight : Packet<ScPlayChunkDataAndUpdateLigh
     {
         var data = Of(pData);
         
+        Console.WriteLine(data.ChunkX + " : " + data.ChunkZ);
         await stream.WriteIntAsync(data.ChunkX);
         await stream.WriteIntAsync(data.ChunkZ);
 

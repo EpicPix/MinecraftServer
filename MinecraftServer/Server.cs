@@ -53,10 +53,10 @@ public class Server
     public void BroadcastMessage(ChatComponent message)
     {
         Console.WriteLine(message.text);
-        foreach (var onlinePlayer in Players)
-        {
-            onlinePlayer.SendMessage(message);
-        }
+//        foreach (var onlinePlayer in Players)
+//        {
+//            onlinePlayer.SendMessage(message);
+//        }
     }
 
     public void OnPlayerJoin(Player player)
@@ -111,11 +111,7 @@ public class Server
         
         foreach (var onlinePlayer in Players)
         {
-            ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.RemovePlayer, new List<ScPlayPlayerInfoPacketData.IAction> {
-                new ScPlayPlayerInfoPacketData.RemovePlayerAction {
-                    Uuid = player.Uuid
-                }
-            }), onlinePlayer.Connection);
+            ScPlayPlayerInfoRemove.Send(new ScPlayPlayerInfoRemovePacketData(new List<Guid> { player.Uuid }), onlinePlayer.Connection);
             ScPlayDestroyEntities.Send(new ScPlayDestroyEntitiesPacketData(new List<int> { (int) player.EntityId }), onlinePlayer.Connection);
         }
     }

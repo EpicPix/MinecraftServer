@@ -9,7 +9,7 @@ public class ScPlayPlayerInfo : Packet<ScPlayPlayerInfo, ScPlayPlayerInfoPacketD
     
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Client;
-    public override uint Id => 0x36;
+    public override uint Id => 0x3A;
 
     public override ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
@@ -20,7 +20,7 @@ public class ScPlayPlayerInfo : Packet<ScPlayPlayerInfo, ScPlayPlayerInfoPacketD
     {
         var data = Of(pData);
 
-        await stream.WriteVarIntAsync((int) data.Action);
+        await stream.WriteByteAsync((byte) data.Action);
         await stream.WriteVarIntAsync(data.Actions.Count);
         foreach (var action in data.Actions)
         {
@@ -46,16 +46,6 @@ public class ScPlayPlayerInfo : Packet<ScPlayPlayerInfo, ScPlayPlayerInfoPacketD
                 } else
                 {
                     await stream.WriteVarIntAsync(0);
-                }
-
-                await stream.WriteVarIntAsync(a.Gamemode);
-                await stream.WriteVarIntAsync(a.Ping);
-                await stream.WriteBoolAsync(a.DisplayName != null);
-                if (a.DisplayName != null)
-                {
-                    await using var mem = new MemoryStream();
-                    await JsonSerializer.SerializeAsync(mem, a.DisplayName, SerializationContext.Default.ChatComponent);
-                    await stream.WriteBytesLenAsync(mem.ToArray(), ushort.MaxValue);
                 }
             }
             else if (data.Action == ScPlayPlayerInfoPacketData.UpdateAction.UpdateGamemode)
