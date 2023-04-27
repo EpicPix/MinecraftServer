@@ -49,7 +49,7 @@ public static partial class PacketHandler
         connection.Profile = JsonSerializer.Deserialize(await result.Content.ReadAsStringAsync(), SerializationContext.Default.GameProfile!);
         connection.Username = connection.Profile!.name;
         connection.Uuid = connection.Profile.Uuid;
-        Console.WriteLine($"Player has connected with info: {JsonSerializer.Serialize(connection.Profile, SerializationContext.Default.GameProfile)}");
+        Console.WriteLine($"Player has connected with UUID {connection.Uuid}, and username '{connection.Username}'");
         connection.Encrypt();
         Console.WriteLine(@"Stream is now encrypted");
         
