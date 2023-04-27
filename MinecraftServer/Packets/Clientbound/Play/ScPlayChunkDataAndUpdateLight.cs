@@ -1,3 +1,4 @@
+using MinecraftServer.Data;
 using MinecraftServer.Nbt;
 using MinecraftServer.Networking;
 using MinecraftServer.Packets.Clientbound.Data;
@@ -20,20 +21,10 @@ public class ScPlayChunkDataAndUpdateLight : Packet<ScPlayChunkDataAndUpdateLigh
     {
         var data = Of(pData);
         
-        Console.WriteLine(data.ChunkX + " : " + data.ChunkZ);
         await stream.WriteIntAsync(data.ChunkX);
         await stream.WriteIntAsync(data.ChunkZ);
 
-        var arr = new NbtTagLongArray();
-        // 7 bits per xz
-        for (uint i = 0; i < 37; i++)
-        {
-            arr.Add(0);
-        }
-        
-        await new NbtTagRoot()
-            .Set("MOTION_BLOCKING", arr)
-            .Write(stream);
+        await new NbtTagRoot().Write(stream);
 
         await using var ms = new MemoryStream();
         await using var s = new StreamAdapter(ms);
