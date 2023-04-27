@@ -153,6 +153,23 @@ public abstract class DataAdapter : Stream
         return WriteBytesAsync(tbuf);
     }
 
+    public async ValueTask<Guid?> ReadOptionalUuidAsync()
+    {
+        if(await ReadBoolAsync())
+        {
+            return null;
+        }
+        return await ReadUuidAsync();
+    }
+
+    public async ValueTask WriteOptionalUuidAsync(Guid? uuid)
+    {
+        await WriteBoolAsync(uuid.HasValue);
+        if(!uuid.HasValue)
+            return;
+        await WriteUuidAsync(uuid.Value);
+    }
+
     public async ValueTask<ulong> ReadUnsignedLongAsync()
     {
         using var tbuf = await ReadBytesAsync(8);
