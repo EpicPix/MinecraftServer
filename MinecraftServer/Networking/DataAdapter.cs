@@ -155,7 +155,7 @@ public abstract class DataAdapter : Stream
 
     public async ValueTask<Guid?> ReadOptionalUuidAsync()
     {
-        if(await ReadBoolAsync())
+        if(!await ReadBoolAsync())
         {
             return null;
         }
