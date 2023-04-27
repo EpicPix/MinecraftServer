@@ -9,8 +9,8 @@ public record struct ServerInfo()
 
     public record struct VersionInfo()
     {
-        public string name { get; set; } = "1.18.2";
-        public int protocol { get; set; } = 758;
+        public string name { get; set; } = "1.19.4";
+        public int protocol { get; set; } = 762;
     };
 
     public record struct PlayerInfo()
