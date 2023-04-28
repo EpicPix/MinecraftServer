@@ -8,7 +8,7 @@ public class ScPlayBlockChange : Packet<ScPlayBlockChange, ScPlayBlockChangePack
 
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Client;
-    public override uint Id => 0x0C;
+    public override uint Id => 0x0A;
 
     public override ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {

@@ -8,7 +8,7 @@ public class ScPlayEntityAnimation : Packet<ScPlayEntityAnimation, ScPlayerEntit
 
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Client;
-    public override uint Id => 0x06;
+    public override uint Id => 0x04;
 
     public override ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {

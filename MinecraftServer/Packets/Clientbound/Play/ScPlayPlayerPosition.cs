@@ -10,7 +10,7 @@ public class ScPlayPlayerPosition : Packet<ScPlayPlayerPosition, ScPlayPlayerPos
 
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Client;
-    public override uint Id => 0x29;
+    public override uint Id => 0x2B;
 
     public override ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {

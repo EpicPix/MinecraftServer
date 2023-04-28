@@ -10,7 +10,7 @@ public class ScPlayEntityTeleport : Packet<ScPlayEntityTeleport, ScPlayEntityTel
 
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Client;
-    public override uint Id => 0x62;
+    public override uint Id => 0x68;
 
     public override ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {

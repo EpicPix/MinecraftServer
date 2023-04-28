@@ -8,7 +8,7 @@ public class ScPlayDestroyEntities : Packet<ScPlayDestroyEntities, ScPlayDestroy
 
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Client;
-    public override uint Id => 0x3A;
+    public override uint Id => 0x3E;
 
     public override ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {

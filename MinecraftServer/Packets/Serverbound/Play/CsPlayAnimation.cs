@@ -8,7 +8,7 @@ public class CsPlayAnimation : Packet<CsPlayAnimation, CsPlayAnimationPacketData
 
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Server;
-    public override uint Id => 0x2C;
+    public override uint Id => 0x2F;
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {

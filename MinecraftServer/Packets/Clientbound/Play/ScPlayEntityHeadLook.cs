@@ -10,7 +10,7 @@ public class ScPlayEntityHeadLook : Packet<ScPlayEntityHeadLook, ScPlayEntityHea
 
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Client;
-    public override uint Id => 0x3E;
+    public override uint Id => 0x42;
 
     public override ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {

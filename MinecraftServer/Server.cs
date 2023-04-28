@@ -72,10 +72,7 @@ public class Server
             var action = new ScPlayPlayerInfoPacketData.AddPlayerAction {
                 Uuid = onlinePlayer.Uuid,
                 Username = onlinePlayer.Username,
-                Profile = onlinePlayer.Connection.Profile,
-                Gamemode = 1,
-                Ping = 0,
-                DisplayName = null
+                Profile = onlinePlayer.Connection.Profile
             };
             actions.Add(action);
             var actionListed = new ScPlayPlayerInfoPacketData.UpdateListedAction {

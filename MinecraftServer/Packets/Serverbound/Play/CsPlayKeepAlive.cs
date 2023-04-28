@@ -8,7 +8,7 @@ public class CsPlayKeepAlive : Packet<CsPlayKeepAlive, CsPlayKeepAlivePacketData
 {
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Server;
-    public override uint Id => 0x0F;
+    public override uint Id => 0x12;
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {
         var id = (long)await stream.ReadUnsignedLongAsync();

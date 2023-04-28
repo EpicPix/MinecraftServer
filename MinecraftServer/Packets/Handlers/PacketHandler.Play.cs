@@ -68,7 +68,7 @@ public static partial class PacketHandler
                     {
                         if (!connection.SentChunks.ContainsKey((x + (int) data.X / 16, z + (int) data.Z / 16)))
                         {
-                            connection.SentChunks[(x + (int) data.X / 16, z + (int) data.Z / 16)] = true;
+//                            connection.SentChunks[(x + (int) data.X / 16, z + (int) data.Z / 16)] = true;
 //                            ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x + (int) data.X / 16, z + (int) data.Z / 16, server.GetChunk(x + (int) data.X / 16, z + (int) data.Z / 16)), connection);
                         }
                     }
@@ -95,7 +95,7 @@ public static partial class PacketHandler
                     {
                         if (!connection.SentChunks.ContainsKey((x + (int) data.X / 16, z + (int) data.Z / 16)))
                         {
-                            connection.SentChunks[(x + (int) data.X / 16, z + (int) data.Z / 16)] = true;
+//                            connection.SentChunks[(x + (int) data.X / 16, z + (int) data.Z / 16)] = true;
 //                            ScPlayChunkDataAndUpdateLight.Send(new ScPlayChunkDataAndUpdateLightPacketData(x + (int) data.X / 16, z + (int) data.Z / 16, server.GetChunk(x + (int) data.X / 16, z + (int) data.Z / 16)), connection);
                         }
                     }
@@ -165,18 +165,13 @@ public static partial class PacketHandler
             var pos = data.Position;
             var chunk = bus.Server.GetChunk(pos.X / 16, pos.Z / 16);
             chunk[(BlockSignedToUnsigned(pos.X), (byte) pos.Y, BlockSignedToUnsigned(pos.Z))] = BlockState.Air;
-            foreach (var update in chunk.ChunkUpdates)
+            foreach (var player in bus.Server.Players)
             {
-                var loc = Chunk.GetChunkIndex(update);
-                foreach (var player in bus.Server.Players)
-                {
-                    ScPlayBlockChange.Send(new ScPlayBlockChangePacketData(
-                        (loc.x + pos.X / 16 * 16, loc.y, loc.z + pos.Z / 16 * 16),
-                        chunk[(BlockSignedToUnsigned(pos.X), (byte) pos.Y, BlockSignedToUnsigned(pos.Z))]
-                        ), player.Connection);
-                }
+                ScPlayBlockChange.Send(new ScPlayBlockChangePacketData(
+                    pos,
+                    BlockState.Air
+                ), player.Connection);
             }
-            chunk.ChunkUpdates.Clear();
         }
     }
     

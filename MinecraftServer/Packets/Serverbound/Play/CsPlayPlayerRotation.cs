@@ -8,7 +8,7 @@ public class CsPlayPlayerRotation : Packet<CsPlayPlayerRotation, CsPlayPlayerRot
 
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Server;
-    public override uint Id => 0x13;
+    public override uint Id => 0x16;
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {

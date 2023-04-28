@@ -141,6 +141,7 @@ public class ScPlayJoinGame : Packet<ScPlayJoinGame, ScPlayJoinGamePacketData>
                         .Add(CreateDamageType("minecraft:sweet_berry_bush"))
                         .Add(CreateDamageType("minecraft:freeze"))
                         .Add(CreateDamageType("minecraft:stalagmite"))
+                        .Add(CreateDamageType("minecraft:player_attack"))
                     )
             )
             .Write(stream);

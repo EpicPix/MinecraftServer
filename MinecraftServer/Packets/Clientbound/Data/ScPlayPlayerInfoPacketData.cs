@@ -22,9 +22,6 @@ public class ScPlayPlayerInfoPacketData : PacketData
         public Guid Uuid { get; set; }
         public string Username = null!;
         public GameProfile? Profile;
-        public int Gamemode;
-        public int Ping;
-        public ChatComponent? DisplayName;
     }
 
     public class UpdateListedAction : IAction

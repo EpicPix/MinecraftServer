@@ -8,7 +8,7 @@ public class CsPlayClientSettings : Packet<CsPlayClientSettings, CsPlayClientSet
 
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Server;
-    public override uint Id => 0x05;
+    public override uint Id => 0x08;
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {

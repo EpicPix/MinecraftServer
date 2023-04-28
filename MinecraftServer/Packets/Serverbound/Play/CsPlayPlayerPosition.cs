@@ -8,7 +8,7 @@ public class CsPlayPlayerPosition : Packet<CsPlayPlayerPosition, CsPlayPlayerPos
 
     public override PacketType Type => PacketType.Play;
     public override PacketBound Bound => PacketBound.Server;
-    public override uint Id => 0x11;
+    public override uint Id => 0x14;
 
     public override async ValueTask<PacketData> ReadPacket(DataAdapter stream)
     {

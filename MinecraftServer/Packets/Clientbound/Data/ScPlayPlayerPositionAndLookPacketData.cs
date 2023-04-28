@@ -1,6 +1,6 @@
 namespace MinecraftServer.Packets.Clientbound.Data;
 
-public class ScPlayPlayerPositionAndLookPacketData : PacketData
+public class ScPlaySynchronizePositionPacketData : PacketData
 {
     [Flags]
     public enum RelativeFlags
@@ -24,7 +24,7 @@ public class ScPlayPlayerPositionAndLookPacketData : PacketData
 
     public int TeleportId { get; }
 
-    public ScPlayPlayerPositionAndLookPacketData(double x, double y, double z, float yaw, float pitch, RelativeFlags flags, int teleportId)
+    public ScPlaySynchronizePositionPacketData(double x, double y, double z, float yaw, float pitch, RelativeFlags flags, int teleportId)
     {
         X = x;
         Y = y;

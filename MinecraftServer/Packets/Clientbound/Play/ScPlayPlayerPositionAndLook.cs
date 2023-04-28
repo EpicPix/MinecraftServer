@@ -3,7 +3,7 @@ using MinecraftServer.Packets.Clientbound.Data;
 
 namespace MinecraftServer.Packets.Clientbound.Play;
 
-public class ScPlayPlayerPositionAndLook : Packet<ScPlayPlayerPositionAndLook, ScPlayPlayerPositionAndLookPacketData>
+public class ScPlaySynchronizePosition : Packet<ScPlaySynchronizePosition, ScPlaySynchronizePositionPacketData>
 {
 
     public override PacketType Type => PacketType.Play;
