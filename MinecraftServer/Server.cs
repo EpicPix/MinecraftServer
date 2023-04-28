@@ -66,6 +66,7 @@ public class Server
         
         // TODO Move this to the first tick of the player joining
         var actions = new List<ScPlayPlayerInfoPacketData.IAction>();
+        var actionsListed = new List<ScPlayPlayerInfoPacketData.IAction>();
         foreach (var onlinePlayer in Players)
         {
             var action = new ScPlayPlayerInfoPacketData.AddPlayerAction {
@@ -77,18 +78,26 @@ public class Server
                 DisplayName = null
             };
             actions.Add(action);
+            var actionListed = new ScPlayPlayerInfoPacketData.UpdateListedAction {
+                Uuid = onlinePlayer.Uuid,
+                Listed = true
+            };
+            actionsListed.Add(actionListed);
             if (player == onlinePlayer)
             {
                 foreach (var eonlinePlayer in Players)
                 {
                     if (eonlinePlayer == player) continue;
                     ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.AddPlayer, new List<ScPlayPlayerInfoPacketData.IAction> { action }), eonlinePlayer.Connection);
+                    ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.UpdateListed, new List<ScPlayPlayerInfoPacketData.IAction> { actionListed }), eonlinePlayer.Connection);
                 }
                 continue;
             }
             ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.AddPlayer, new List<ScPlayPlayerInfoPacketData.IAction> { action }), onlinePlayer.Connection);
+            ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.UpdateListed, new List<ScPlayPlayerInfoPacketData.IAction> { actionListed }), onlinePlayer.Connection);
         }
         ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.AddPlayer, actions), player.Connection);
+        ScPlayPlayerInfo.Send(new ScPlayPlayerInfoPacketData(ScPlayPlayerInfoPacketData.UpdateAction.UpdateListed, actionsListed), player.Connection);
         var spawn = new ScPlaySpawnPlayerPacketData((int) player.EntityId, player.Uuid, player.ClientX, player.ClientY, player.ClientZ, player.Yaw, player.Pitch);
         foreach (var eonlinePlayer in Players)
         {

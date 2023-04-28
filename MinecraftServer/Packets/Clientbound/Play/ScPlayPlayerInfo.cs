@@ -48,6 +48,10 @@ public class ScPlayPlayerInfo : Packet<ScPlayPlayerInfo, ScPlayPlayerInfoPacketD
                     await stream.WriteVarIntAsync(0);
                 }
             }
+            else if (data.Action == ScPlayPlayerInfoPacketData.UpdateAction.UpdateListed)
+            {
+                await stream.WriteBoolAsync(((ScPlayPlayerInfoPacketData.UpdateListedAction) action).Listed);
+            }
             else if (data.Action == ScPlayPlayerInfoPacketData.UpdateAction.UpdateGamemode)
             {
                 await stream.WriteVarIntAsync(((ScPlayPlayerInfoPacketData.UpdateGamemodeAction) action).Gamemode);

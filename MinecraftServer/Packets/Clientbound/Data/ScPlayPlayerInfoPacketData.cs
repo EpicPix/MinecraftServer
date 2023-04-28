@@ -27,6 +27,12 @@ public class ScPlayPlayerInfoPacketData : PacketData
         public ChatComponent? DisplayName;
     }
 
+    public class UpdateListedAction : IAction
+    {
+        public Guid Uuid { get; set; }
+        public bool Listed;
+    }
+
     public class UpdateGamemodeAction : IAction
     {
         public Guid Uuid { get; set; }
